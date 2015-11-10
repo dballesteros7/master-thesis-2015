@@ -1,6 +1,6 @@
 from enum import Enum
 
-from crawl.boundingbox import BoundingBox
+from flickr.boundingbox import BoundingBox
 
 
 class City(Enum):

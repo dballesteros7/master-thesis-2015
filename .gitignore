@@ -61,3 +61,8 @@ target/
 
 # The data
 data/
+
+# Web stuff
+node_modules
+dist
+bower_components

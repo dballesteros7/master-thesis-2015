@@ -2,14 +2,13 @@ import calendar
 import datetime
 import json
 import logging
-import os
 import time
 
 import flickrapi
 
-from crawl import secrets
-from crawl.boundingbox import BoundingBox
-from crawl.city import City
+from flickr import secrets
+from flickr.boundingbox import BoundingBox
+from flickr.city import City
 
 _REQUESTS_PER_HOUR_LIMIT = 3000
 
@@ -26,7 +25,7 @@ class RateLimiter:
             self.requests_in_last_hour = 0
             logging.info('It is a new hour, resetting rate limiter\'s counter.')
         elif self.requests_in_last_hour > _REQUESTS_PER_HOUR_LIMIT:
-            nap_time = time.sleep((60 - datetime.datetime.now().minute) * 60)
+            nap_time = (60 - datetime.datetime.now().minute) * 60
             logging.info('Sleeping for {} seconds before continuing, limit has been hit.'.format(nap_time))
             time.sleep(nap_time)
         self.requests_in_last_hour += 1
@@ -67,7 +66,7 @@ class FlickrService:
 
 def get_photos_for_city(city: City):
     service = FlickrService()
-    years = range(2015, 2016)
+    years = range(2012, 2013)
     output_file_template = '/local/workspace/master-thesis-2015/data/raw/{city_name}-{year}-{page}.json'
     logging.info('Processing city {}.'.format(city.city_name))
     for year in years:
@@ -88,4 +87,4 @@ def get_photos_for_city(city: City):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(funcName)s:%(module)s:%(message)s')
-    get_photos_for_city(City.ZURICH)
+    get_photos_for_city(City.LONDON)
