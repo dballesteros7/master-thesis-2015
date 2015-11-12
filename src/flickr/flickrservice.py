@@ -63,7 +63,6 @@ class FlickrService:
             page, result['photos']['pages']))
         return result
 
-
 def get_photos_for_city(city: City):
     service = FlickrService()
     years = range(2013, 2016)

@@ -6,6 +6,7 @@ from flask.json import JSONEncoder
 from flask.ext.cors import CORS
 
 from clustering.meanshift import cluster_photos
+from processing.path_discovery import PathFinder
 from storage.cluster_storage import ClusterStorage
 from storage.data_loader import DataLoader
 
@@ -43,6 +44,22 @@ def cluster_handler():
                           cluster['unique_users'] > min_unique_users]
     return jsonify(**result)
 
+
+@app.route('/path')
+def path_handler():
+    args = request.args
+    bandwidth = args['bandwidth']
+    city_name = args['city_name']
+    path_finder = PathFinder()
+    paths = path_finder.find_random_path(city_name, bandwidth)
+    colors = ['blue', 'red', 'black', 'yellow', 'green', 'brown', 'white', 'magenta', 'cyan', 'purple']
+    augmented_paths = []
+    for path, color in zip(paths, colors):
+        augmented_paths.append({
+            'points': path,
+            'color': color
+        })
+    return jsonify(paths=augmented_paths)
 
 if __name__ == "__main__":
     app.run(port=9999, debug=True)

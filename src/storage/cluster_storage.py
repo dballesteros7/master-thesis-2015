@@ -5,7 +5,7 @@ from pymongo import MongoClient
 
 class ClusterStorage:
     def __init__(self):
-        client = MongoClient()
+        client = MongoClient(port=4321)
         self.collection = client.flickrdata.cluster_results
 
     def get_cluster(self, city_name, bandwidth):

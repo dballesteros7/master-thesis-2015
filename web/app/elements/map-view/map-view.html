@@ -45,6 +45,7 @@
         <paper-input label="Minimum users per cluster" type="number" value="{{minUniqueUsers}}"
                      min="1" prevent-invalid-input="true" required>
         </paper-input>
+        <paper-button raised on-tap="drawPaths">Draw paths</paper-button>
       </paper-material>
     </div>
 
@@ -73,10 +74,12 @@
             type: String,
             value: '100m'
           }
+        },
+        drawPaths: function() {
+          this.$$('cluster-map').loadPaths();
         }
       });
     })();
   </script>
 
 </dom-module>
-

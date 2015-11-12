@@ -19,9 +19,15 @@
         top: calc(50% - 14px);
       }
     </style>
-    <iron-ajax auto url="http://localhost:9999/cluster" handle-as="json" last-response="{{clusterResponse}}"
-        params="[[toRequestParams(cityName, bandwidth, minUniqueUsers, minClusterPhotos)]]"
-        loading="{{loadingClusters}}"></iron-ajax>
+    <iron-ajax auto url="http://localhost:9999/cluster" handle-as="json"
+               last-response="{{clusterResponse}}"
+               params="[[toRequestParams(cityName, bandwidth, minUniqueUsers, minClusterPhotos)]]"
+               loading="{{loadingClusters}}"></iron-ajax>
+    <iron-ajax id="path-ajax"
+               url="http://localhost:9999/path" handle-as="json"
+               last-response="{{pathResponse}}"
+               params="[[toRequestParams(cityName, bandwidth, minUniqueUsers, minClusterPhotos)]]"
+               loading="{{loadingPaths}}"></iron-ajax>
     <google-map api-key="AIzaSyBrqehx1ty3iUCEAgeGU_z5vq60CDHFkJw" fit-to-markers single-info-window="true">
       <template is="dom-repeat" items="[[clusterResponse.clusters]]">
         <google-map-marker latitude="[[item.latitude]]" longitude="[[item.longitude]]">
@@ -31,8 +37,16 @@
           </div>
         </google-map-marker>
       </template>
+      <template is="dom-repeat" items="[[pathResponse.paths]]" as="path">
+        <google-map-poly stroke-color="[[path.color]]">
+          <template is="dom-repeat" items="[[path.points]]" as="point">
+            <google-map-point latitude="[[point.1]]" longitude="[[point.2]]">
+            </google-map-point>
+          </template>
+        </google-map-poly>
+      </template>
     </google-map>
-    <paper-spinner active="[[loadingClusters]]"></paper-spinner>
+    <paper-spinner active="[[loading]]"></paper-spinner>
   </template>
 
   <script>
@@ -57,6 +71,14 @@
           minClusterPhotos: {
             type: Number,
             value: 100
+          },
+          loadingPaths: {
+            type: Boolean,
+            value: false
+          },
+          loading: {
+            type: Boolean,
+            computed: 'isLoading(loadingPaths, loadingClusters)'
           }
         },
         toRequestParams: function(cityName, bandwidth, minUniqueUsers, minClusterPhotos) {
@@ -66,6 +88,12 @@
             min_unique_users: minUniqueUsers,
             min_cluster_photos: minClusterPhotos
           };
+        },
+        isLoading: function(loadingPaths, loadingClusters) {
+          return loadingPaths || loadingClusters;
+        },
+        loadPaths: function() {
+          this.$$('#path-ajax').generateRequest();
         }
       });
     })();
