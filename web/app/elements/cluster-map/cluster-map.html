@@ -1,0 +1,75 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="cluster-map">
+  <template>
+    <style include="shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+        height: 600px;
+      }
+
+      google-map {
+        height: 600px;
+      }
+
+      paper-spinner {
+        left: calc(50% - 14px);
+        position: absolute;
+        top: calc(50% - 14px);
+      }
+    </style>
+    <iron-ajax auto url="http://localhost:9999/cluster" handle-as="json" last-response="{{clusterResponse}}"
+        params="[[toRequestParams(cityName, bandwidth, minUniqueUsers, minClusterPhotos)]]"
+        loading="{{loadingClusters}}"></iron-ajax>
+    <google-map api-key="AIzaSyBrqehx1ty3iUCEAgeGU_z5vq60CDHFkJw" fit-to-markers single-info-window="true">
+      <template is="dom-repeat" items="[[clusterResponse.clusters]]">
+        <google-map-marker latitude="[[item.latitude]]" longitude="[[item.longitude]]">
+          <div id="content">
+            <p>Number of photos: [[item.number_of_photos]]</p>
+            <p>Number of users: [[item.unique_users]]</p>
+          </div>
+        </google-map-marker>
+      </template>
+    </google-map>
+    <paper-spinner active="[[loadingClusters]]"></paper-spinner>
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'cluster-map',
+        properties: {
+          cityName: {
+            type: String,
+            value: 'zurich'
+          },
+          bandwidth: {
+            type: String,
+            value: '100m'
+          },
+          minUniqueUsers: {
+            type: Number,
+            value: 20
+          },
+          minClusterPhotos: {
+            type: Number,
+            value: 100
+          }
+        },
+        toRequestParams: function(cityName, bandwidth, minUniqueUsers, minClusterPhotos) {
+          return {
+            city_name: cityName,
+            bandwidth: bandwidth,
+            min_unique_users: minUniqueUsers,
+            min_cluster_photos: minClusterPhotos
+          };
+        }
+      });
+    })();
+  </script>
+
+</dom-module>
+

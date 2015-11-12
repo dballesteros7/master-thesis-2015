@@ -59,32 +59,45 @@ class FlickrService:
             bbox=bbox.to_flickr_bounding_box(),
             accuracy=self._CITY_STREET_ACCURACY, content_type=self._PHOTOS_CONTENT_TYPE, has_geo="1",
             page=page, extras='description,license,date_upload,date_taken,geo,tags,machine_tags,views')
-        logging.info('Got a new result for page {} out of {} with {} photos.'.format(
-            page, result['photos']['pages'], result['photos']['perpage']))
+        logging.info('Got a new result for page {} out of {}.'.format(
+            page, result['photos']['pages']))
         return result
 
 
 def get_photos_for_city(city: City):
     service = FlickrService()
-    years = range(2012, 2013)
-    output_file_template = '/local/workspace/master-thesis-2015/data/raw/{city_name}-{year}-{page}.json'
+    years = range(2013, 2016)
+    output_file_template = '/local/workspace/master-thesis-2015/data/nodups/{city_name}-{year}-{month}-{day}-{page}.json'
     logging.info('Processing city {}.'.format(city.city_name))
     for year in years:
-        logging.info('Getting photos for year {}.'.format(year))
-        page = 1
-        result = service.get_geotagged_photos(city.bounding_box, datetime.date(year, 1, 1), datetime.date(year, 12, 31),
-                                              page)
-        total_pages = result['photos']['pages']
-        for page in range(1, total_pages + 1):
-            result = service.get_geotagged_photos(city.bounding_box, datetime.date(year, 1, 1),
-                                                  datetime.date(year, 12, 31),
-                                                  page)
-            output_filename = output_file_template.format(city_name=city.city_name, year=year, page=page)
-            with open(output_filename, 'w') as output_file:
-                json.dump(result['photos']['photo'], output_file)
-                logging.info('Stored file {}.'.format(output_filename))
+        for month in range(1, 13):
+            for day in range(1, calendar.monthrange(year, month)[1] + 1):
+                page = 1
+                result = service.get_geotagged_photos(city.bounding_box,
+                                                      datetime.datetime(year, month, day, 0, 0, 0),
+                                                      datetime.datetime(year, month, day, 23, 59, 59),
+                                                      page)
+                total_photos = result['photos']['total']
+                total_pages = result['photos']['pages']
+                if int(total_photos) > 4000:
+                    logging.warning('Bad day {year}-{month}-{day}.'.format(year=year, month=month, day=day))
+                    continue
+                elif int(total_photos) == 0:
+                    logging.info('No photos on {year}-{month}-{day}.'.format(year=year, month=month, day=day))
+                    continue
+                logging.info('Getting photos for {year}-{month}-{day}.'.format(year=year, month=month, day=day))
+                for page in range(1, total_pages + 1):
+                    result = service.get_geotagged_photos(city.bounding_box,
+                                                          datetime.datetime(year, month, day, 0, 0, 0),
+                                                          datetime.datetime(year, month, day, 23, 59, 59),
+                                                          page)
+                    output_filename = output_file_template.format(
+                        city_name=city.city_name, year=year, month=month, day=day, page=page)
+                    with open(output_filename, 'w') as output_file:
+                        json.dump(result['photos']['photo'], output_file)
+                        logging.info('Stored file {}.'.format(output_filename))
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(funcName)s:%(module)s:%(message)s')
-    get_photos_for_city(City.LONDON)
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
+    get_photos_for_city(City.ZURICH)

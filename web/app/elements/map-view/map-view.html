@@ -1,0 +1,82 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="map-view">
+  <template>
+    <style include="shared-styles"></style>
+    <style>
+      :host {
+        display: block;
+      }
+
+      .padding {
+        padding: 24px;
+      }
+
+      .options-panel {
+        margin-left: 24px;
+        padding: 24px;
+      }
+    </style>
+    <div class="layout horizontal">
+      <paper-material class="flex padding" elevation="2">
+        <cluster-map city-name="[[cityName]]" bandwidth="[[bandwidth]]" min-cluster-photos="[[minClusterPhotos]]"
+                     min-unique-users="[[minUniqueUsers]]">
+        </cluster-map>
+      </paper-material>
+      <paper-material class="layout vertical options-panel" elevation="1">
+        <h2 class="panel-title">Options</h2>
+        <paper-dropdown-menu label="City">
+          <paper-menu class="dropdown-content" selected="{{cityName}}" attr-for-selected="value">
+            <paper-item value="zurich">Zürich</paper-item>
+          </paper-menu>
+        </paper-dropdown-menu>
+        <paper-dropdown-menu label="Cluster size">
+          <paper-menu class="dropdown-content" selected="{{bandwidth}}" attr-for-selected="value">
+            <paper-item value="100m">100m</paper-item>
+            <paper-item value="200m">200m</paper-item>
+            <paper-item value="500m">500m</paper-item>
+            <paper-item value="1km">1000m</paper-item>
+          </paper-menu>
+        </paper-dropdown-menu>
+        <paper-input label="Minimum photos per cluster" type="number" value="{{minClusterPhotos}}"
+                     min="1" prevent-invalid-input="true" required>
+        </paper-input>
+        <paper-input label="Minimum users per cluster" type="number" value="{{minUniqueUsers}}"
+                     min="1" prevent-invalid-input="true" required>
+        </paper-input>
+      </paper-material>
+    </div>
+
+  </template>
+
+  <script>
+    (function() {
+      'use strict';
+
+      Polymer({
+        is: 'map-view',
+        properties: {
+          minClusterPhotos: {
+            type: Number,
+            value: 100
+          },
+          minUniqueUsers: {
+            type: Number,
+            value: 50
+          },
+          cityName: {
+            type: String,
+            value: 'zurich'
+          },
+          bandwidth: {
+            type: String,
+            value: '100m'
+          }
+        }
+      });
+    })();
+  </script>
+
+</dom-module>
+
