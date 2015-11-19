@@ -1,11 +1,9 @@
-import logging
-
 from pymongo import MongoClient
 
 
 class PhotoStorage:
     def __init__(self):
-        client = MongoClient(port=4321)
+        client = MongoClient()
         self.collection = client.flickrdata.photos
 
     def get_top_users(self, city_name, limit):
@@ -33,4 +31,7 @@ class PhotoStorage:
 
     def get_photos_for_user(self, user):
         return list(self.collection.find({'owner': user}))
+
+    def get_photos_for_city(self, city_name):
+        return self.collection.find({'city_name': city_name})
 

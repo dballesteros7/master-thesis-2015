@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 
 import codecs
+import os
 import random
 import numpy as np
 import IPython
@@ -25,16 +26,16 @@ try:
 except ImportError:
     import pickle
 
-DATA_PATH = 'amazon_data'
-RESULT_PATH = 'models'
+DATA_PATH = '/local/workspace/master-thesis-2015/data'
+RESULT_PATH = os.path.join(DATA_PATH, 'models')
 N_SAMPLES = 5
 F_NOISE = 20  # Number of noise samples = F_NOISE * (number of training samples)
 N_CPUS = 4  # How many processors to parallelize the sampling on.
 
 n_folds = 10
-dim_range = [2]
+dim_range = [2, 5, 10, 20]
 
-datasets = ['safety']
+datasets = ['path_set']
 
 def sample_once(f_noise):
     print("N_SAMPLES = ", N_SAMPLES)
@@ -48,7 +49,7 @@ def train_model(data, n_items=None):
         n_items = max(max(x) for x in data) + 1
 
     print('total items:', n_items)
-    print('    in test:', (max(max(x) for x in data_test) + 1))
+    #print('    in test:', (max(max(x) for x in data_test) + 1))
 
     start = time.time()
     # Count item frequencies.
@@ -118,34 +119,25 @@ def train_model(data, n_items=None):
 
 
 if __name__ == '__main__':
-    for dataset, fold in product(datasets, range(n_folds)):
+    for dataset, fold in product(datasets, range(1, n_folds + 1)):
         print('-' * 30)
-        print('dataset: %s (fold %d)' % (dataset, fold + 1))
+        print('dataset: {} (fold {})'.format(dataset, fold))
         for dim in dim_range:
             np.random.seed(20150820)
 
             print("--> dims = %d" % dim)
 
-            sets_train_f = '{0}/1_100_100_100_{1}_regs_train_fold_{2}.csv'.format(
-                DATA_PATH, dataset, fold + 1)
-            sets_test_f = '{0}/1_100_100_100_{1}_regs_test_fold_{2}.csv'.format(
-                DATA_PATH, dataset, fold + 1)
-            names_f = '{0}/1_100_100_100_{1}_item_names.txt'.format(
-                DATA_PATH, dataset)
-            result_submod_f = '{0}/{1}_submod_d_{2}_fold_{3}.pkl'.format(RESULT_PATH, dataset, dim, fold + 1)
-            result_mod_f = '{0}/{1}_mod_fold_{2}.pkl'.format(RESULT_PATH, dataset, fold + 1)
+            sets_train_f = os.path.join(DATA_PATH, '{}_train_fold_{}.csv'.format(dataset, fold))
+            result_submod_f = os.path.join(RESULT_PATH, '{}_submod_d_{}_fold_{}.pkl'.format(dataset, dim, fold))
+            result_mod_f = os.path.join(RESULT_PATH, '{}_mod_fold_{}.pkl'.format(dataset, fold))
 
-            # names = load_amazon_names(names_f)
             data = load_amazon_data(sets_train_f)
-            data_test = load_amazon_data(sets_test_f)
 
             random.shuffle(data)
 
-            n_items = max([max(max(x) for x in data), max(max(x) for x in data_test)]) + 1
+            n_items = 119
 
-            # print('names', len(names))
             print('# of data items (train): ', len(data))
-            print('# of data items (test) : ', len(data_test))
 
             f_model, f_noise, time_logsubmod_, time_modular_ = train_model(data, n_items=n_items)
             results_model = {'model': f_model, 'time': time_logsubmod_}
@@ -155,25 +147,4 @@ if __name__ == '__main__':
             pickle.dump(results_model, open(result_submod_f, 'wb'))
             pickle.dump(results_modular, open(result_mod_f, 'wb'))
 
-            # TODO Add switch for computing the LL exactly/approximately
-
-            # Compute LLs
-            #print("TRAIN: Estimated nLL: ", -f_
-            #model._estimate_LL(data)
-
-            test = 0
-            #test = -f_model._estimate_LL(data_test)
-            #print("TEST:  Estimated nLL: ", test)
-
-            # test = -f_model._estimate_LL_exact(data_test)
-            # print("TEST:      Exact nLL: ", test)
-            # import sys
-            # sys.exit(1)
-
-            #plt.matshow(f_model.W)
-            #plt.show(block=False)
-            #IPython.embed()
-            #import sys
-            #sys.exit(1)
-            #IPython.embed()
 

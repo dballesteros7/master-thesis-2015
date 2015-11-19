@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 
 import codecs
+import os
 import random
 import numpy as np
 import IPython
@@ -28,19 +29,18 @@ try:
 except ImportError:
     import pickle
 
-DATA_PATH = 'amazon_data'
-MODEL_PATH = 'models'
-RANKING_PATH = 'ranking_test'
+DATA_PATH = '/local/workspace/master-thesis-2015/data'
+MODEL_PATH = os.path.join(DATA_PATH, 'models')
+RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')
 N_CPUS = 4
 
 n_folds = 10
-folds_range = range(0, n_folds)
-# folds_range = [9]
+folds_range = range(1, n_folds + 1)
 n_propose = 1
 f_model = None
 
-datasets = ['safety']
-dim_range = [2]
+datasets = ['path_set']
+dim_range = [2, 5, 10, 20]
 
 def get_proposal(Sorig, sample='topN'):
     """
@@ -92,20 +92,20 @@ if __name__ == '__main__':
         np.random.seed(20150820)
 
         print('-' * 30)
-        print('dataset: %s (fold %d)' % (dataset, fold + 1))
+        print('dataset: %s (fold %d)' % (dataset, fold))
 
-        result_ranking_partial_f = '{0}/{1}_partial_fold_{2}.pkl'.format(RANKING_PATH, dataset, fold + 1)
+        result_ranking_partial_f = os.path.join(RANKING_PATH, '{}_partial_fold_{}.pkl'.format(dataset, fold))
 
         # load all models
         f_models = dict()
         for dim in dim_range:
-            result_submod_f = '{0}/{1}_submod_d_{2}_fold_{3}.pkl'.format(MODEL_PATH, dataset, dim, fold + 1)
+            result_submod_f = os.path.join(MODEL_PATH, '{}_submod_d_{}_fold_{}.pkl'.format(dataset, dim, fold))
             results_model = pickle.load(open(result_submod_f, 'rb'))
             f_tmp_model = results_model['model']
             f_models[dim] = f_tmp_model
 
-        result_ranking_gt_f = '{0}/{1}_gt_fold_{2}.pkl'.format(RANKING_PATH, dataset, fold + 1)
-        result_ranking_partial_f = '{0}/{1}_partial_fold_{2}.pkl'.format(RANKING_PATH, dataset, fold + 1)
+        result_ranking_gt_f = os.path.join(RANKING_PATH, '{}_gt_fold_{}.pkl'.format(dataset, fold))
+        result_ranking_partial_f = os.path.join(RANKING_PATH, '{}_partial_fold_{}.pkl'.format(dataset, fold))
 
         data_ranking = load_amazon_ranking_data(result_ranking_partial_f)
 
@@ -141,8 +141,5 @@ if __name__ == '__main__':
         #         list_prop_model[dim].append(prop_model)
 
         for dim in dim_range:
-            result_ranking_submod_f = '{0}/{1}_submod_d_{2}_fold_{3}.pkl'.format(RANKING_PATH, dataset, dim, fold + 1)
+            result_ranking_submod_f = os.path.join(RANKING_PATH, '{}_submod_d_{}_fold_{}.pkl'.format(dataset, dim, fold))
             save_to_csv(result_ranking_submod_f, list_prop_model[dim])
-
-
-    # IPython.embed()

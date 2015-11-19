@@ -31,18 +31,19 @@ def cluster_handler():
     min_unique_users = int(args['min_unique_users'])
 
     storage = ClusterStorage()
-    result = storage.get_cluster(city_name, bandwidth)
-    if result is None:
+    result = storage.get_clusters(city_name, bandwidth)
+    if len(result) == 0:
         loader = DataLoader()
         entries = loader.load_entries(city_name)
         cluster_result = cluster_photos(entries, bandwidth)
         entries.rewind()
-        result = storage.insert_cluster(city_name, bandwidth, entries, *cluster_result)
+        result = storage.insert_clusters(city_name, bandwidth, entries, *cluster_result)
 
-    result['clusters'] = [cluster for cluster in result['clusters'] if
-                          cluster['number_of_photos'] > min_cluster_photos and
-                          cluster['unique_users'] > min_unique_users]
-    return jsonify(**result)
+    response = dict()
+    response['clusters'] = [cluster for cluster in result if
+                            cluster['number_of_photos'] > min_cluster_photos and
+                            cluster['unique_users'] > min_unique_users]
+    return jsonify(**response)
 
 
 @app.route('/path')

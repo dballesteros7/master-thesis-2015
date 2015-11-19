@@ -1,22 +1,20 @@
 from __future__ import division, print_function
-from matplotlib import pyplot as plt
 import numpy as np
-import IPython
 from itertools import product
-from itertools import chain, combinations
+import os
 
-
-RANKING_PATH = 'ranking_test'
+DATA_PATH = '/local/workspace/master-thesis-2015/data'
+MODEL_PATH = os.path.join(DATA_PATH, 'models')
+RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')
 
 n_folds = 10
-folds_range = range(0, n_folds)
-#folds_range = [8]
+folds_range = range(1, n_folds + 1)
 plot = False
 
-datasets = ['safety']
+datasets = ['path_set']
 dim_assignment = {}
 for dataset in datasets:
-    dim_assignment[dataset] = 2
+    dim_assignment[dataset] = 5
 
 
 
@@ -68,15 +66,14 @@ if __name__ == '__main__':
         np.random.seed(20150820)
 
         print('-' * 30)
-        print('dataset: %s (fold %d)' % (dataset, fold + 1))
+        print('dataset: %s (fold %d)' % (dataset, fold))
         print('dim=%d' % dim_assignment[dataset])
 
-        result_ranking_submod_f = '{0}/{1}_submod_d_{2}_fold_{3}.pkl'.format(RANKING_PATH, dataset, dim_assignment[dataset], fold + 1)
-        result_ranking_mod_f = '{0}/{1}_mod_fold_{2}.pkl'.format(RANKING_PATH, dataset, fold + 1)
-        result_ranking_dpp_f = '{0}/{1}_dpp_fold_{2}.pkl'.format(RANKING_PATH, dataset, fold + 1)
-        result_ranking_random_f = '{0}/{1}_random_fold_{2}.pkl'.format(RANKING_PATH, dataset, fold + 1)
- # ranking_test/safety_dpp_fold_1.pkl
-        result_ranking_gt_f = '{0}/{1}_gt_fold_{2}.pkl'.format(RANKING_PATH, dataset, fold + 1)
+        result_ranking_submod_f = os.path.join(RANKING_PATH, '{}_submod_d_{}_fold_{}.pkl'.format(dataset, dim_assignment[dataset], fold))
+        result_ranking_mod_f = os.path.join(RANKING_PATH, '{}_mod_fold_{}.pkl'.format(dataset, fold))
+        result_ranking_dpp_f = os.path.join(RANKING_PATH, '{}_dpp_fold_{}.pkl'.format(dataset, fold))
+        result_ranking_random_f = os.path.join(RANKING_PATH, '{}_random_fold_{}.pkl'.format(dataset, fold))
+        result_ranking_gt_f = os.path.join(RANKING_PATH, '{}_gt_fold_{}.pkl'.format(dataset, fold))
 
         GROUND_TRUTH = result_ranking_gt_f
         METHODS = {

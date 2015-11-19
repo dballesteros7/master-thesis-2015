@@ -7,7 +7,7 @@ def load_amazon_names(filename):
 
 def load_amazon_data(filename):
     with open(filename, 'r') as f:
-        return [[int(x) - 1 for x in line.strip().split(',')]
+        return [[int(x) for x in line.strip().split(',')]
                 for line in f if line.strip()]
 
 def load_amazon_ranking_data(filename):
