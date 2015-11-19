@@ -55,11 +55,12 @@ class PathFinder:
         counter = 0
         included = 0
         discarded = 0
+        clusters = self.cluster_storage.get_top_ten_clusters(city_name, bandwidth)
+        cluster_set = set(cluster['_id'] for cluster in clusters)
         for photo in all_photos:
             cluster = self.cluster_storage.get_cluster_for_photo(photo_id=photo['_id'], city_name=city_name,
                                                                  bandwidth=bandwidth)
-            if (cluster['unique_users'] > min_unique_users and
-                    cluster['number_of_photos'] > min_cluster_photos):
+            if cluster['_id'] in cluster_set:
                 all_paths[(parse_datetaken(photo), photo['owner'])].add(cluster['_id'])
                 included += 1
             else:
@@ -127,5 +128,5 @@ def sort_and_group_by_day(photos):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
     finder = PathFinder()
-    finder.write_path_csv('zurich', '100m', 50, 100,
+    finder.write_path_csv('zurich', '100m', -1, -1,
                           '/local/workspace/master-thesis-2015/data/path_set_{type}_fold_{fold}.csv')

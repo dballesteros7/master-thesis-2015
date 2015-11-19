@@ -135,7 +135,7 @@ if __name__ == '__main__':
 
             random.shuffle(data)
 
-            n_items = 119
+            n_items = 10
 
             print('# of data items (train): ', len(data))
 

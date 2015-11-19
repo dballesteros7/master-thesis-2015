@@ -49,3 +49,9 @@ class ClusterStorage:
             'city_name': city_name,
             'bandwidth': bandwidth
         })
+
+    def get_top_ten_clusters(self, city_name, bandwidth):
+        return self.collection.find({
+            'city_name': city_name,
+            'bandwidth': bandwidth
+        }, sort=[('number_of_photos', -1), ('unique_users', -1)], limit=10)

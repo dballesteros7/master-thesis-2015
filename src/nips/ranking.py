@@ -14,7 +14,7 @@ plot = False
 datasets = ['path_set']
 dim_assignment = {}
 for dataset in datasets:
-    dim_assignment[dataset] = 5
+    dim_assignment[dataset] = 20
 
 
 
