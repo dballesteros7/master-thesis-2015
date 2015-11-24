@@ -2,11 +2,9 @@ import datetime
 import logging
 import random
 from collections import defaultdict
-
-import math
+from collections import OrderedDict
 import numpy as np
 from sklearn.cross_validation import KFold
-
 from storage.cluster_storage import ClusterStorage
 from storage.path_storage import PathStorage
 from storage.photo_storage import PhotoStorage
@@ -50,7 +48,7 @@ class PathFinder:
     def find_and_store_all_paths(self, city_name, bandwidth, min_unique_users, min_cluster_photos):
         all_photos = self.photo_storage.get_photos_for_city(city_name=city_name)
         logging.info('Loading cursor for photo collection.')
-        all_paths = defaultdict(set)
+        all_paths = defaultdict(OrderedDict)
         logging.info('Starting iteration over photos.')
         counter = 0
         included = 0
@@ -61,7 +59,7 @@ class PathFinder:
             cluster = self.cluster_storage.get_cluster_for_photo(photo_id=photo['_id'], city_name=city_name,
                                                                  bandwidth=bandwidth)
             if cluster['_id'] in cluster_set:
-                all_paths[(parse_datetaken(photo), photo['owner'])].add(cluster['_id'])
+                all_paths[(parse_datetaken(photo), photo['owner'])][cluster['_id']] = True
                 included += 1
             else:
                 discarded += 1
@@ -79,7 +77,7 @@ class PathFinder:
                 'bandwidth': bandwidth,
                 'min_unique_users': min_unique_users,
                 'min_cluster_photos': min_cluster_photos,
-                'clusters': list(all_paths[(date, owner)]),
+                'clusters': list(all_paths[(date, owner)].keys()),
                 'number_of_clusters': len(all_paths[(date, owner)])
             })
         logging.info('Created {} paths.'.format(len(flat_paths)))
@@ -89,21 +87,21 @@ class PathFinder:
     def write_path_csv(self, city_name, bandwidth, min_unique_users, min_cluster_photos, output_path_tpl):
         paths = self.path_storage.get_paths(city_name, bandwidth, min_unique_users, min_cluster_photos)
         all_clusters = dict()
-        ordered_clusters = list()
+        next_cluster_index = 0
         path_sets = []
         for path in paths:
             path_set = []
             for cluster in path['clusters']:
                 if cluster not in all_clusters:
-                    all_clusters[cluster] = len(ordered_clusters)
-                    ordered_clusters.append(cluster)
+                    all_clusters[cluster] = next_cluster_index
+                    next_cluster_index += 1
                 path_set.append(str(all_clusters[cluster]))
             path_sets.append(path_set)
 
         data = np.array(path_sets)
         kf = KFold(len(path_sets), n_folds=10, shuffle=True)
         for idx, (train_index, test_index) in enumerate(kf):
-            with open(output_path_tpl.format(type='train', fold=idx + 1), 'w') as output_train,\
+            with open(output_path_tpl.format(type='train', fold=idx + 1), 'w') as output_train, \
                     open(output_path_tpl.format(type='test', fold=idx + 1), 'w') as output_test:
                 for path_set in data[train_index]:
                     output_train.write(','.join(path_set) + '\n')

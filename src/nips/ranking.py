@@ -47,20 +47,24 @@ if __name__ == '__main__':
     results_all_mod = dict()
     results_all_dpp = dict()
     results_all_random = dict()
+    results_all_markov = dict()
     rank_submod = dict()
     rank_mod = dict()
     rank_random = dict()
     rank_dpp = dict()
+    rank_markov = dict()
     for dataset in datasets:
         results_all_submod[dataset] = []
         results_all_mod[dataset] = []
         results_all_dpp[dataset] = []
         results_all_random[dataset] = []
+        results_all_markov[dataset] = []
 
         rank_submod[dataset] = []
         rank_mod[dataset] = []
         rank_dpp[dataset] = []
         rank_random[dataset] = []
+        rank_markov[dataset] = []
 
     for dataset, fold in product(datasets, folds_range):
         np.random.seed(20150820)
@@ -73,13 +77,15 @@ if __name__ == '__main__':
         result_ranking_mod_f = os.path.join(RANKING_PATH, '{}_mod_fold_{}.pkl'.format(dataset, fold))
         result_ranking_dpp_f = os.path.join(RANKING_PATH, '{}_dpp_fold_{}.pkl'.format(dataset, fold))
         result_ranking_random_f = os.path.join(RANKING_PATH, '{}_random_fold_{}.pkl'.format(dataset, fold))
+        result_ranking_markov_f = os.path.join(RANKING_PATH, '{}_markov_fold_{}.pkl'.format(dataset, fold))
         result_ranking_gt_f = os.path.join(RANKING_PATH, '{}_gt_fold_{}.pkl'.format(dataset, fold))
 
         GROUND_TRUTH = result_ranking_gt_f
         METHODS = {
                 'submod': result_ranking_submod_f,  # 'ranking_test/prop1.csv',
                 'mod': result_ranking_mod_f,  # 'ranking_test/prop2.csv',
-                'random': result_ranking_random_f
+                'random': result_ranking_random_f,
+                'markov': result_ranking_markov_f
             }
 
 
@@ -87,7 +93,7 @@ if __name__ == '__main__':
         with open(GROUND_TRUTH) as f_gt:
             lines_gt = list(f_gt)
             for method, filename in METHODS.items():
-                # print('processing', method)
+                print('processing', method)
                 result = None
                 avg_score = []
                 avg_rank = []
@@ -99,7 +105,6 @@ if __name__ == '__main__':
                         suggested_orig = list(map(int, line_sc.strip().split(',')))
 
                         suggested = suggested_orig
-
                         accuracy, rank = compute_precision_curve(true_set, suggested)
                         # print("acc: ", accuracy)
                         # print("rank: ", rank)
@@ -118,6 +123,9 @@ if __name__ == '__main__':
                 elif method == 'random':
                     results_all_random[dataset].append(np.mean(avg_score))
                     rank_random[dataset].append(np.mean([1./rank for rank in avg_rank]))
+                elif method == 'markov':
+                    results_all_markov[dataset].append(np.mean(avg_score))
+                    rank_markov[dataset].append(np.mean([1./rank for rank in avg_rank]))
                 else:
                     assert False
                 # results[method] = np.mean(result, axis=0)
@@ -142,4 +150,8 @@ if __name__ == '__main__':
         std_rank_submod = 100 * np.std(rank_submod[dataset])
         print(' & \\FLID       & $%2.2f \pm %2.2f$ & $%2.2f \pm %2.2f$ \\\\' % (mean_submod, std_submod, mean_rank_submod, std_rank_submod)) # np.mean(results_all_submod[dataset][5]), np.mean(results_all_submod[dataset][10])))
 
-
+        mean_markov = 100 * np.mean(results_all_markov[dataset])
+        std_markov = 100 * np.std(results_all_markov[dataset])
+        mean_rank_markov = 100 * np.mean(rank_markov[dataset])
+        std_rank_markov = 100 * np.std(rank_markov[dataset])
+        print(' & \\Markov       & $%2.2f \pm %2.2f$ & $%2.2f \pm %2.2f$ \\\\' % (mean_markov, std_markov, mean_rank_markov, std_rank_markov))

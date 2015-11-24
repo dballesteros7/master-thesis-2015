@@ -33,5 +33,5 @@ class PhotoStorage:
         return list(self.collection.find({'owner': user}))
 
     def get_photos_for_city(self, city_name):
-        return self.collection.find({'city_name': city_name})
+        return self.collection.find({'city_name': city_name}, sort=[('datetaken', 1)])
 
