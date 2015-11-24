@@ -17,29 +17,10 @@ for dataset in datasets:
     dim_assignment[dataset] = 20
 
 
-
-# Adopted for our needs
 def compute_precision_curve(true_set, suggested):
-    assert len(true_set) == 1
-
     accuracy = 1. if suggested[0] in true_set else 0.
     rank = 1. + np.argwhere(np.array(suggested) == true_set[0])[0][0]
-
     return (accuracy, rank)
-
-
-# def compute_precision_curve(true_set, suggested):
-#     # print(true_set)
-#     scores = []
-#     so_far = 0.
-#     for suggestion in suggested:
-#         if suggestion in true_set:
-#             so_far += 1.
-#         scores.append(so_far / len(true_set))
-#     # print('given true:', true_set)
-#     # print('given pred:', suggested)
-#     # print('scores    :', scores)
-#     return scores
 
 
 if __name__ == '__main__':
@@ -77,7 +58,7 @@ if __name__ == '__main__':
         result_ranking_mod_f = os.path.join(RANKING_PATH, '{}_mod_fold_{}.pkl'.format(dataset, fold))
         result_ranking_dpp_f = os.path.join(RANKING_PATH, '{}_dpp_fold_{}.pkl'.format(dataset, fold))
         result_ranking_random_f = os.path.join(RANKING_PATH, '{}_random_fold_{}.pkl'.format(dataset, fold))
-        result_ranking_markov_f = os.path.join(RANKING_PATH, '{}_markov_fold_{}.pkl'.format(dataset, fold))
+        result_ranking_markov_f = os.path.join(RANKING_PATH, '{}_proximity_fold_{}.pkl'.format(dataset, fold))
         result_ranking_gt_f = os.path.join(RANKING_PATH, '{}_gt_fold_{}.pkl'.format(dataset, fold))
 
         GROUND_TRUTH = result_ranking_gt_f

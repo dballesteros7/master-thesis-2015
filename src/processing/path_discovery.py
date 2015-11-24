@@ -84,19 +84,31 @@ class PathFinder:
         self.path_storage.store_paths(flat_paths)
         logging.info('Paths stored in database.')
 
-    def write_path_csv(self, city_name, bandwidth, min_unique_users, min_cluster_photos, output_path_tpl):
-        paths = self.path_storage.get_paths(city_name, bandwidth, min_unique_users, min_cluster_photos)
+    def write_path_csv(self, city_name, bandwidth, min_unique_users,
+                       min_cluster_photos, output_path_tpl, items_path):
+        paths = self.path_storage.get_paths(
+            city_name, bandwidth, min_unique_users, min_cluster_photos)
         all_clusters = dict()
         next_cluster_index = 0
         path_sets = []
         for path in paths:
             path_set = []
-            for cluster in path['clusters']:
-                if cluster not in all_clusters:
-                    all_clusters[cluster] = next_cluster_index
+            for cluster_id in path['clusters']:
+                if cluster_id not in all_clusters:
+                    all_clusters[cluster_id] = next_cluster_index
                     next_cluster_index += 1
-                path_set.append(str(all_clusters[cluster]))
+                path_set.append(str(all_clusters[cluster_id]))
             path_sets.append(path_set)
+
+        with open(items_path, 'w') as items_file:
+            for cluster_id in all_clusters.keys():
+                cluster_info = self.cluster_storage.get_cluster(
+                    cluster_id=cluster_id)
+                values = [str(cluster_info['_id']),
+                          str(cluster_info['latitude']),
+                          str(cluster_info['longitude'])]
+                items_file.write(','.join(values))
+                items_file.write('\n')
 
         data = np.array(path_sets)
         kf = KFold(len(path_sets), n_folds=10, shuffle=True)
@@ -110,7 +122,8 @@ class PathFinder:
 
 
 def parse_datetaken(photo):
-    return datetime.datetime.strptime(photo['datetaken'], '%Y-%m-%d %H:%M:%S').date()
+    return datetime.datetime.strptime(
+        photo['datetaken'], '%Y-%m-%d %H:%M:%S').date()
 
 
 def sort_and_group_by_day(photos):
@@ -127,4 +140,5 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
     finder = PathFinder()
     finder.write_path_csv('zurich', '100m', -1, -1,
-                          '/local/workspace/master-thesis-2015/data/path_set_{type}_fold_{fold}.csv')
+                          '/local/workspace/master-thesis-2015/data/path_set_{type}_fold_{fold}.csv',
+                          '/local/workspace/master-thesis-2015/data/path_set_items.csv')

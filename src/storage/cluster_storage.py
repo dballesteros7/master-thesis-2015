@@ -15,6 +15,11 @@ class ClusterStorage:
         })
         return list(result)
 
+    def get_cluster(self, cluster_id):
+        return self.collection.find_one({
+            '_id': cluster_id
+        })
+
     def insert_clusters(self, city_name, bandwidth, entries, cluster_centers, cluster_labels):
         logging.info('Collecting cluster data.')
         clusters = []
