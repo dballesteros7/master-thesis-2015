@@ -1,25 +1,15 @@
-from __future__ import division
-from __future__ import print_function
-
-import codecs
 import os
 import random
 import numpy as np
-import IPython
 from itertools import product
-from matplotlib import pyplot as plt
-import scipy.io
 import time
-
-# from submod.functions.facility_location import FacilityLocation
-# from submod.maximization.greedy import greedy_order
-# from submod.maximization.randomized_2 import optimize as maximize
-# from submod.functions.mutators import add_modular
-
-from fast_train import Trainer
-from ml_novel_nonexp_nce import *
-from amazon_utils import *
 from multiprocessing import Pool
+
+from nips.amazon_utils import load_amazon_data
+from nips.fast_train import Trainer
+from nips.ml_novel_nonexp_nce import DiversityFun
+from nips.ml_novel_nonexp_nce import ModularFun
+from nips.ml_novel_nonexp_nce import NCE
 
 try:
     import cPickle as pickle
@@ -37,6 +27,7 @@ dim_range = [2, 5, 10, 20]
 
 datasets = ['path_set']
 
+
 def sample_once(f_noise):
     print("N_SAMPLES = ", N_SAMPLES)
     return f_noise.sample(N_SAMPLES // N_CPUS)
@@ -49,7 +40,7 @@ def train_model(data, n_items=None):
         n_items = max(max(x) for x in data) + 1
 
     print('total items:', n_items)
-    #print('    in test:', (max(max(x) for x in data_test) + 1))
+    # print('    in test:', (max(max(x) for x in data_test) + 1))
 
     start = time.time()
     # Count item frequencies.
@@ -127,9 +118,15 @@ if __name__ == '__main__':
 
             print("--> dims = %d" % dim)
 
-            sets_train_f = os.path.join(DATA_PATH, '{}_train_fold_{}.csv'.format(dataset, fold))
-            result_submod_f = os.path.join(RESULT_PATH, '{}_submod_d_{}_fold_{}.pkl'.format(dataset, dim, fold))
-            result_mod_f = os.path.join(RESULT_PATH, '{}_mod_fold_{}.pkl'.format(dataset, fold))
+            sets_train_f = os.path.join(DATA_PATH,
+                                        '{}_train_fold_{}.csv'.format(dataset,
+                                                                      fold))
+            result_submod_f = os.path.join(RESULT_PATH,
+                                           '{}_submod_d_{}_fold_{}.pkl'.format(
+                                               dataset, dim, fold))
+            result_mod_f = os.path.join(RESULT_PATH,
+                                        '{}_mod_fold_{}.pkl'.format(dataset,
+                                                                    fold))
 
             data = load_amazon_data(sets_train_f)
 
@@ -139,12 +136,11 @@ if __name__ == '__main__':
 
             print('# of data items (train): ', len(data))
 
-            f_model, f_noise, time_logsubmod_, time_modular_ = train_model(data, n_items=n_items)
+            f_model, f_noise, time_logsubmod_, time_modular_ = train_model(data,
+                                                                           n_items=n_items)
             results_model = {'model': f_model, 'time': time_logsubmod_}
             results_modular = {'model': f_noise, 'time': time_modular_}
 
             # dump
             pickle.dump(results_model, open(result_submod_f, 'wb'))
             pickle.dump(results_modular, open(result_mod_f, 'wb'))
-
-

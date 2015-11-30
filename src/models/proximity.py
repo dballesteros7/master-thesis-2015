@@ -26,7 +26,7 @@ class Proximity:
             distances[item] = np.inf  # Excludes items already in the set.
         sorted_indexes = np.argsort(distances)  # Ascending order.
         # Returns a reversed view on the array.
-        return sorted_indexes[:-len(to_complete)]
+        return sorted_indexes[:-len(to_complete)][::-1]
 
 
 def main():

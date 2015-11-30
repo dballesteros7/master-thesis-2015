@@ -5,12 +5,6 @@ import numpy as np
 from scipy.misc import logsumexp as lse
 from scipy.special import expit
 from matplotlib import pyplot as plt
-# from submod.functions.facility_location import FacilityLocation
-# from submod.functions.mutators import add_modular
-# from submod.inference.variational_lsub import upper_supdif, lower_greedy
-import random
-from fast_train import fast_sample
-import IPython
 
 B = 1
 model_weights = [1, 0]
@@ -60,7 +54,6 @@ class ModularFun(Function):
     def sample(self, n):
         # sample n samples
         probs = expit(self.s).reshape(len(self.V))
-        # return fast_sample(probs, n)
         data = []
         for _ in range(n):
             s = np.nonzero(np.random.rand(len(self.V)) <= probs)[0]
