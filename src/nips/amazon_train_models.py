@@ -53,6 +53,9 @@ def train_model(data, n_items=None):
     print(item_marg)
     print('</item_margs>')
     s = -np.log(1. / item_marg - 1.)  # The modular term.
+    print('<utilities>')
+    print(s)
+    print('</utilities>')
 
     f_noise = ModularFun(list(range(n_items)), np.copy(s))
     end = time.time()
