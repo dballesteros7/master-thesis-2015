@@ -24,7 +24,6 @@ int* sample(const double *probabilities, int n, int n_samples, int *out_size);
 _lib = _ffi.verify('#include "train.h"',
                    sources=["train.cpp"],
                    include_dirs=['.'],
-                   #extra_compile_args=['-O3', '-g'])
                    extra_compile_args=['-O3', '-DNDEBUG', '-std=c++11'])
 
 

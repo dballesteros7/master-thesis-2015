@@ -5,6 +5,7 @@ from itertools import product
 import time
 from multiprocessing import Pool
 
+import constants
 from nips.amazon_utils import load_amazon_data
 from nips.fast_train import Trainer
 from nips.ml_novel_nonexp_nce import DiversityFun
@@ -16,14 +17,14 @@ try:
 except ImportError:
     import pickle
 
-DATA_PATH = '/local/workspace/master-thesis-2015/data'
+DATA_PATH = constants.DATA_PATH
 RESULT_PATH = os.path.join(DATA_PATH, 'models')
 N_SAMPLES = 5
 F_NOISE = 20  # Number of noise samples = F_NOISE * (number of training samples)
 N_CPUS = 4  # How many processors to parallelize the sampling on.
 
 n_folds = 10
-dim_range = [2, 5, 10, 20]
+dim_range = range(1, 51)
 
 datasets = ['path_set']
 

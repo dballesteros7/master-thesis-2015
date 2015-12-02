@@ -3,7 +3,9 @@ import numpy as np
 from itertools import product
 import os
 
-DATA_PATH = '/local/workspace/master-thesis-2015/data'
+import constants
+
+DATA_PATH = constants.DATA_PATH
 MODEL_PATH = os.path.join(DATA_PATH, 'models')
 RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')
 

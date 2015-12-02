@@ -1,35 +1,24 @@
 from __future__ import division
 from __future__ import print_function
 
-import codecs
 import os
-import random
 import numpy as np
-import IPython
 from itertools import product
-from matplotlib import pyplot as plt
-import scipy.io
-import time
 
-# from submod.functions.facility_location import FacilityLocation
-# from submod.maximization.greedy import greedy_order
-# from submod.maximization.randomized_2 import optimize as maximize
-# from submod.functions.mutators import add_modular
-
-from fast_train import Trainer
 from ml_novel_nonexp_nce import *
 from amazon_utils import *
 from multiprocessing import Pool
 
 ## Load pre-trained models for the amazon data and perform product
 ## recommendation
+import constants
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 
-DATA_PATH = '/local/workspace/master-thesis-2015/data'
+DATA_PATH = constants.DATA_PATH
 MODEL_PATH = os.path.join(DATA_PATH, 'models')
 RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')
 N_CPUS = 4
@@ -40,7 +29,7 @@ n_propose = 1
 f_model = None
 
 datasets = ['path_set']
-dim_range = [2, 5, 10, 20]
+dim_range = range(1, 51)
 
 def get_proposal(Sorig, sample='topN'):
     """

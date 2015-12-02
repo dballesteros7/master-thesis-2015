@@ -22,11 +22,9 @@ class Proximity:
     def propose_set_item(self, to_complete):
         last_item = to_complete[-1]
         distances = np.copy(self.distances[last_item])
-        for item in to_complete:
-            distances[item] = np.inf  # Excludes items already in the set.
-        sorted_indexes = np.argsort(distances)  # Ascending order.
-        # Returns a reversed view on the array.
-        return sorted_indexes[:-len(to_complete)][::-1]
+        distances[to_complete] = -np.inf
+        sorted_indexes = np.argsort(distances)
+        return sorted_indexes[len(to_complete):][::-1]
 
 
 def main():

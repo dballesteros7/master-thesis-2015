@@ -69,3 +69,15 @@ bower_components
 
 # Pickles
 *.pkl
+
+# Tex stuff
+*.aux
+*.nav
+*.log
+*.snm
+*.synctex.gz
+*.toc
+*.out
+*.bbl
+*.blg
+*eps-converted-to.pdf

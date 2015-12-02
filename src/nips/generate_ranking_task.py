@@ -16,13 +16,14 @@ from ml_novel_nonexp_nce import *
 from amazon_utils import *
 
 ## Generates the data for the ranking task
+import constants
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 
-DATA_PATH = '/local/workspace/master-thesis-2015/data'
+DATA_PATH = constants.DATA_PATH
 MODEL_PATH = os.path.join(DATA_PATH, 'models')
 RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')
 
@@ -36,15 +37,12 @@ def get_proposal(f, Sorig):
     Get the proposal for an additional item from f, given S
     """
 
-    if isinstance(f, ModularFun):
-        # TODO Fast computation of proposal
-        utils = np.copy(f.s)
-        utils[Sorig] = - float('inf')
-        t = np.argsort(utils)
-        t = t[len(Sorig):]
-        return t[::-1]
-    else:
-        assert False
+    # TODO Fast computation of proposal
+    utils = np.copy(f.s)
+    utils[Sorig] = - float('inf')
+    t = np.argsort(utils)
+    t = t[len(Sorig):]
+    return t[::-1]
 
 
 def save_to_csv(filename, lst):
@@ -109,7 +107,7 @@ if __name__ == '__main__':
                     prop_modular = get_proposal(f_noise, sample_new[:])
 
                     # propose random set of given size
-                    t = list(set(range(len(V))).difference(sample_new[:]))
+                    t = list(set(range(constants.N_ITEMS)).difference(sample_new[:]))
                     random.shuffle(t)
                     prop_random = t
 

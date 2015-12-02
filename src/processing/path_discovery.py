@@ -3,8 +3,11 @@ import logging
 import random
 from collections import defaultdict
 from collections import OrderedDict
+
 import numpy as np
 from sklearn.cross_validation import KFold
+
+import constants
 from storage.cluster_storage import ClusterStorage
 from storage.path_storage import PathStorage
 from storage.photo_storage import PhotoStorage
@@ -85,7 +88,7 @@ class PathFinder:
         logging.info('Paths stored in database.')
 
     def write_path_csv(self, city_name, bandwidth, min_unique_users,
-                       min_cluster_photos, output_path_tpl, items_path):
+                       min_cluster_photos):
         paths = self.path_storage.get_paths(
             city_name, bandwidth, min_unique_users, min_cluster_photos)
         all_clusters = dict()
@@ -100,21 +103,29 @@ class PathFinder:
                 path_set.append(str(all_clusters[cluster_id]))
             path_sets.append(path_set)
 
-        with open(items_path, 'w') as items_file:
+        with open(constants.ITEMS_DATA_PATH_TPL.format(
+                dataset='path_set'), 'w') as items_file:
             for cluster_id in all_clusters.keys():
                 cluster_info = self.cluster_storage.get_cluster(
                     cluster_id=cluster_id)
                 values = [str(cluster_info['_id']),
                           str(cluster_info['latitude']),
-                          str(cluster_info['longitude'])]
+                          str(cluster_info['longitude']),
+                          str(cluster_info['number_of_photos']),
+                          str(cluster_info['unique_users'])]
                 items_file.write(','.join(values))
                 items_file.write('\n')
 
+        np.random.seed(20150820)
         data = np.array(path_sets)
         kf = KFold(len(path_sets), n_folds=10, shuffle=True)
         for idx, (train_index, test_index) in enumerate(kf):
-            with open(output_path_tpl.format(type='train', fold=idx + 1), 'w') as output_train, \
-                    open(output_path_tpl.format(type='test', fold=idx + 1), 'w') as output_test:
+            with open(constants.DATA_PATH_TPL.format(
+                    dataset='path_set',
+                    type='train', fold=idx + 1), 'w') as output_train, \
+                    open(constants.DATA_PATH_TPL.format(
+                        dataset='path_set',
+                        type='test', fold=idx + 1), 'w') as output_test:
                 for path_set in data[train_index]:
                     output_train.write(','.join(path_set) + '\n')
                 for path_set in data[test_index]:
@@ -137,8 +148,7 @@ def sort_and_group_by_day(photos):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
+    logging.basicConfig(level=logging.INFO,
+                        format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
     finder = PathFinder()
-    finder.write_path_csv('zurich', '100m', -1, -1,
-                          '/local/workspace/master-thesis-2015/data/path_set_{type}_fold_{fold}.csv',
-                          '/local/workspace/master-thesis-2015/data/path_set_items.csv')
+    finder.write_path_csv('zurich', '100m', -1, -1)
