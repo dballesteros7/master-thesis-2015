@@ -190,7 +190,6 @@ class DiversityFun(Function):
             assert False  # not implemented for the max only model
         else:
             Wutilities = -np.sum(self.W, axis=1)
-
             val = self.n_logz[0]
             val += np.sum(self.utilities[S])
             val += np.sum(Wutilities[S])

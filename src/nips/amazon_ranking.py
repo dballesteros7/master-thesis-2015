@@ -29,7 +29,7 @@ n_propose = 1
 f_model = None
 
 datasets = ['path_set']
-dim_range = range(1, 51)
+dim_range = [2]
 
 def get_proposal(Sorig, sample='topN'):
     """

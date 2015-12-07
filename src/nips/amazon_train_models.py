@@ -6,11 +6,11 @@ import time
 from multiprocessing import Pool
 
 import constants
+from models.fast_train_features import TrainerFeatures
+from models.modular import ModularWithFeatures
 from nips.amazon_utils import load_amazon_data
 from nips.fast_train import Trainer
-from nips.ml_novel_nonexp_nce import DiversityFun
-from nips.ml_novel_nonexp_nce import ModularFun
-from nips.ml_novel_nonexp_nce import NCE
+from nips.ml_novel_nonexp_nce import DiversityFun, ModularFun
 
 try:
     import cPickle as pickle
@@ -24,7 +24,7 @@ F_NOISE = 20  # Number of noise samples = F_NOISE * (number of training samples)
 N_CPUS = 4  # How many processors to parallelize the sampling on.
 
 n_folds = 10
-dim_range = range(1, 51)
+dim_range = [2]
 
 datasets = ['path_set']
 
@@ -58,6 +58,15 @@ def train_model(data, n_items=None):
     print(s)
     print('</utilities>')
 
+    # features = []
+    # for idx in range(n_items):
+    #     features.append([])
+    #     for idx_2 in range(n_items):
+    #         if idx == idx_2:
+    #             features[idx].append(1)
+    #         else:
+    #             features[idx].append(0)
+    #
     f_noise = ModularFun(list(range(n_items)), np.copy(s))
     end = time.time()
     time_modular = end - start
@@ -86,26 +95,26 @@ def train_model(data, n_items=None):
     # Remove empty sets.
     data_noise = list(filter(lambda x: len(x) > 0, data_noise))
 
-    # print("--- FITTED MODULAR MODEL ---")
-    # print("TRAIN: Estimated nLL: ", - f_noise._estimate_LL(data))
-    # print("TEST:  Estimated nLL: ", - f_noise._estimate_LL(data_test))
-
     f_model = DiversityFun(list(range(n_items)), dim)
     f_model.utilities = np.copy(f_noise.s)
 
-    useCPP = True
-    if not useCPP:
-        nce = NCE(f_model, f_noise)
-        nce.learn_sgd(data, data_noise, n_iter=10, compute_LL=True)
-    else:
-        start = time.time()
-        trainer = Trainer(data, data_noise, f_noise.s, n_items=n_items, dim=dim)
-        trainer.train(10, 0.01, 0.1, plot=False)
-        f_model.W = trainer.weights
-        f_model.utilities = trainer.unaries
-        f_model.n_logz = trainer.n_logz
-        end = time.time()
-        print("TRAINING TOOK ", (end - start))
+    start = time.time()
+    # trainer = TrainerFeatures(data, data_noise, f_noise.feature_weights,
+    #                           features, n_items, l_dims=dim,
+    #                           m_features=n_items)
+    # trainer.train(10, 0.01, 0.1)
+    # f_model.W = trainer.b_weights
+    # f_model.utilities = trainer.a_weights
+    trainer = Trainer(data, data_noise, f_noise.s, n_items=n_items, dim=dim)
+    trainer.train(10, 0.01, 0.1, plot=False)
+    f_model.W = trainer.weights
+    f_model.utilities = trainer.unaries
+    f_model.n_logz = trainer.n_logz
+    print(f_model.W)
+    print(f_model.utilities)
+    print(f_model.n_logz)
+    end = time.time()
+    print("TRAINING TOOK ", (end - start))
 
     end = time.time()
     time_nce = end - start
@@ -114,7 +123,7 @@ def train_model(data, n_items=None):
 
 
 if __name__ == '__main__':
-    for dataset, fold in product(datasets, range(1, n_folds + 1)):
+    for dataset, fold in product(datasets, range(1, 2)):
         print('-' * 30)
         print('dataset: {} (fold {})'.format(dataset, fold))
         for dim in dim_range:

@@ -10,13 +10,13 @@ MODEL_PATH = os.path.join(DATA_PATH, 'models')
 RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')
 
 n_folds = 10
-folds_range = range(1, n_folds + 1)
+folds_range = range(1, 11)
 plot = False
 
 datasets = ['path_set']
 dim_assignment = {}
 for dataset in datasets:
-    dim_assignment[dataset] = 20
+    dim_assignment[dataset] = 2
 
 
 def compute_precision_curve(true_set, suggested):
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         result_ranking_mod_f = os.path.join(RANKING_PATH, '{}_mod_fold_{}.pkl'.format(dataset, fold))
         result_ranking_dpp_f = os.path.join(RANKING_PATH, '{}_dpp_fold_{}.pkl'.format(dataset, fold))
         result_ranking_random_f = os.path.join(RANKING_PATH, '{}_random_fold_{}.pkl'.format(dataset, fold))
-        result_ranking_markov_f = os.path.join(RANKING_PATH, '{}_proximity_fold_{}.pkl'.format(dataset, fold))
+        result_ranking_markov_f = os.path.join(RANKING_PATH, '{}_markov_fold_{}.pkl'.format(dataset, fold))
         result_ranking_gt_f = os.path.join(RANKING_PATH, '{}_gt_fold_{}.pkl'.format(dataset, fold))
 
         GROUND_TRUTH = result_ranking_gt_f

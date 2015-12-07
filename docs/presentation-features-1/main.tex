@@ -131,7 +131,7 @@
       \item[$L$] The number of latent concepts.
       \item[$\bm{X}$] The feature matrix for the locations, $\bm{X} \in \mathbb{R}^{N \times M}$.
       \item[$\bm{a}$] The vector that defines the utility weight for each feature, $\bm{a} \in \mathbb{R}^{M}$.
-      \item[$\bm{B}$] The matrix that defines the contribution of each feature to a latent concept, $\bm{B} \in \mathbb{R}^{M \times L}$.
+      \item[$\bm{B}$] The matrix that defines the contribution of each feature to a latent diversity concept, $\bm{B} \in \mathbb{R}^{M \times L}$.
     \end{description}
   \end{frame}
   
@@ -161,7 +161,7 @@
     Where $x_{i^{*},m}$ in equation \ref{eq:gradient_b} is:
     
     \begin{equation*}
-      i^{*} = \argmax_{i} \bm{b}_{l} \bm{x}_{i}
+      i^{*} = \argmax_{i \in S} \bm{x}_{i} \bm{b}_{l}
     \end{equation*} 
     
     The subgradient for $\hat{Z}$ is unchanged.
