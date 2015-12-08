@@ -16,7 +16,7 @@ plot = False
 datasets = ['path_set']
 dim_assignment = {}
 for dataset in datasets:
-    dim_assignment[dataset] = 2
+    dim_assignment[dataset] = 10
 
 
 def compute_precision_curve(true_set, suggested):

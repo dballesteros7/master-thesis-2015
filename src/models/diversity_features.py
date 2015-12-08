@@ -3,6 +3,7 @@ import pickle
 import time
 from itertools import chain
 
+from scipy.misc import logsumexp
 from sklearn.utils import shuffle
 from scipy import special
 
@@ -83,6 +84,37 @@ class DiversityFeatures:
         elapsed = time.time() - start
         self.stats['gradient_b_time'][0] += elapsed
         self.stats['gradient_b_time'][1] += 1
+
+    def propose_set_item(self, to_complete: np.ndarray) -> np.ndarray:
+        current_value = np.exp(self(to_complete))
+        other_items = set(range(self.n_items)) - set(to_complete)
+        gains = np.zeros(self.n_items)
+        gains[to_complete] = -np.inf
+        for item in other_items:
+            other_value = np.exp(self(np.append(to_complete, item)))
+            gains[item] = other_value - current_value
+        return np.argsort(gains)[to_complete.shape[0]:][::-1]
+
+    def load_from_file(self, input_path: str):
+        with open(input_path) as input_file:
+            lines = list(input_file)
+
+            n_logz = float(lines[0].strip())
+            a_weights = [float(x) for x in lines[1].strip().split(',')]
+            b_weights = []
+            for line in lines[2:]:
+                row = []
+                for item in line.strip().split(','):
+                    row.append(float(item))
+                b_weights.append(row)
+
+            a_weights = np.array(a_weights)
+            b_weights = np.array(b_weights)
+
+            self.a_weights = a_weights
+            self.b_weights = b_weights
+            self.n_logz = n_logz
+        self.update_composite_parameters()
 
 
 class NCETrainer:
@@ -180,64 +212,58 @@ class NCETrainer:
 
         self.model.update_composite_parameters()
 
-if __name__ == '__main__':
-    features = np.identity(constants.N_ITEMS)
 
+def process_data_and_store():
+    features = np.identity(constants.N_ITEMS)
+    dim = 10
+    print('Storing files for C++ processing.')
     for fold in range(1, constants.N_FOLDS + 1):
         print('Fold {}'.format(fold))
-        # loaded_data = file.load_csv_data(
-        #     constants.TRAIN_DATA_PATH_TPL.format(
-        #         fold=fold, dataset=constants.DATASET_NAME))
-        #
-        # loaded_data = np.array([np.array(sample) for sample in loaded_data])
-        #
-        # modular_model = ModularWithFeatures(
-        #     n_items=constants.N_ITEMS, features=features)
-        # diversity_model = DiversityFeatures(
-        #     n_items=constants.N_ITEMS, features=features, l_dims=10)
-        # trainer = NCETrainer(diversity_model, modular_model)
-        # trainer.store_to_file(loaded_data, noise_factor=20,
-        #                       output_file_path=constants.NCE_DATA_PATH_TPL.format(dataset='path_set', fold=fold),
-        #                       output_noise_path=constants.NCE_NOISE_PATH_TPL.format(dataset='path_set', fold=fold),
-        #                       output_features_path=constants.NCE_FEATURES_PATH_TPL.format(dataset='path_set', fold=fold))
-        # trainer.train(data_samples=loaded_data, noise_factor=20,
-        #               n_iter=10, eta_0=0.01, iter_power=0.1)
+        loaded_data = file.load_csv_data(
+            constants.TRAIN_DATA_PATH_TPL.format(
+                fold=fold, dataset=constants.DATASET_NAME))
 
-        with open(constants.NCE_OUT_PATH_TPL.format(
-                dataset='path_set', fold=fold, dim=2)) as out_file:
-            lines = list(out_file)
+        loaded_data = np.array([np.array(sample) for sample in loaded_data])
 
-            n_logz = float(lines[0].strip())
-            a_weights = [float(x) for x in lines[1].strip().split(',')]
-            b_weights = []
-            for line in lines[2:]:
-                row = []
-                for item in line.strip().split(','):
-                    row.append(float(item))
-                b_weights.append(row)
+        modular_model = ModularWithFeatures(
+            n_items=constants.N_ITEMS, features=features)
+        diversity_model = DiversityFeatures(
+            n_items=constants.N_ITEMS, features=features, l_dims=dim)
+        trainer = NCETrainer(diversity_model, modular_model)
+        trainer.store_to_file(
+            loaded_data, noise_factor=20,
+            output_file_path=constants.NCE_DATA_PATH_TPL.format(
+                dataset='path_set', fold=fold),
+            output_noise_path=constants.NCE_NOISE_PATH_TPL.format(
+                dataset='path_set', fold=fold),
+            output_features_path=constants.NCE_FEATURES_PATH_TPL.format(
+                dataset='path_set', fold=fold))
 
-            a_weights = np.array(a_weights)
-            b_weights = np.array(b_weights)
 
-            weights = np.dot(features, b_weights)
-            utilities = np.dot(features, a_weights)
+def load_and_evaluate():
+    features = np.identity(constants.N_ITEMS)
+    for fold in range(1, constants.N_FOLDS + 1):
+        for d in range(1, 11):
+            model = DiversityFeatures(constants.N_ITEMS,
+                                      features=features, l_dims=d)
+            model.load_from_file(constants.NCE_OUT_PATH_TPL.format(
+                dataset='path_set', fold=fold, dim=d))
+            loaded_test_data = file.load_csv_data(
+                constants.RANKING_MODEL_PATH_TPL.format(
+                    fold=fold, dataset=constants.DATASET_NAME,
+                    model='partial'))
+            loaded_test_data = np.array(
+                [np.array(sample) for sample in loaded_test_data])
+            target_path = constants.RANKING_MODEL_PATH_TPL.format(
+                dataset=constants.DATASET_NAME, fold=fold,
+                model='submod_features_d_{}'.format(d))
+            with open(target_path, 'w') as output_file:
+                for subset in loaded_test_data:
+                    result = model.propose_set_item(subset)
+                    output_file.write(','.join(str(item) for item in result))
+                    output_file.write('\n')
 
-            f_model = DiversityFun(list(range(constants.N_ITEMS)), 2)
-            f_model.W = weights
-            f_model.utilities = utilities
-            f_model.n_logz = np.array([n_logz])
 
-            result_submod_f = constants.MODEL_PATH_TPL.format(
-                dataset='path_set', model='submod_d_2', fold=fold)
-            results_model = {'model': f_model, 'time': 0}
-            pickle.dump(results_model, open(result_submod_f, 'wb'))
-        #
-        # for stat in diversity_model.stats:
-        #     average_time = 1000 * diversity_model.stats[stat][0] /\
-        #                    diversity_model.stats[stat][1]
-        #     print('Stat {}: {:.2f}ms'.format(stat, average_time))
-        #
-        # for stat in trainer.stats:
-        #     average_time = 1000 * trainer.stats[stat][0] /\
-        #                    trainer.stats[stat][1]
-        #     print('Stat {}: {:.2f}ms'.format(stat, average_time))
+if __name__ == '__main__':
+    #process_data_and_store()
+    load_and_evaluate()

@@ -38,7 +38,7 @@ def rank_results(model_name):
 
 
 def main():
-    models = ['mod', 'submod_d_10',
+    models = ['mod', 'submod_features_d_10',
               'markov', 'proximity']
     for model_name in models:
         results = rank_results(model_name)
