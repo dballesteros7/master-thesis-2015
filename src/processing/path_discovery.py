@@ -91,7 +91,7 @@ class PathFinder:
                        min_cluster_photos):
         paths = self.path_storage.get_paths(
             city_name, bandwidth, min_unique_users, min_cluster_photos)
-        all_clusters = dict()
+        all_clusters = {}
         next_cluster_index = 0
         path_sets = []
         for path in paths:
@@ -105,7 +105,8 @@ class PathFinder:
 
         with open(constants.ITEMS_DATA_PATH_TPL.format(
                 dataset='path_set'), 'w') as items_file:
-            for cluster_id in all_clusters.keys():
+            sorted_clusters = sorted(all_clusters.items(), key=lambda x: x[1])
+            for cluster_id, _ in sorted_clusters:
                 cluster_info = self.cluster_storage.get_cluster(
                     cluster_id=cluster_id)
                 values = [str(cluster_info['_id']),
@@ -116,7 +117,7 @@ class PathFinder:
                 items_file.write(','.join(values))
                 items_file.write('\n')
 
-        np.random.seed(20150820)
+        np.random.seed(constants.SEED)
         data = np.array(path_sets)
         kf = KFold(len(path_sets), n_folds=10, shuffle=True)
         for idx, (train_index, test_index) in enumerate(kf):

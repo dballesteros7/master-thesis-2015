@@ -8,10 +8,13 @@ RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')
 MODEL_PATH = os.path.join(DATA_PATH, 'models')
 DATASET_NAME = 'path_set'
 ITEMS_DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_items.csv')
+ITEMS_FEATURE_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_features_{i}.csv')
 DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_{type}_fold_{fold}.csv')
 TRAIN_DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_train_fold_{fold}.csv')
 TEST_DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_test_fold_{fold}.csv')
 MODEL_PATH_TPL = os.path.join(MODEL_PATH, '{dataset}_{model}_fold_{fold}.pkl')
+PARTIAL_DATA_PATH_TPL = os.path.join(
+    RANKING_PATH, '{dataset}_partial_fold_{fold}.pkl')
 RANKING_MODEL_PATH_TPL = os.path.join(
     RANKING_PATH, '{dataset}_{model}_fold_{fold}.pkl')
 NCE_DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_nce_data_fold_{fold}.csv')

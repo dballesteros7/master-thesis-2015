@@ -28,7 +28,7 @@ class DiversityFeatures:
         self.m_feats = features.shape[1]
 
         # Model parameters
-        self.a_weights = np.zeros(self.n_items)
+        self.a_weights = np.zeros(self.m_feats)
         self.b_weights = np.zeros((self.m_feats, self.l_dims))
         self.n_logz = 0.
 
@@ -213,8 +213,47 @@ class NCETrainer:
         self.model.update_composite_parameters()
 
 
+def load_features(i: int = 1) -> np.ndarray:
+    path = constants.ITEMS_FEATURE_PATH_TPL.format(dataset='path_set', i=i)
+    with open(path, 'r') as feature_file:
+        header = None
+        feature_names = {}
+        data = []
+        for line in feature_file:
+            line = line.strip()
+            if header is None:
+                header = line
+                for index, name in enumerate(line.split(',')):
+                    feature_names[name] = index
+            else:
+                features = []
+                for value in line.split(','):
+                    features.append(float(value))
+                data.append(features)
+        features = np.array(data)
+
+        # Scale latitude, longitude
+        features[:, feature_names['latitude']] = (
+            features[:, feature_names['latitude']] + 90) / 180
+
+        features[:, feature_names['longitude']] = (
+            features[:, feature_names['longitude']] + 180) / 360
+
+        # Scale photos
+        features[:, feature_names['photos']] =\
+            features[:, feature_names['photos']] / 6000
+
+        # Scale users
+        features[:, feature_names['users']] =\
+            features[:, feature_names['users']] / 1300
+
+        features = np.hstack((features, np.identity(constants.N_ITEMS)))
+
+        return features
+
+
 def process_data_and_store():
-    features = np.identity(constants.N_ITEMS)
+    features = load_features(3)
     dim = 10
     print('Storing files for C++ processing.')
     for fold in range(1, constants.N_FOLDS + 1):
@@ -241,7 +280,8 @@ def process_data_and_store():
 
 
 def load_and_evaluate():
-    features = np.identity(constants.N_ITEMS)
+    feature_set = 3
+    features = load_features(feature_set)
     for fold in range(1, constants.N_FOLDS + 1):
         for d in range(1, 11):
             model = DiversityFeatures(constants.N_ITEMS,
@@ -256,7 +296,7 @@ def load_and_evaluate():
                 [np.array(sample) for sample in loaded_test_data])
             target_path = constants.RANKING_MODEL_PATH_TPL.format(
                 dataset=constants.DATASET_NAME, fold=fold,
-                model='submod_features_d_{}'.format(d))
+                model='submod_f_{}_d_{}'.format(feature_set, d))
             with open(target_path, 'w') as output_file:
                 for subset in loaded_test_data:
                     result = model.propose_set_item(subset)
