@@ -12,7 +12,7 @@ ITEMS_FEATURE_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_features_{i}.csv')
 DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_{type}_fold_{fold}.csv')
 TRAIN_DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_train_fold_{fold}.csv')
 TEST_DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_test_fold_{fold}.csv')
-MODEL_PATH_TPL = os.path.join(MODEL_PATH, '{dataset}_{model}_fold_{fold}.pkl')
+MODEL_PATH_TPL = os.path.join(MODEL_PATH, '{dataset}_{model}_fold_{fold}.csv')
 GROUND_TRUTH_DATA_PATH_TPL = os.path.join(
     RANKING_PATH, '{dataset}_gt_fold_{fold}.csv')
 PARTIAL_DATA_PATH_TPL = os.path.join(

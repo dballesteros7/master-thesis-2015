@@ -6,25 +6,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import constants
-from nips.ml_novel_nonexp_nce import DiversityFun
+from models.diversity_features import DiversityFeatures
+from models.features import IdentityFeatures
 from processing import ranking
 
 
-def plot_weights(div_model: DiversityFun, d: int):
+def plot_weights(div_model: DiversityFeatures, d: int):
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    weights = div_model.W
-    color_set = ax.matshow(weights, cmap=cm.GnBu_r, interpolation='none',
+    weights = div_model.weights
+    color_set = ax.matshow(weights, cmap=cm.GnBu, interpolation='none',
                            aspect='auto')
     plt.colorbar(color_set)
     ax.set_xticks(np.arange(d))
     ax.set_yticks(np.arange(10))
     ax.set_xticklabels([], visiable=False)
-    ax.set_yticklabels(('HB', 'Hallenstadion',
-                        'Bürkliterrasse', 'Zoo',
-                        'Bellevueplatz', 'Rathaus',
-                        'Lindenhof', 'Grossmünster',
-                        'Fraumünster', 'Paradeplatz'))
+    ax.set_yticklabels(('Grossmünster', 'Paradeplatz',
+                        'Fraumünster', 'Bellevueplatz',
+                        'Zoo', 'Rathaus',
+                        'Lindenhof', 'Hallenstadion',
+                        'HB', 'Bürkliterrasse'))
     ax.set_xlabel('Dimension')
     ax.set_ylabel('Locations')
     plt.savefig(os.path.join(
@@ -64,12 +65,17 @@ def plot_scores():
 
 
 def main():
-    input_model_path = constants.MODEL_PATH_TPL.format(
-        dataset='path_set', model='submod_d_10', fold='1')
-    with open(input_model_path, 'rb') as input_model_file:
-        input_model = pickle.load(input_model_file)
-        plot_weights(input_model['model'], d=10)
+    input_model_path = constants.NCE_OUT_PATH_TPL.format(
+        dataset='path_set', dim=5, fold=1, index=0)
+    features = IdentityFeatures(constants.DATASET_NAME,
+                                constants.N_ITEMS, constants.N_ITEMS)
+    features.load_from_file()
+    model = DiversityFeatures(n_items=constants.N_ITEMS,
+                              features=features.as_array(), l_dims=5)
+    model.load_from_file(input_model_path)
+    model.update_composite_parameters()
+    plot_weights(model, d=5)
 
 if __name__ == '__main__':
-    import sys
-    sys.exit(plot_scores())
+    #sys.exit(plot_scores())
+    main()

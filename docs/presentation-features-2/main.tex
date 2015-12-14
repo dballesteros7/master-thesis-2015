@@ -19,7 +19,7 @@
 \title[M.Sc. Thesis 2015]{Spatial Summarization of Image Collections}
 \author{Diego A. Ballesteros Villamizar}
 \institute[ETHZ]{ETH Zürich}
-\date{December 2nd, 2015}
+\date{December 14th, 2015}
 
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -38,38 +38,40 @@
     \titlepage
   \end{frame}
   
-  \section{FLID Results}
+  \section{Bug squashing}
   
-  \begin{frame}{Recap}
+  \begin{frame}{Fixed baseline models}
+    \begin{itemize}
+      \item Proximity model had a very low accuracy in last report.
+      \item Code generating the list of items was mixing up the indexes.
+      \item After fixing that bug, the proximity model improved its results.
+      \item Markov model without rejection of items in the set was also applied
+    \end{itemize}
+  \end{frame}
+  
+  \begin{frame}{Ranking test generation}
+    \begin{itemize}
+      \item For every set in the test data, the ranking test is generated from all combinations taking out an item.
+      \item Order of the original sets is not preserved.
+      \item This should be considered in the Markov and Proximity models.
+      \item For Markov, the sum of the transition probabilities is used for generating the recommended items.
+      \item For the Proximity model, the mininum distance from any item in the partial set is used for ranking.
+    \end{itemize}
+  \end{frame}
+  
+  \begin{frame}{Fixed results}
     \begin{table}
       \begin{tabularx}{0.7\textwidth}{X|c|c|c|c}
         Model         & $Acc$ & $\sigma_{Acc}$ & $MRR$ & $\sigma_{MRR}$ \\
         \hline
-        Modular       & 16.42 & 2.42           & 44.47 & 1.40 \\
-        FLID ($d=2$)  & 18.95 & 2.60           & 45.35 & 1.64 \\
-        FLID ($d=5$)  & 24.50 & 4.14           & 48.73 & 2.85 \\
-        FLID ($d=10$) & 26.32 & 3.35           & 50.00 & 1.92 \\
-        FLID ($d=20$) & 26.75 & 2.18           & 50.20 & 1.53 \\ 
+        Modular       & 18.15 & 3.08           & 45.80 & 1.73 \\
+        Proximity     & 26.38 & 2.78           & 47.19 & 1.92 \\
+        FLID ($d=10$) & 28.34 & 4.07           & 51.76 & 2.52 \\
+        Markov        & 32.07 & 2.69           & 52.40 & 1.76 \\
+        Proximity with rejection     & 34.60 & 3.29           & 55.88 & 2.15 \\
+        Markov with rejection & 36.50 & 3.10           & 57.91 & 1.89
       \end{tabularx}
     \end{table}
-  \end{frame}
-  
-  \begin{frame}{Choosing d}
-    \begin{figure}
-      \includegraphics[width=0.7\textwidth]{submodular_score}
-    \end{figure}
-  \end{frame}
-  
-  \begin{frame}{Diversity Encoding ($d=2$)}
-    \begin{figure}
-      \includegraphics[width=0.7\textwidth]{submodular_weights_d_2}
-    \end{figure}
-  \end{frame}
-  
-  \begin{frame}{Diversity Encoding ($d=5$)}
-    \begin{figure}
-      \includegraphics[width=0.7\textwidth]{submodular_weights_d_5}
-    \end{figure}
   \end{frame}
   
   \begin{frame}{Diversity Encoding ($d=10$)}
@@ -78,100 +80,75 @@
     \end{figure}
   \end{frame}
   
-  \section{New Baselines}
+  \section{Featurization}
   
-  \begin{frame}{Proximity Model}
-    Assuming a partial ordered sequence $S$ of length $k$ for geo-located items, the model defines a score $Q(i \mid S)$.
-    \begin{equation}
-      \forall{i \notin S}: Q(i \mid S) = \frac{1}{d(i, s_{k})}
-    \end{equation}
-    Where $d(a,b)$ is the great-circle distance between items $a$ and $b$, and $s_{k}$ is the $k_{th}$ element of the sequence.
-
-    The set of items to suggest for $S$ is ordered descendingly according to $Q(i|S)$.
-  \end{frame}
-  
-  \begin{frame}{Markov Model}
-    As proposed by \cite{Kurashima2010}. The probability of visiting a location given a location history $S = \langle s_{1} \dots s_{k} \rangle$ can be modeled as:
-    
-    \begin{equation}
-      P(s_{k+1} = i \mid s_{1} \dots s_{k}) = P(s_{k+1} = i \mid s_{k})
-    \end{equation}
-    
-    Which can be estimated with maximum likelihood from the data as:
-    
-    \begin{equation}
-      P(s_{k+1} = i \mid s_{k}) = \frac{N(l_{t+1} = i, l_{t} = s_{k})}{N(l_{t} = s_{k})}
-    \end{equation}
-    
-    Where $N(l_{t+1} = i, l_{t} = s_{k})$ is the number of times that $i$ was visited immediately after $s_{k}$, and $N(l_{t} = s_{k})$ is the number of times that $s_{k}$ was visited.
-    
-    The set of items to suggest for $S$ is ordered descendingly according to $P(i \mid S)$.
-  \end{frame}
-  
-  \begin{frame}{Results}
-    The new baseline models were trained on the data and the same 10-fold evaluation was performed, the results are:
+  \begin{frame}{Sanity test}
+    \begin{itemize}
+      \item Setting $\bm{X} = \mathbb{I}$ simplifies the featurized model to the original FLID model.
+      \item $M = \lvert \bm{V} \rvert$
+      \item $\bm{W} = \bm{X}\bm{B} = \bm{B}$
+      \item $\bm{u} = \bm{X}\bm{a} = \bm{a}$
+    \end{itemize}
     \begin{table}
       \begin{tabularx}{0.7\textwidth}{X|c|c|c|c}
         Model         & $Acc$ & $\sigma_{Acc}$ & $MRR$ & $\sigma_{MRR}$ \\
         \hline
-        Modular & 16.42 & 2.42 & 44.47 & 1.40 \\
-        FLID ($d=10$) & 26.32 & 3.35 & 50.00 & 1.92 \\
-        Markov & 30.18 & 2.59 & 53.41 & 1.76 \\
-        Proximity & 11.61 & 0.99 & 33.99 & 0.99 \\
+        FFLID ($d=2$)  & 20.88 & 2.28           & 47.15 & 1.48 \\
+        FFLID ($d=5$)  & 27.09 & 4.30           & 50.69 & 2.65 \\
+        FFLID ($d=10$) & 28.34 & 4.07           & 51.76 & 2.52
       \end{tabularx}
     \end{table}
   \end{frame}
   
-  \section{Including Features}
-  
-  \begin{frame}{Definitions}
-    \begin{description}
-      \item[$\bm{V}$] The set of locations, with cardinality $N = \lvert \bm{V} \rvert$.
-      \item[$M$] The number of features that define each location.
-      \item[$L$] The number of latent concepts.
-      \item[$\bm{X}$] The feature matrix for the locations, $\bm{X} \in \mathbb{R}^{N \times M}$.
-      \item[$\bm{a}$] The vector that defines the utility weight for each feature, $\bm{a} \in \mathbb{R}^{M}$.
-      \item[$\bm{B}$] The matrix that defines the contribution of each feature to a latent diversity concept, $\bm{B} \in \mathbb{R}^{M \times L}$.
-    \end{description}
+  \begin{frame}{Automatic features}
+    \begin{itemize}
+      \item From the Flickr data: Latitude, longitude, number of photos, number of users.
+      \item Scaled to $[0,1]$.
+      \item $m = 4$.
+    \end{itemize}
+    \begin{table}
+      \begin{tabularx}{0.7\textwidth}{X|c|c|c|c}
+        Model          & $Acc$ & $\sigma_{Acc}$ & $MRR$ & $\sigma_{MRR}$ \\
+        \hline
+        FFLID ($d=2$)  & 18.75 & 3.19 & 45.97 & 1.84 \\
+        FFLID ($d=5$)  & 18.98 & 3.18 & 46.08 & 1.85 \\
+        FFLID ($d=10$) & 19.02 & 3.21 & 46.16 & 1.84
+      \end{tabularx}
+    \end{table}
   \end{frame}
   
-  \begin{frame}{FLID with Features}
-    The FLID model with features is defined by:
-    
-    \begin{equation}
-      P(S \mid \bm{a}, \bm{B}) = \frac{1}{Z} \exp{\left(\sum_{i \in S}{\bm{x}_{i}\bm{a}} + \sum_{l = 1}^{L}{\left( \max_{i \in S}{\bm{x}_{i}\bm{b}_{l}} - \sum_{i \in S}{\bm{x}_{i}\bm{b}_{l}} \right)} \right)}
-    \end{equation}
-    
-    Where $\bm{x}_{i}$ is the $i$-th row of $\bm{X}$, and $\bm{b}_{l}$ is the $l$-th column of $\bm{B}$. This is analog to the previous model if we define $\bm{u}$ and $\bm{W}$ as:
-    
-    \begin{eqnarray*}
-       \bm{u} = \bm{X}\bm{a} \\
-       \bm{W} = \bm{X}\bm{B}
-    \end{eqnarray*}
+  \begin{frame}{Augmented features}
+    \begin{itemize}
+      \item Previous features, augmented with the identity matrix.
+    \end{itemize}
+    \begin{table}
+      \begin{tabularx}{0.7\textwidth}{X|c|c|c|c}
+        Model          & $Acc$ & $\sigma_{Acc}$ & $MRR$ & $\sigma_{MRR}$ \\
+        \hline
+        FFLID ($d=2$)  & 19.21 & 2.97 & 46.21 & 1.83 \\
+        FFLID ($d=5$)  & 22.20 & 4.29 & 47.99 & 2.52 \\
+        FFLID ($d=10$) & 25.66 & 4.08 & 50.00 & 2.73
+      \end{tabularx}
+    \end{table}
   \end{frame}
   
-  \begin{frame}{NCE learning}
-    To modify the NCE learning algorithm, it is just necessary to change the definition of the sub-gradient as follows:
-    
-    \begin{eqnarray}
-      \left(\nabla_{\bm{a}} \log{\frac{1}{\hat{Z}} \tilde{P}\left(S \mid \bm{a},\bm{B} \right)}\right)_{m} = \sum_{i \in S}{x_{i,m}} \\
-      \left(\nabla_{\bm{B}} \log{\frac{1}{\hat{Z}} \tilde{P}\left(S \mid \bm{a},\bm{B} \right)}\right)_{m, l} = x_{i^{*},m} - \sum_{i \in S}{x_{i,m}} \label{eq:gradient_b}
-    \end{eqnarray}
-    
-    Where $x_{i^{*},m}$ in equation \ref{eq:gradient_b} is:
-    
-    \begin{equation*}
-      i^{*} = \argmax_{i \in S} \bm{x}_{i} \bm{b}_{l}
-    \end{equation*} 
-    
-    The subgradient for $\hat{Z}$ is unchanged.
-    
+  \section{Conclusion}
+  
+  \begin{frame}{Observations}
+    \begin{itemize}
+      \item FLID with 10 dimensions can encode the different combinations in the data.
+      \item FFLID tries to the learn the same $\bm{W}$ but if the number of parameters is smaller, the score is worse.
+      \item Markov and Proximity models are simple but perform the best.
+      \item Binary features end up encoding each item. All items have different characteristics, except the churches.
+      \item Diversity may not be the best model of the tourist behavior, e.g. people go to both churches.
+    \end{itemize}
   \end{frame}
   
-  \bibliographystyle{apalike}
-  \section*{References}
-  \begin{frame}{References}
-    \bibliography{../references}{}
+  \begin{frame}{Next steps}
+    \begin{itemize}
+      \item Choosing more items could help FFLID as there is more variation in the features.
+      \item Adding coherence should produce better results.
+    \end{itemize}
   \end{frame}
 
 \end{document}
