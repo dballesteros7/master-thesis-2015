@@ -26,9 +26,8 @@ class MarkovChain:
                     self.first_order_counts[item][next_item] += 1
 
     def propose_set_item(self, to_complete: np.ndarray) -> np.ndarray:
-        last_item_in_sequence = to_complete[-1]
-        likelihood = self.first_order_counts[last_item_in_sequence] /\
-            self.counts[last_item_in_sequence]
+        likelihood = np.sum(self.first_order_counts[to_complete].transpose() /\
+                            self.counts[to_complete], axis=1)
         if self.use_rejection:
             likelihood[to_complete] = -np.inf
         sorted_indexes = np.argsort(likelihood)

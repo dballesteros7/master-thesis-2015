@@ -10,6 +10,8 @@ from scipy import special
 import numpy as np
 
 import constants
+from models.features import BasicFeatures, Features, IdentityFeatures, \
+    BasicFeaturesExtended
 from models.modular import ModularWithFeatures
 from nips.ml_novel_nonexp_nce import DiversityFun
 from utils import file
@@ -125,37 +127,6 @@ class NCETrainer:
             'gradient_update': [0.0, 0]
         }
 
-    def store_to_file(self, data_samples: np.ndarray, noise_factor: int,
-                      output_file_path: str, output_noise_path: str,
-                      output_features_path: str):
-        self.noise.train(data_samples)
-        with open(output_file_path, 'w') as output_file:
-            n_data = data_samples.shape[0]
-            noise_samples = self.noise.sample(noise_factor * n_data)
-            n_data += noise_samples.shape[0]
-            total = 0
-            for sample in chain(data_samples, noise_samples):
-                total += len(sample) + 1
-            output_file.write('{},{}\n'.format(total, n_data))
-            for sample in data_samples:
-                output_file.write('1,')
-                output_file.write(','.join([str(x) for x in sample]))
-                output_file.write('\n')
-            for sample in noise_samples:
-                output_file.write('0,')
-                output_file.write(','.join([str(x) for x in sample]))
-                output_file.write('\n')
-        with open(output_noise_path, 'w') as output_file:
-            output_file.write(','.join(
-                [str(x) for x in self.noise.feature_weights]))
-            output_file.write('\n')
-        with open(output_features_path, 'w') as output_file:
-            output_file.write('{},{}\n'.format(
-                self.model.n_items, self.model.m_feats))
-            for item in self.model.features:
-                output_file.write(','.join([str(x) for x in item]))
-                output_file.write('\n')
-
     def train(self, data_samples: np.ndarray, noise_factor: int,
               n_iter: int, eta_0: float, iter_power: float):
         # Sample from the modular model.
@@ -213,90 +184,63 @@ class NCETrainer:
         self.model.update_composite_parameters()
 
 
-def load_features(i: int = 1) -> np.ndarray:
-    path = constants.ITEMS_FEATURE_PATH_TPL.format(dataset='path_set', i=i)
-    with open(path, 'r') as feature_file:
-        header = None
-        feature_names = {}
-        data = []
-        for line in feature_file:
-            line = line.strip()
-            if header is None:
-                header = line
-                for index, name in enumerate(line.split(',')):
-                    feature_names[name] = index
-            else:
-                features = []
-                for value in line.split(','):
-                    features.append(float(value))
-                data.append(features)
-        features = np.array(data)
-
-        # Scale latitude, longitude
-        features[:, feature_names['latitude']] = (
-            features[:, feature_names['latitude']] + 90) / 180
-
-        features[:, feature_names['longitude']] = (
-            features[:, feature_names['longitude']] + 180) / 360
-
-        # Scale photos
-        features[:, feature_names['photos']] =\
-            features[:, feature_names['photos']] / 6000
-
-        # Scale users
-        features[:, feature_names['users']] =\
-            features[:, feature_names['users']] / 1300
-
-        features = np.hstack((features, np.identity(constants.N_ITEMS)))
-
-        return features
+def store_to_file(n_items: int, features: np.ndarray,
+                  data_samples: np.ndarray, noise_factor: int,
+                  output_file_path: str, output_noise_path: str):
+    noise = ModularWithFeatures(n_items, features)
+    noise.train(data_samples)
+    with open(output_file_path, 'w') as output_file:
+        n_data = data_samples.shape[0]
+        noise_samples = noise.sample(noise_factor * n_data)
+        n_data += noise_samples.shape[0]
+        total = 0
+        for sample in chain(data_samples, noise_samples):
+            total += len(sample) + 1
+        output_file.write('{},{}\n'.format(total, n_data))
+        for sample in data_samples:
+            output_file.write('1,')
+            output_file.write(','.join([str(x) for x in sample]))
+            output_file.write('\n')
+        for sample in noise_samples:
+            output_file.write('0,')
+            output_file.write(','.join([str(x) for x in sample]))
+            output_file.write('\n')
+    with open(output_noise_path, 'w') as output_file:
+        output_file.write(','.join(
+            [str(x) for x in noise.feature_weights]))
+        output_file.write('\n')
 
 
-def process_data_and_store():
-    features = load_features(3)
-    dim = 10
-    print('Storing files for C++ processing.')
+def process_data_and_store(dataset_name: str, features: Features):
+    print('Storing noise and data for C++ processing.')
     for fold in range(1, constants.N_FOLDS + 1):
         print('Fold {}'.format(fold))
-        loaded_data = file.load_csv_data(
+        loaded_data = file.load_set_data(
             constants.TRAIN_DATA_PATH_TPL.format(
                 fold=fold, dataset=constants.DATASET_NAME))
-
-        loaded_data = np.array([np.array(sample) for sample in loaded_data])
-
-        modular_model = ModularWithFeatures(
-            n_items=constants.N_ITEMS, features=features)
-        diversity_model = DiversityFeatures(
-            n_items=constants.N_ITEMS, features=features, l_dims=dim)
-        trainer = NCETrainer(diversity_model, modular_model)
-        trainer.store_to_file(
-            loaded_data, noise_factor=20,
-            output_file_path=constants.NCE_DATA_PATH_TPL.format(
-                dataset='path_set', fold=fold),
-            output_noise_path=constants.NCE_NOISE_PATH_TPL.format(
-                dataset='path_set', fold=fold),
-            output_features_path=constants.NCE_FEATURES_PATH_TPL.format(
-                dataset='path_set', fold=fold))
+        store_to_file(constants.N_ITEMS, features.as_array(),
+                      loaded_data, noise_factor=20,
+                      output_file_path=constants.NCE_DATA_PATH_TPL.format(
+                              dataset=dataset_name, index=features.index,
+                              fold=fold),
+                      output_noise_path=constants.NCE_NOISE_PATH_TPL.format(
+                              dataset=dataset_name, index=features.index,
+                              fold=fold))
 
 
-def load_and_evaluate():
-    feature_set = 3
-    features = load_features(feature_set)
+def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
     for fold in range(1, constants.N_FOLDS + 1):
-        for d in range(1, 11):
-            model = DiversityFeatures(constants.N_ITEMS,
-                                      features=features, l_dims=d)
+        for dim in range(1, 11):
+            model = DiversityFeatures(n_items, features.as_array(), dim)
             model.load_from_file(constants.NCE_OUT_PATH_TPL.format(
-                dataset='path_set', fold=fold, dim=d))
-            loaded_test_data = file.load_csv_data(
-                constants.RANKING_MODEL_PATH_TPL.format(
-                    fold=fold, dataset=constants.DATASET_NAME,
-                    model='partial'))
-            loaded_test_data = np.array(
-                [np.array(sample) for sample in loaded_test_data])
+                dataset=dataset_name, fold=fold, dim=dim,
+                index=features.index))
+            loaded_test_data = file.load_set_data(
+                constants.PARTIAL_DATA_PATH_TPL.format(
+                    fold=fold, dataset=constants.DATASET_NAME))
             target_path = constants.RANKING_MODEL_PATH_TPL.format(
                 dataset=constants.DATASET_NAME, fold=fold,
-                model='submod_f_{}_d_{}'.format(feature_set, d))
+                model='submod_f_{}_d_{}'.format(features.index, dim))
             with open(target_path, 'w') as output_file:
                 for subset in loaded_test_data:
                     result = model.propose_set_item(subset)
@@ -304,6 +248,14 @@ def load_and_evaluate():
                     output_file.write('\n')
 
 
+def main():
+    features = BasicFeaturesExtended(constants.DATASET_NAME,
+                                     n_items=constants.N_ITEMS,
+                                     m_features=4)
+    features.load_from_file()
+    #process_data_and_store(constants.DATASET_NAME, features)
+    #features.store_for_training()
+    load_and_evaluate(constants.DATASET_NAME, constants.N_ITEMS, features)
+
 if __name__ == '__main__':
-    #process_data_and_store()
-    load_and_evaluate()
+    main()

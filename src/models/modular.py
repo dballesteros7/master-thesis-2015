@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterable
 
 import numpy as np
 from scipy import linalg
@@ -25,7 +25,7 @@ class ModularWithFeatures:
         for sample in set_samples:
             for element in sample:
                 self.item_probs[element] += 1
-        self.item_probs /= len(set_samples)  # P(i \in S)
+        self.item_probs /= len(set_samples)
 
         y_values = -np.log(1 / self.item_probs - 1)
         self.feature_weights = linalg.lstsq(self.features, y_values)[0]
@@ -42,10 +42,10 @@ class ModularWithFeatures:
                 data.append(s)
         return np.array(data)
 
-    def __call__(self, item_set: List[int]) -> float:
+    def __call__(self, item_set: Iterable[int]) -> float:
         return np.sum(self.utilities[item_set]) - self.logz
 
-    def propose_set_item(self, to_complete: List[int]) -> List[int]:
+    def propose_set_item(self, to_complete: Iterable[int]) -> Iterable[int]:
         utilities = np.copy(self.utilities)
         utilities[to_complete] = -np.inf
         sorted_indexes = np.argsort(utilities)[len(to_complete):]

@@ -38,7 +38,12 @@ def rank_results(model_name):
 
 
 def main():
-    models = ['markov', 'pseudo_markov', 'proximity', 'proximity_inverse']
+    models = [
+        'markov', 'pseudo_markov', 'proximity', 'modular_features',
+        'submod_f_1_d_2', 'submod_f_1_d_5', 'submod_f_1_d_10',
+        'submod_f_0_d_2', 'submod_f_0_d_5', 'submod_f_0_d_10',
+        'submod_f_2_d_1', 'submod_f_2_d_2', 'submod_f_2_d_3',
+    ]
     for model_name in models:
         results = rank_results(model_name)
         print('{:2.2f} & {:2.2f} & {:2.2f} & {:2.2f}'.format(*results))

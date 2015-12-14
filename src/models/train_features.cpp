@@ -229,15 +229,18 @@ void train_with_features(string data_file_path,
 
 }
 
-int main() {
-    for (int d = 1; d <= 10; ++d) {
-        for (int i = 1; i <= 10; ++i) {
+int main(int argc, char* argv[]) {
+    int fold_number = stoi(argv[1]);
+    int dim_number = stoi(argv[2]);
+    int feature_set = stoi(argv[3]);
+    for (int d = 1; d <= dim_number; ++d) {
+        for (int i = 1; i <= fold_number; ++i) {
             train_with_features(
-                    (boost::format("/home/diegob/workspace/master-thesis-2015/data/path_set_nce_data_fold_%1%.csv") % i).str(),
-                    (boost::format("/home/diegob/workspace/master-thesis-2015/data/path_set_nce_features_fold_%1%.csv") % i).str(),
-                    (boost::format("/home/diegob/workspace/master-thesis-2015/data/path_set_nce_noise_fold_%1%.csv") % i).str(),
+                    (boost::format("/home/diegob/workspace/master-thesis-2015/data/path_set_nce_data_features_%1%_fold_%2%.csv") % feature_set % i).str(),
+                    (boost::format("/home/diegob/workspace/master-thesis-2015/data/path_set_nce_features_%1%.csv") % feature_set).str(),
+                    (boost::format("/home/diegob/workspace/master-thesis-2015/data/path_set_nce_noise_features_%1%_fold_%2%.csv") % feature_set % i).str(),
                     10, 0.01, 0.1, d,
-                    (boost::format("/home/diegob/workspace/master-thesis-2015/data/models/path_set_nce_out_dim_%2%_fold_%1%.csv") % i % d).str());
+                    (boost::format("/home/diegob/workspace/master-thesis-2015/data/models/path_set_nce_out_features_%1%_dim_%2%_fold_%3%.csv") % feature_set % d % i).str());
         }
     }
 

@@ -11,6 +11,7 @@ import constants
 from storage.cluster_storage import ClusterStorage
 from storage.path_storage import PathStorage
 from storage.photo_storage import PhotoStorage
+from utils.google_api import GoogleApi
 
 
 class PathFinder:
@@ -48,7 +49,8 @@ class PathFinder:
             paths.append(path)
         return paths
 
-    def find_and_store_all_paths(self, city_name, bandwidth, min_unique_users, min_cluster_photos):
+    def find_and_store_all_paths(self, city_name, bandwidth,
+                                 min_unique_users, min_cluster_photos):
         all_photos = self.photo_storage.get_photos_for_city(city_name=city_name)
         logging.info('Loading cursor for photo collection.')
         all_paths = defaultdict(OrderedDict)
@@ -59,10 +61,12 @@ class PathFinder:
         clusters = self.cluster_storage.get_top_ten_clusters(city_name, bandwidth)
         cluster_set = set(cluster['_id'] for cluster in clusters)
         for photo in all_photos:
-            cluster = self.cluster_storage.get_cluster_for_photo(photo_id=photo['_id'], city_name=city_name,
-                                                                 bandwidth=bandwidth)
+            cluster = self.cluster_storage.get_cluster_for_photo(
+                    photo_id=photo['_id'], city_name=city_name,
+                    bandwidth=bandwidth)
             if cluster['_id'] in cluster_set:
-                all_paths[(parse_datetaken(photo), photo['owner'])][cluster['_id']] = True
+                all_paths[(parse_datetaken(photo), photo['owner'])][
+                    cluster['_id']] = True
                 included += 1
             else:
                 discarded += 1
@@ -109,12 +113,17 @@ class PathFinder:
             for cluster_id, _ in sorted_clusters:
                 cluster_info = self.cluster_storage.get_cluster(
                     cluster_id=cluster_id)
+                top_places = GoogleApi.get_places(
+                        cluster_info['latitude'], cluster_info['longitude'])
                 values = [str(cluster_info['_id']),
                           str(cluster_info['latitude']),
                           str(cluster_info['longitude']),
                           str(cluster_info['number_of_photos']),
                           str(cluster_info['unique_users'])]
                 items_file.write(','.join(values))
+                items_file.write(',')
+                items_file.write(';'.join([result['name']
+                                           for result in top_places[:10]]))
                 items_file.write('\n')
 
         np.random.seed(constants.SEED)
