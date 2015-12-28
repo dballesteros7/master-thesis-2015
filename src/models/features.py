@@ -55,22 +55,8 @@ class BasicFeatures(Features):
     index = 1
 
     def as_array(self):
-        normalized_features = np.empty_like(self.features)
-        # Scale latitude, longitude
-        normalized_features[:, self.keys['latitude']] = (
-            self.features[:, self.keys['latitude']] + 90) / 180
-
-        normalized_features[:, self.keys['longitude']] = (
-            self.features[:, self.keys['longitude']] + 180) / 360
-
-        # Scale photos
-        normalized_features[:, self.keys['photos']] =\
-            self.features[:, self.keys['photos']] / 6000
-
-        # Scale users
-        normalized_features[:, self.keys['users']] =\
-            self.features[:, self.keys['users']] / 1300
-        return normalized_features
+        return (self.features - np.min(self.features, axis=0)) /\
+               (np.max(self.features, axis=0) - np.min(self.features, axis=0))
 
 
 class BasicFeaturesExtended(Features):
@@ -82,20 +68,10 @@ class BasicFeaturesExtended(Features):
         self.m_features += self.n_items
 
     def as_array(self):
-        normalized_features = np.copy(self.features)
         # Scale latitude, longitude
-        normalized_features[:, self.keys['latitude']] = (
-            normalized_features[:, self.keys['latitude']] + 90) / 180
+        normalized_features = (
+            (self.features[:, :4] - np.min(self.features[:, :4], axis=0)) /
+            (np.max(self.features[:, :4], axis=0) -
+             np.min(self.features[:, :4], axis=0)))
 
-        normalized_features[:, self.keys['longitude']] = (
-            normalized_features[:, self.keys['longitude']] + 180) / 360
-
-        # Scale photos
-        normalized_features[:, self.keys['photos']] =\
-            normalized_features[:, self.keys['photos']] / 6000
-
-        # Scale users
-        normalized_features[:, self.keys['users']] =\
-            normalized_features[:, self.keys['users']] / 1300
-
-        return normalized_features
+        return np.hstack((normalized_features, np.identity(self.n_items)))

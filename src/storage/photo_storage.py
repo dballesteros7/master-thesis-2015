@@ -35,3 +35,11 @@ class PhotoStorage:
     def get_photos_for_city(self, city_name):
         return self.collection.find({'city_name': city_name}, sort=[('datetaken', 1)])
 
+
+def main():
+    storage = PhotoStorage()
+    photos = storage.get_photos_for_city('zurich')
+    print(len(list(photos)))
+
+if __name__ == '__main__':
+    main()

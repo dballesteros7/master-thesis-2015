@@ -1,9 +1,6 @@
-import pickle
-
 import time
 from itertools import chain
 
-from scipy.misc import logsumexp
 from sklearn.utils import shuffle
 from scipy import special
 
@@ -13,7 +10,6 @@ import constants
 from models.features import BasicFeatures, Features, IdentityFeatures, \
     BasicFeaturesExtended
 from models.modular import ModularWithFeatures
-from nips.ml_novel_nonexp_nce import DiversityFun
 from utils import file
 
 W_eps = 1e-3
@@ -47,7 +43,8 @@ class DiversityFeatures:
             'gradient_a_time': [0.0, 0],
             'gradient_b_time': [0.0, 0],
             'params_time': [0.0, 0],
-            'evaluation': [0.0, 0]
+            'evaluation': [0.0, 0],
+            'suggest': [0.0, 0]
         }
 
     def update_composite_parameters(self):
@@ -87,15 +84,43 @@ class DiversityFeatures:
         self.stats['gradient_b_time'][0] += elapsed
         self.stats['gradient_b_time'][1] += 1
 
-    def propose_set_item(self, to_complete: np.ndarray) -> np.ndarray:
-        current_value = np.exp(self(to_complete))
-        other_items = set(range(self.n_items)) - set(to_complete)
-        gains = np.zeros(self.n_items)
-        gains[to_complete] = -np.inf
-        for item in other_items:
-            other_value = np.exp(self(np.append(to_complete, item)))
-            gains[item] = other_value - current_value
-        return np.argsort(gains)[to_complete.shape[0]:][::-1]
+    def propose_set_item(self, to_complete: np.ndarray,
+                         use_new: bool = False) -> np.ndarray:
+        start = time.time()
+        if use_new:
+            gains = np.zeros(self.n_items)
+
+            gains += self.utilities
+            gains -= np.sum(self.weights, axis=1)
+
+            current_max_per_d = np.max(self.weights[to_complete, :], axis=0)
+            max_per_dimension = np.repeat(
+                    current_max_per_d.reshape((1, self.l_dims, 1)),
+                    self.n_items, axis=0)
+            gains += np.sum(
+                np.max(
+                    np.concatenate(
+                        (self.weights.reshape((self.n_items, self.l_dims, 1)),
+                         max_per_dimension),
+                        axis=2),
+                    axis=2),
+                axis=1)
+
+            gains[to_complete] = -np.inf
+            result = np.argsort(gains)[to_complete.shape[0]:][::-1]
+        else:
+            current_value = np.exp(self(to_complete))
+            other_items = set(range(self.n_items)) - set(to_complete)
+            gains = np.zeros(self.n_items)
+            gains[to_complete] = -np.inf
+            for item in other_items:
+                other_value = np.exp(self(np.append(to_complete, item)))
+                gains[item] = other_value - current_value
+            result = np.argsort(gains)[to_complete.shape[0]:][::-1]
+        elapsed = time.time() - start
+        self.stats['suggest'][0] += elapsed
+        self.stats['suggest'][1] += 1
+        return result
 
     def load_from_file(self, input_path: str):
         with open(input_path) as input_file:
@@ -219,7 +244,7 @@ def process_data_and_store(dataset_name: str, features: Features):
             constants.TRAIN_DATA_PATH_TPL.format(
                 fold=fold, dataset=constants.DATASET_NAME))
         store_to_file(constants.N_ITEMS, features.as_array(),
-                      loaded_data, noise_factor=20,
+                      loaded_data, noise_factor=200,
                       output_file_path=constants.NCE_DATA_PATH_TPL.format(
                               dataset=dataset_name, index=features.index,
                               fold=fold),
@@ -229,6 +254,7 @@ def process_data_and_store(dataset_name: str, features: Features):
 
 
 def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
+    full_stats = []
     for fold in range(1, constants.N_FOLDS + 1):
         for dim in range(1, 11):
             model = DiversityFeatures(n_items, features.as_array(), dim)
@@ -243,9 +269,13 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
                 model='submod_f_{}_d_{}'.format(features.index, dim))
             with open(target_path, 'w') as output_file:
                 for subset in loaded_test_data:
-                    result = model.propose_set_item(subset)
+                    result = model.propose_set_item(subset, use_new=True)
                     output_file.write(','.join(str(item) for item in result))
                     output_file.write('\n')
+            stats = model.stats['suggest']
+            full_stats.append(stats[0] / stats[1])
+    print('The evaluation speed is {}\u03bcs per sample.'.format(
+                    np.mean(np.array(full_stats)) * 1e6))
 
 
 def main():

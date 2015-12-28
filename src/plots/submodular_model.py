@@ -1,5 +1,4 @@
 import os
-import pickle
 
 from matplotlib import cm
 import matplotlib.pyplot as plt
@@ -7,7 +6,8 @@ import numpy as np
 
 import constants
 from models.diversity_features import DiversityFeatures
-from models.features import IdentityFeatures
+from models.features import IdentityFeatures, BasicFeatures, \
+    BasicFeaturesExtended
 from processing import ranking
 
 
@@ -20,7 +20,7 @@ def plot_weights(div_model: DiversityFeatures, d: int):
     plt.colorbar(color_set)
     ax.set_xticks(np.arange(d))
     ax.set_yticks(np.arange(10))
-    ax.set_xticklabels([], visiable=False)
+    ax.set_xticklabels([], visible=False)
     ax.set_yticklabels(('Grossmünster', 'Paradeplatz',
                         'Fraumünster', 'Bellevueplatz',
                         'Zoo', 'Rathaus',
@@ -29,7 +29,7 @@ def plot_weights(div_model: DiversityFeatures, d: int):
     ax.set_xlabel('Dimension')
     ax.set_ylabel('Locations')
     plt.savefig(os.path.join(
-        constants.IMAGE_PATH, 'submodular_weights_d_{}.eps').format(d),
+        constants.IMAGE_PATH, 'submodular_weights_f_2_d_{}.png').format(d),
                 bbox_inches='tight')
 
 
@@ -65,16 +65,17 @@ def plot_scores():
 
 
 def main():
+    features = BasicFeaturesExtended(constants.DATASET_NAME,
+                                    constants.N_ITEMS, 4)
     input_model_path = constants.NCE_OUT_PATH_TPL.format(
-        dataset='path_set', dim=5, fold=1, index=0)
-    features = IdentityFeatures(constants.DATASET_NAME,
-                                constants.N_ITEMS, constants.N_ITEMS)
+        dataset='path_set', dim=10, fold=1, index=features.index)
     features.load_from_file()
     model = DiversityFeatures(n_items=constants.N_ITEMS,
-                              features=features.as_array(), l_dims=5)
+                              features=features.as_array(),
+                              l_dims=10)
     model.load_from_file(input_model_path)
     model.update_composite_parameters()
-    plot_weights(model, d=5)
+    plot_weights(model, d=10)
 
 if __name__ == '__main__':
     #sys.exit(plot_scores())
