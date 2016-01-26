@@ -140,7 +140,7 @@ class GeneralFeatures:
 
 def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
     for fold in range(1, constants.N_FOLDS + 1):
-        for l_dim in range(0, 1):
+        for l_dim in range(0, 11):
             for k_dim in range(0, 11):
                 model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
                 model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
@@ -160,9 +160,9 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    features = BasicFeaturesExtended(constants.DATASET_NAME,
-                                     n_items=constants.N_ITEMS,
-                                     m_features=4)
+    features = IdentityFeatures(constants.DATASET_NAME,
+                                n_items=constants.N_ITEMS,
+                                m_features=10)
     features.load_from_file()
     load_and_evaluate(constants.DATASET_NAME, constants.N_ITEMS, features)
 

@@ -5,6 +5,7 @@ from scipy import linalg
 from scipy import special
 
 import constants
+from models.features import BasicFeatures, IdentityFeatures
 from utils import file
 
 
@@ -53,8 +54,11 @@ class ModularWithFeatures:
 
 
 def main():
-    features = np.identity(constants.N_ITEMS)
-
+    features = IdentityFeatures(constants.DATASET_NAME,
+                                n_items=constants.N_ITEMS,
+                                m_features=10)
+    features.load_from_file()
+    features = features.as_array()
     for fold in range(1, constants.N_FOLDS + 1):
         loaded_data = file.load_csv_data(
             constants.TRAIN_DATA_PATH_TPL.format(
@@ -70,7 +74,7 @@ def main():
 
         target_path = constants.RANKING_MODEL_PATH_TPL.format(
             dataset=constants.DATASET_NAME, fold=fold,
-            model='modular_features')
+            model='modular')
         with open(target_path, 'w') as output_file:
             for subset in loaded_test_data:
                 result = modular_model.propose_set_item(subset)

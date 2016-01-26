@@ -1,6 +1,9 @@
 #include "utils.h"
 
 #include <fstream>
+#include <iostream>
+#include <ctime>
+
 
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -46,7 +49,7 @@ void train_with_features(std::string data_file_path,
     size_t n_items;
     size_t m_features;
     std::vector<double> features;
-    auto index_features = [m_features](size_t i, size_t j) -> size_t {
+    auto index_features = [&m_features](size_t i, size_t j) -> size_t {
         return (i * m_features) + j;
     };
     masterthesis::readFeatureFile(
@@ -79,18 +82,18 @@ void train_with_features(std::string data_file_path,
 
     // Initialize parameters.
     auto random_engine = std::default_random_engine{};
-    random_engine.seed(10000000);
-    std::uniform_real_distribution<double_t> udouble_dist(0, 1e-3);
+    random_engine.seed(std::time(NULL));
+    std::uniform_real_distribution<double_t> udouble_dist(0, 1);
     std::vector<double> b_weights(m_features * l_dimensions);
     std::vector<double> c_weights(m_features * k_dimensions);
     std::vector<double> a_weights(m_features);
     double n_logz = 0;
 
-    auto index_b_weights = [l_dimensions](size_t i, size_t j) -> size_t {
+    auto index_b_weights = [&l_dimensions](size_t i, size_t j) -> size_t {
         return (i * l_dimensions) + j;
     };
 
-    auto index_c_weights = [k_dimensions](size_t i, size_t j) -> size_t {
+    auto index_c_weights = [&k_dimensions](size_t i, size_t j) -> size_t {
         return (i * k_dimensions) + j;
     };
 
@@ -100,10 +103,12 @@ void train_with_features(std::string data_file_path,
     for (size_t i = 0; i < m_features; ++i) {
         for (size_t j = 0; j < l_dimensions; ++j) {
             b_weights[index_b_weights(i, j)] = udouble_dist(random_engine);
+//            std::cout << b_weights[index_b_weights(i, j)] << ",";
         }
         for (size_t j = 0; j < k_dimensions; ++j) {
             c_weights[index_c_weights(i, j)] = udouble_dist(random_engine);
         }
+//        std::cout << std::endl;
     }
     for (size_t i = 0; i < n_items; ++i) {
         n_logz -= masterthesis::log1exp(noise_utilities[i]);
@@ -136,14 +141,17 @@ void train_with_features(std::string data_file_path,
 
             std::vector<double> max_b_weights(l_dimensions);
             std::vector<int> max_weight_b_indexes(l_dimensions);
+//            std::cout << "Inspecting max b weights" << std::endl;
             for (size_t j = 0; j < l_dimensions; ++j) {
                 max_b_weights[j] = -1;
                 max_weight_b_indexes[j] = -1;
                 for (size_t i = start_idx + 1; i < end_idx; ++i) {
+//                    std:: cout << "Item " << data[i] << std::endl;
                     double weight = 0;
                     for (size_t k = 0; k < m_features; ++k) {
                         weight += features[index_features(data[i], k)] *
                                   b_weights[index_b_weights(k, j)];
+//                        std::cout << features[index_features(data[i], k)] << " * " << b_weights[index_b_weights(k, j)] << " = " << weight << std::endl;
                     }
                     if (weight > max_b_weights[j]) {
                         max_b_weights[j] = weight;
@@ -181,7 +189,9 @@ void train_with_features(std::string data_file_path,
 
             for (size_t i = 0; i < m_features; ++i) {
                 a_weights[i] += factor * a_gradient[i];
+//                std::cout << "Gradient for feature " << i << ": ";
                 for (size_t j = 0; j < l_dimensions; ++j) {
+//                    std::cout << max_weight_b_indexes[j] << ",";
                     b_weights[index_b_weights(i, j)] += factor *
                                                         (features[index_features(
                                                                 max_weight_b_indexes[j], i)] -
@@ -199,6 +209,7 @@ void train_with_features(std::string data_file_path,
                             udouble_dist(random_engine);
                     }
                 }
+//                std::cout << std::endl;
             }
             n_logz += factor;
         }

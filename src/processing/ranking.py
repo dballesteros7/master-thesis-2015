@@ -39,13 +39,14 @@ def rank_results(model_name):
 
 def main():
     models = [
-        'modular_features', 'markov', 'proximity',
-        'submod_f_0_d_2', 'submod_f_0_d_5', 'submod_f_0_d_10',
-        'submod_f_2_l_0_k_0', 'submod_f_2_l_0_k_2', 'submod_f_2_l_0_k_5', 'submod_f_2_l_0_k_10'
+        'modular_features',
+        'submod_f_1_l_2_k_0', 'submod_f_1_l_5_k_0', 'submod_f_1_l_10_k_0',
+        'submod_f_1_l_0_k_2', 'submod_f_1_l_0_k_5', 'submod_f_1_l_0_k_10',
+        'submod_f_1_l_2_k_2', 'submod_f_1_l_5_k_5', 'submod_f_1_l_10_k_10',
     ]
     for model_name in models:
         results = rank_results(model_name)
-        print('{:2.2f} & {:2.2f} & {:2.2f} & {:2.2f}'.format(*results))
+        print('{:2.2f} \pm {:2.2f} & {:2.2f} \pm {:2.2f}'.format(*results))
 
 if __name__ == '__main__':
     main()
