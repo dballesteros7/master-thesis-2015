@@ -52,7 +52,7 @@ class PhotoStorage:
         else:
             result = self.collection.find(
                     {'city_name': city_name}, sort=[('datetaken', 1)])
-            ordered_keys = ['latitude', 'longitude', 'owner', 'id', '_id']
+            ordered_keys = ['latitude', 'longitude', 'owner', 'id', 'datetaken', '_id']
             with open(cache_path, 'w') as cache_file:
                 cache_file.write(','.join(ordered_keys))
                 cache_file.write('\n')

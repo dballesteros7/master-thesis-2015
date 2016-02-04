@@ -241,6 +241,54 @@
 
 \section{Gaussian Mixture Model}
 
+\begin{frame}{GMM Details}
+  \begin{enumerate}
+    \item 168607 photos in the Zürich dataset.
+    \item EM algorith to learn Gaussian models.
+    \item Initial exploration with $k = 10$ clusters. Same cluster number as the previous models.
+  \end{enumerate}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.5\columnwidth]{gmm_nlog_likelihood}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Choosing $k$ using BIC}
+  \begin{table}
+    \begin{tabular}{ll}
+      \hline
+      $k$ & BIC score \\
+      \hline
+      $5$ & $-502347$ \\
+      $10$ & $-553062$ \\
+      $15$ & $-577692$ \\
+      $20$ & $-578098$ \\
+      $25$ & $-580983$ \\
+      $\bm{30}$ & $\bm{-581246}$ \\
+      $40$ & $-581005$ \\
+      $50$ & $-580006$ \\
+      \hline
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+\begin{frame}{GMM with $k = 30$}
+  \begin{columns}
+    \begin{column}{0.5\columnwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\columnwidth]{gmm_nlog_likelihood_30}
+      \end{figure}
+    \end{column}
+    \begin{column}{0.5\columnwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\columnwidth]{gmm_clusters_30}
+      \end{figure}
+    \end{column}
+  \end{columns}
+\end{frame}
+
 \begin{frame}{References}
   \bibliographystyle{acm}
   \bibliography{../references.bib}
