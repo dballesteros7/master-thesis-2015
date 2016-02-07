@@ -5,7 +5,7 @@ import numpy as np
 import constants
 from models.features import BasicFeatures, IdentityFeatures
 from models.general_features import GeneralFeatures
-from plots.len_histogram import len_histogram, pairs_histogram
+from plots.histograms import len_histogram, pairs_histogram
 
 
 class BruteForceSampler:
@@ -49,7 +49,7 @@ def main():
     sampler.train()
     samples = sampler.sample(100000)
     len_histogram(samples)
-    #pairs_histogram(samples)
+    pairs_histogram(samples)
 
 
 if __name__ == '__main__':

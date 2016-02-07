@@ -39,10 +39,10 @@ def rank_results(model_name):
 
 def main():
     models = [
-        'modular_features', 'markov', 'pseudo_markov',
+        'modular', 'markov', 'pseudo_markov',
         'submod_f_2_l_2_k_0', 'submod_f_2_l_5_k_0', 'submod_f_2_l_10_k_0',
         'submod_f_2_l_0_k_2', 'submod_f_2_l_0_k_5', 'submod_f_2_l_0_k_10',
-        'submod_f_2_l_2_k_2', 'submod_f_2_l_5_k_5', 'submod_f_2_l_10_k_10',
+        'submod_f_2_l_2_k_2', 'submod_f_0_l_5_k_5', 'submod_f_2_l_10_k_10',
     ]
     for model_name in models:
         results = rank_results(model_name)

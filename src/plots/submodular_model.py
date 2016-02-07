@@ -102,8 +102,8 @@ def plot_scores():
 def main():
     l_dim = 2
     k_dim = 2
-    features =  BasicFeatures(constants.DATASET_NAME,
-                                constants.N_ITEMS, 4)
+    features = BasicFeatures(constants.DATASET_NAME,
+                             constants.N_ITEMS, 4)
     input_model_path = constants.NCE_OUT_GENERAL_PATH_TPL.format(
         dataset='path_set', l_dim=l_dim, k_dim=k_dim, fold=1,
         index=features.index)

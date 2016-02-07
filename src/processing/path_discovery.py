@@ -51,7 +51,8 @@ class PathFinder:
 
     def find_and_store_all_paths(self, city_name, bandwidth,
                                  min_unique_users, min_cluster_photos):
-        all_photos = self.photo_storage.get_photos_for_city(city_name=city_name)
+        all_photos = self.photo_storage.get_photos_for_city(
+            city_name=city_name)
         logging.info('Loading cursor for photo collection.')
         all_paths = defaultdict(OrderedDict)
         logging.info('Starting iteration over photos.')

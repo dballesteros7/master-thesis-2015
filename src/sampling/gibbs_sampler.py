@@ -1,12 +1,14 @@
+import os
 from collections import defaultdict
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 import constants
 from models.features import IdentityFeatures
 from models.general_features import GeneralFeatures
-from plots.len_histogram import len_histogram
-
+from plots.histograms import len_histogram, pairs_histogram
+from sampling.brute_force import BruteForceSampler
 
 class GibbsSampler:
     def __init__(self, n_items: int, model):
@@ -15,7 +17,7 @@ class GibbsSampler:
         self.counts = defaultdict(int)
         self.samples = 0
 
-    def train(self, n_iter: int = 100000):
+    def train(self, n_iter: int = 1000000):
         initial_set_size = np.random.randint(
             low=1, high=self.n_items + 1, size=1)
         random_set = np.random.choice(self.n_items, size=initial_set_size,
@@ -52,10 +54,10 @@ class GibbsSampler:
             ordered_sets, size=n_samples, p=probabilities)
 
 
-def main():
+def plot_performance():
     np.random.seed(constants.SEED)
-    l_dim = 2
-    k_dim = 2
+    l_dim = 5
+    k_dim = 5
     features = IdentityFeatures(
         constants.DATASET_NAME, constants.N_ITEMS, constants.N_ITEMS)
     features.load_from_file()
@@ -64,10 +66,65 @@ def main():
     model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
         dataset=constants.DATASET_NAME, fold=1, l_dim=l_dim, k_dim=k_dim,
         index=features.index))
-    sampler = GibbsSampler(constants.N_ITEMS, model)
-    sampler.train()
-    samples = sampler.sample(100000)
-    len_histogram(samples)
+    x = [100, 500, 1000, 2000, 5000, 10000, 50000, 100000, 500000, 1000000]
+    #x = [100, 500, 1000, 2000, 5000, 10000]
+    y = []
+    for n_iter in x:
+        sampler = GibbsSampler(constants.N_ITEMS, model)
+        sampler.train(n_iter)
+        exact_sampler = BruteForceSampler(constants.N_ITEMS, model)
+        exact_sampler.train()
+        error = 0
+        for subset, prob in zip(exact_sampler.ordered_sets,
+                                exact_sampler.probabilities):
+            if subset in sampler.counts:
+                error += abs(prob - (sampler.counts[subset] / sampler.samples))
+            else:
+                error += prob
+        y.append(error)
+
+    plt.plot(x, y, 'o')
+    plt.plot(x, y, '-')
+    plt.xlabel('Iterations')
+    plt.ylabel('Absolute error')
+    plt.title('Gibbs Sampling Error')
+    plt.grid(True)
+    plt.axis([min(x), max(x), 0, max(y) + 0.2])
+    plt.xscale('log')
+    plt.savefig(
+        os.path.join(constants.IMAGE_PATH, 'gibbs_performance.eps'),
+        bbox_inches='tight')
+
+
+def main():
+    plot_performance()
+    # np.random.seed(constants.SEED)
+    # l_dim = 5
+    # k_dim = 5
+    # features = IdentityFeatures(
+    #     constants.DATASET_NAME, constants.N_ITEMS, constants.N_ITEMS)
+    # features.load_from_file()
+    # model = GeneralFeatures(constants.N_ITEMS, features.as_array(),
+    #                         l_dim, k_dim)
+    # model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+    #     dataset=constants.DATASET_NAME, fold=1, l_dim=l_dim, k_dim=k_dim,
+    #     index=features.index))
+    # for n_iter in [100, 500, 1000, 2000, 5000, 10000, 50000, 100000, 500000, 1000000]:
+    #     sampler = GibbsSampler(constants.N_ITEMS, model)
+    #     sampler.train(n_iter)
+    #     exact_sampler = BruteForceSampler(constants.N_ITEMS, model)
+    #     exact_sampler.train()
+    #     error = 0
+    #     for subset, prob in zip(exact_sampler.ordered_sets,
+    #                             exact_sampler.probabilities):
+    #         if subset in sampler.counts:
+    #             error += abs(prob - (sampler.counts[subset] / sampler.samples))
+    #         else:
+    #             error += prob
+    #     print(error)
+        # samples = sampler.sample(1e5)
+        # len_histogram(samples)
+        # pairs_histogram(samples)
 
 
 if __name__ == '__main__':
