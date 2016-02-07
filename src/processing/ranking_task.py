@@ -41,4 +41,4 @@ def generate_ranking_task(dataset_name: str):
 
 
 if __name__ == '__main__':
-    generate_ranking_task(dataset_name=constants.DATASET_NAME)
+    generate_ranking_task(dataset_name=constants.GMM_DATASET_NAME)

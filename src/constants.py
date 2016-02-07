@@ -3,6 +3,7 @@ import time
 
 N_FOLDS = 10
 N_ITEMS = 10
+N_PHOTOS = 168607
 DATA_PATH = os.path.join(os.path.dirname(__file__), os.path.pardir, 'data')
 IMAGE_PATH = os.path.join(os.path.dirname(__file__), os.path.pardir, 'images')
 RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')

@@ -48,6 +48,8 @@ class GeneralFeatures:
         self.stats['params_time'][1] += 1
 
     def __call__(self, s: np.ndarray) -> np.ndarray:
+        if len(s) == 0:
+            return self.n_logz
         start = time.time()
         div_weights_view = self.diversity_weights[s, :]
         coh_weights_view = self.coherence_weights[s, :]
@@ -160,9 +162,9 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    features = IdentityFeatures(constants.DATASET_NAME,
-                                n_items=constants.N_ITEMS,
-                                m_features=10)
+    features = BasicFeaturesExtended(constants.DATASET_NAME,
+                                     n_items=constants.N_ITEMS,
+                                     m_features=4)
     features.load_from_file()
     load_and_evaluate(constants.DATASET_NAME, constants.N_ITEMS, features)
 

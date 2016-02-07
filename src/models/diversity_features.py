@@ -8,7 +8,7 @@ import numpy as np
 
 import constants
 from models.features import BasicFeatures, Features, IdentityFeatures, \
-    BasicFeaturesExtended
+    BasicFeaturesExtended, BasicFeaturesNoNormalized
 from models.modular import ModularWithFeatures
 from utils import file
 
@@ -242,7 +242,7 @@ def process_data_and_store(dataset_name: str, features: Features):
         print('Fold {}'.format(fold))
         loaded_data = file.load_set_data(
             constants.TRAIN_DATA_PATH_TPL.format(
-                fold=fold, dataset=constants.DATASET_NAME))
+                fold=fold, dataset=dataset_name))
         store_to_file(constants.N_ITEMS, features.as_array(),
                       loaded_data, noise_factor=constants.NCE_NOISE_FACTOR,
                       output_file_path=constants.NCE_DATA_PATH_TPL.format(
@@ -279,9 +279,9 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    features = IdentityFeatures(constants.DATASET_NAME,
-                                n_items=constants.N_ITEMS,
-                                m_features=10)
+    features = BasicFeaturesExtended(constants.DATASET_NAME,
+                                     n_items=constants.N_ITEMS,
+                                     m_features=4)
     features.load_from_file()
     process_data_and_store(constants.DATASET_NAME, features)
     features.store_for_training()

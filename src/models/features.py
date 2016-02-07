@@ -59,6 +59,22 @@ class BasicFeatures(Features):
                (np.max(self.features, axis=0) - np.min(self.features, axis=0))
 
 
+class BasicFeaturesNoNormalized(Features):
+    index = 1
+
+    def load_from_file(self):
+        path = constants.ITEMS_FEATURE_PATH_TPL.format(
+            dataset=self.dataset_name, i=self.index)
+        with open(path, 'r') as input_file:
+            for item_index, line in enumerate(input_file):
+                tokens = line.strip().split(',')
+                for feature_index, token in enumerate(tokens):
+                    self.features[item_index, feature_index] = float(token)
+
+    def as_array(self):
+        return np.copy(self.features)
+
+
 class BasicFeaturesExtended(Features):
     index = 2
 

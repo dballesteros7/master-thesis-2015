@@ -58,7 +58,8 @@ class PathFinder:
         counter = 0
         included = 0
         discarded = 0
-        clusters = self.cluster_storage.get_top_ten_clusters(city_name, bandwidth)
+        clusters = self.cluster_storage.get_top_ten_clusters(
+            city_name, bandwidth)
         cluster_set = set(cluster['_id'] for cluster in clusters)
         for photo in all_photos:
             cluster = self.cluster_storage.get_cluster_for_photo(
