@@ -9,6 +9,7 @@ IMAGE_PATH = os.path.join(os.path.dirname(__file__), os.path.pardir, 'images')
 RANKING_PATH = os.path.join(DATA_PATH, 'ranking_test')
 MODEL_PATH = os.path.join(DATA_PATH, 'models')
 DATASET_NAME = 'path_set'
+DATASET_NAME_TPL = 'path_set_{}'
 GMM_DATASET_NAME = 'gmm_photos'
 LOCAL_PHOTO_CACHE = os.path.join(DATA_PATH, 'photos_{city}.csv')
 ITEMS_DATA_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_items.csv')
@@ -23,6 +24,10 @@ GROUND_TRUTH_DATA_PATH_TPL = os.path.join(
     RANKING_PATH, '{dataset}_gt_fold_{fold}.csv')
 PARTIAL_DATA_PATH_TPL = os.path.join(
     RANKING_PATH, '{dataset}_partial_fold_{fold}.csv')
+GROUND_TRUTH_MARKOV_DATA_PATH_TPL = os.path.join(
+    RANKING_PATH, '{dataset}_gt_markov_fold_{fold}.csv')
+PARTIAL_DATA_MARKOV_PATH_TPL = os.path.join(
+    RANKING_PATH, '{dataset}_partial_markov_fold_{fold}.csv')
 RANKING_MODEL_PATH_TPL = os.path.join(
     RANKING_PATH, '{dataset}_{model}_fold_{fold}.csv')
 NCE_NOISE_FACTOR = 50

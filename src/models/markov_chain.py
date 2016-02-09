@@ -26,8 +26,7 @@ class MarkovChain:
                     self.first_order_counts[item][next_item] += 1
 
     def propose_set_item(self, to_complete: np.ndarray) -> np.ndarray:
-        likelihood = np.sum(self.first_order_counts[to_complete].transpose() /\
-                            self.counts[to_complete], axis=1)
+        likelihood = self.first_order_counts[to_complete][-1]
         if self.use_rejection:
             likelihood[to_complete] = -np.inf
         sorted_indexes = np.argsort(likelihood)
@@ -43,7 +42,7 @@ def train_and_evaluate(dataset_name: str, n_items: int):
                             fold=fold, dataset=dataset_name))
             model.train(loaded_data)
             loaded_test_data = file.load_set_data(
-                constants.PARTIAL_DATA_PATH_TPL.format(
+                constants.PARTIAL_DATA_MARKOV_PATH_TPL.format(
                     fold=fold, dataset=dataset_name))
             model_name = 'pseudo_markov' if use_rejection else 'markov'
             target_path = constants.RANKING_MODEL_PATH_TPL.format(
@@ -55,4 +54,4 @@ def train_and_evaluate(dataset_name: str, n_items: int):
                     output_file.write('\n')
 
 if __name__ == '__main__':
-    train_and_evaluate(constants.DATASET_NAME, constants.N_ITEMS)
+    train_and_evaluate(constants.DATASET_NAME_TPL.format(50), 50)

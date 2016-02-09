@@ -142,17 +142,17 @@ class GeneralFeatures:
 
 def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
     for fold in range(1, constants.N_FOLDS + 1):
-        for l_dim in range(0, 11):
-            for k_dim in range(0, 11):
+        for l_dim in [50]:
+            for k_dim in [50]:
                 model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
                 model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
                     dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
                     index=features.index))
                 loaded_test_data = file.load_set_data(
                     constants.PARTIAL_DATA_PATH_TPL.format(
-                        fold=fold, dataset=constants.DATASET_NAME))
+                        fold=fold, dataset=dataset_name))
                 target_path = constants.RANKING_MODEL_PATH_TPL.format(
-                    dataset=constants.DATASET_NAME, fold=fold,
+                    dataset=dataset_name, fold=fold,
                     model='submod_f_{}_l_{}_k_{}'.format(features.index, l_dim, k_dim))
                 with open(target_path, 'w') as output_file:
                     for subset in loaded_test_data:
@@ -162,11 +162,13 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    features = BasicFeaturesExtended(constants.DATASET_NAME,
-                                     n_items=constants.N_ITEMS,
-                                     m_features=4)
+    n_items = 50
+    dataset_name = constants.DATASET_NAME_TPL.format(n_items)
+    features = IdentityFeatures(dataset_name,
+                                n_items=n_items,
+                                m_features=n_items)
     features.load_from_file()
-    load_and_evaluate(constants.DATASET_NAME, constants.N_ITEMS, features)
+    load_and_evaluate(dataset_name, n_items, features)
 
 if __name__ == '__main__':
     main()

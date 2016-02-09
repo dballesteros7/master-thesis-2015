@@ -21,7 +21,7 @@ def len_histogram(samples):
     plt.xticks(np.arange(0, 11))
     plt.grid(True)
     plt.savefig(
-        os.path.join(constants.IMAGE_PATH, 'length_histogram_gibbs.eps'),
+        os.path.join(constants.IMAGE_PATH, 'length_histogram_gibbs_50.eps'),
         bbox_inches='tight')
     plt.clf()
     plt.close()
@@ -48,7 +48,7 @@ def pairs_histogram(samples):
     plt.axis([0, 10, 0, 10])
     plt.colorbar()
     plt.savefig(
-        os.path.join(constants.IMAGE_PATH, 'pairs_histogram_gibbs.eps'),
+        os.path.join(constants.IMAGE_PATH, 'pairs_histogram_gibbs_50.eps'),
         bbox_inches='tight')
     plt.clf()
     plt.close()

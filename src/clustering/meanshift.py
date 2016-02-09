@@ -14,7 +14,8 @@ BANDWITDHS = {
 def cluster_photos(entries, bandwidth='100m'):
     bandwidth = BANDWITDHS[bandwidth]
     np_locations = np.array([(float(entry['latitude']), float(entry['longitude'])) for entry in entries])
-    clusterer = MeanShift(bandwidth=bandwidth, bin_seeding=True, n_jobs=-1)
+    clusterer = MeanShift(bandwidth=bandwidth, bin_seeding=True, n_jobs=-1,
+                          cluster_all=False)
     logging.info('Clustering started.')
     clusterer.fit(np_locations)
     logging.info('Clustering finished.')

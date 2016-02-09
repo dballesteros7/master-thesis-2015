@@ -51,31 +51,33 @@ class ModularWithFeatures:
         utilities = np.copy(self.utilities)
         utilities[to_complete] = -np.inf
         sorted_indexes = np.argsort(utilities)[len(to_complete):]
-        return sorted_indexes[::-1][:20]
+        return sorted_indexes[::-1]
 
 
 def main():
-    features = BasicFeaturesExtended(constants.DATASET_NAME,
-                                     n_items=constants.N_ITEMS,
-                                     m_features=4)
+    n_items = 50
+    dataset_name = constants.DATASET_NAME_TPL.format(50)
+    features = IdentityFeatures(dataset_name,
+                                n_items=n_items,
+                                m_features=n_items)
     features.load_from_file()
-    features = features.as_array()
+    features_array = features.as_array()
     for fold in range(1, constants.N_FOLDS + 1):
         loaded_data = file.load_csv_data(
             constants.TRAIN_DATA_PATH_TPL.format(
-                fold=fold, dataset=constants.DATASET_NAME))
+                fold=fold, dataset=dataset_name))
         loaded_test_data = file.load_csv_data(
             constants.RANKING_MODEL_PATH_TPL.format(
-                fold=fold, dataset=constants.DATASET_NAME,
+                fold=fold, dataset=dataset_name,
                 model='partial'))
 
         modular_model = ModularWithFeatures(
-            n_items=constants.N_ITEMS, features=features)
+            n_items=n_items, features=features_array)
         modular_model.train(loaded_data)
 
         target_path = constants.RANKING_MODEL_PATH_TPL.format(
-            dataset=constants.DATASET_NAME, fold=fold,
-            model='modular_features')
+            dataset=dataset_name, fold=fold,
+            model='modular_features_{}'.format(features.index))
         with open(target_path, 'w') as output_file:
             for subset in loaded_test_data:
                 result = modular_model.propose_set_item(subset)

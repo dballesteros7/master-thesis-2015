@@ -8,6 +8,7 @@ import numpy as np
 from sklearn.cross_validation import KFold
 
 import constants
+from clustering.meanshift import cluster_photos
 from storage.cluster_storage import ClusterStorage
 from storage.path_storage import PathStorage
 from storage.photo_storage import PhotoStorage
@@ -49,8 +50,8 @@ class PathFinder:
             paths.append(path)
         return paths
 
-    def find_and_store_all_paths(self, city_name, bandwidth,
-                                 min_unique_users, min_cluster_photos):
+    def find_and_store_all_paths(self, city_name, bandwidth='100m',
+                                 min_unique_users=1, min_cluster_photos=1):
         all_photos = self.photo_storage.get_photos_for_city(
             city_name=city_name)
         logging.info('Loading cursor for photo collection.')
@@ -59,16 +60,27 @@ class PathFinder:
         counter = 0
         included = 0
         discarded = 0
-        clusters = self.cluster_storage.get_top_ten_clusters(
-            city_name, bandwidth)
-        cluster_set = set(cluster['_id'] for cluster in clusters)
+        cluster_centers, labels = cluster_photos(all_photos, bandwidth)
+
+        photo_cluster_mapping = {}
+        cluster_counts = defaultdict(int)
+        for photo, label in zip(all_photos, labels):
+            photo_cluster_mapping[photo['id']] = label
+            if label < 0:
+                continue
+            cluster_counts[label] += 1
+
+        n_top = 50
+
+        top_clusters = sorted(
+            cluster_counts.items(), key=lambda x: x[1], reverse=True)[:n_top]
+        top_clusters = set(x[0] for x in top_clusters)
+
         for photo in all_photos:
-            cluster = self.cluster_storage.get_cluster_for_photo(
-                    photo_id=photo['_id'], city_name=city_name,
-                    bandwidth=bandwidth)
-            if cluster['_id'] in cluster_set:
+            cluster_label = photo_cluster_mapping[photo['id']]
+            if cluster_label in top_clusters:
                 all_paths[(parse_datetaken(photo), photo['owner'])][
-                    cluster['_id']] = True
+                    cluster_label] = True
                 included += 1
             else:
                 discarded += 1
@@ -77,32 +89,16 @@ class PathFinder:
                 logging.info('Processed {} photos so far, {} included and {} discarded'.format(
                     counter, included, discarded))
         logging.info('Done processing {} photos.'.format(counter))
-        flat_paths = []
+        paths = []
         for date, owner in all_paths:
-            flat_paths.append({
-                'date_taken': date.strftime('%Y-%m-%d'),
-                'owner': owner,
-                'city_name': city_name,
-                'bandwidth': bandwidth,
-                'min_unique_users': min_unique_users,
-                'min_cluster_photos': min_cluster_photos,
-                'clusters': list(all_paths[(date, owner)].keys()),
-                'number_of_clusters': len(all_paths[(date, owner)])
-            })
-        logging.info('Created {} paths.'.format(len(flat_paths)))
-        self.path_storage.store_paths(flat_paths)
-        logging.info('Paths stored in database.')
+            paths.append(list(all_paths[(date, owner)].keys()))
 
-    def write_path_csv(self, city_name, bandwidth, min_unique_users,
-                       min_cluster_photos):
-        paths = self.path_storage.get_paths(
-            city_name, bandwidth, min_unique_users, min_cluster_photos)
         all_clusters = {}
         next_cluster_index = 0
         path_sets = []
         for path in paths:
             path_set = []
-            for cluster_id in path['clusters']:
+            for cluster_id in path:
                 if cluster_id not in all_clusters:
                     all_clusters[cluster_id] = next_cluster_index
                     next_cluster_index += 1
@@ -110,33 +106,30 @@ class PathFinder:
             path_sets.append(path_set)
 
         with open(constants.ITEMS_DATA_PATH_TPL.format(
-                dataset='path_set'), 'w') as items_file:
+                dataset=constants.DATASET_NAME_TPL.format(n_top)),
+                'w') as items_file:
             sorted_clusters = sorted(all_clusters.items(), key=lambda x: x[1])
             for cluster_id, _ in sorted_clusters:
-                cluster_info = self.cluster_storage.get_cluster(
-                    cluster_id=cluster_id)
+                cluster_info = cluster_centers[cluster_id]
                 top_places = GoogleApi.get_places(
-                        cluster_info['latitude'], cluster_info['longitude'])
-                values = [str(cluster_info['_id']),
-                          str(cluster_info['latitude']),
-                          str(cluster_info['longitude']),
-                          str(cluster_info['number_of_photos']),
-                          str(cluster_info['unique_users'])]
+                        cluster_info[0], cluster_info[1])
+                values = [str(cluster_info[0]),
+                          str(cluster_info[1]),
+                          str(cluster_counts[cluster_id])]
                 items_file.write(','.join(values))
                 items_file.write(',')
                 items_file.write(';'.join([result['name']
-                                           for result in top_places[:10]]))
+                                           for result in top_places[:5]]))
                 items_file.write('\n')
 
-        np.random.seed(constants.SEED)
         data = np.array(path_sets)
         kf = KFold(len(path_sets), n_folds=10, shuffle=True)
         for idx, (train_index, test_index) in enumerate(kf):
             with open(constants.DATA_PATH_TPL.format(
-                    dataset='path_set',
+                    dataset=constants.DATASET_NAME_TPL.format(n_top),
                     type='train', fold=idx + 1), 'w') as output_train, \
                     open(constants.DATA_PATH_TPL.format(
-                        dataset='path_set',
+                        dataset=constants.DATASET_NAME_TPL.format(n_top),
                         type='test', fold=idx + 1), 'w') as output_test:
                 for path_set in data[train_index]:
                     output_train.write(','.join(path_set) + '\n')
@@ -160,7 +153,9 @@ def sort_and_group_by_day(photos):
 
 
 if __name__ == '__main__':
+    np.random.seed(constants.SEED)
     logging.basicConfig(level=logging.INFO,
                         format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
     finder = PathFinder()
-    finder.write_path_csv('zurich', '100m', -1, -1)
+    finder.find_and_store_all_paths('zurich')
+    #finder.write_path_csv('zurich', '100m', -1, -1)

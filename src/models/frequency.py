@@ -22,16 +22,22 @@ class Frequency:
         self.sorted_counts.sort(key=lambda x: x[1], reverse=True)
 
     def print(self):
+        printed = 0
         for entry in self.sorted_counts:
             if len(entry[0]) > 1:
-                print('{} & {}'.format(list(entry[0]), entry[1]))
+                printed += 1
+                print('${}$ & {}\\\\'.format(list(entry[0]), entry[1]))
+            if printed > 10:
+                return
 
 def main():
     loaded_data = file.load_csv_data(
-        constants.ALL_DATA_PATH_TPL.format(dataset=constants.DATASET_NAME))
+        constants.ALL_DATA_PATH_TPL.format(
+            dataset=constants.DATASET_NAME_TPL.format(50)))
     modular_model = Frequency()
     modular_model.train(loaded_data)
     modular_model.print()
+
 
 if __name__ == '__main__':
     main()

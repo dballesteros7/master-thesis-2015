@@ -40,8 +40,8 @@ def train_and_evaluate(dataset_name: str, n_items: int):
             for line in items_file:
                 tokens = line.strip().split(',')
                 items.append({
-                    'latitude': float(tokens[1]),
-                    'longitude': float(tokens[2])
+                    'latitude': float(tokens[0]),
+                    'longitude': float(tokens[1])
                 })
         model.train(items)
         for fold in range(1, constants.N_FOLDS + 1):
@@ -60,4 +60,4 @@ def train_and_evaluate(dataset_name: str, n_items: int):
 
 
 if __name__ == '__main__':
-    train_and_evaluate(constants.DATASET_NAME, constants.N_ITEMS)
+    train_and_evaluate(constants.DATASET_NAME_TPL.format(50), 50)

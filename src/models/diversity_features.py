@@ -236,14 +236,14 @@ def store_to_file(n_items: int, features: np.ndarray,
         output_file.write('\n')
 
 
-def process_data_and_store(dataset_name: str, features: Features):
+def process_data_and_store(dataset_name: str, features: Features, n_items: int):
     print('Storing noise and data for C++ processing.')
     for fold in range(1, constants.N_FOLDS + 1):
         print('Fold {}'.format(fold))
         loaded_data = file.load_set_data(
             constants.TRAIN_DATA_PATH_TPL.format(
                 fold=fold, dataset=dataset_name))
-        store_to_file(constants.N_ITEMS, features.as_array(),
+        store_to_file(n_items, features.as_array(),
                       loaded_data, noise_factor=constants.NCE_NOISE_FACTOR,
                       output_file_path=constants.NCE_DATA_PATH_TPL.format(
                               dataset=dataset_name, index=features.index,
@@ -279,11 +279,13 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    features = BasicFeaturesExtended(constants.DATASET_NAME,
-                                     n_items=constants.N_ITEMS,
-                                     m_features=4)
+    n_items = 50
+    dataset_name = constants.DATASET_NAME_TPL.format(n_items)
+    features = IdentityFeatures(dataset_name,
+                                n_items=n_items,
+                                m_features=n_items)
     features.load_from_file()
-    process_data_and_store(constants.DATASET_NAME, features)
+    process_data_and_store(dataset_name, features, n_items)
     features.store_for_training()
 
 if __name__ == '__main__':

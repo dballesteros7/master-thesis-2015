@@ -97,34 +97,25 @@ def plot_performance():
 
 
 def main():
-    plot_performance()
-    # np.random.seed(constants.SEED)
-    # l_dim = 5
-    # k_dim = 5
-    # features = IdentityFeatures(
-    #     constants.DATASET_NAME, constants.N_ITEMS, constants.N_ITEMS)
-    # features.load_from_file()
-    # model = GeneralFeatures(constants.N_ITEMS, features.as_array(),
-    #                         l_dim, k_dim)
-    # model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
-    #     dataset=constants.DATASET_NAME, fold=1, l_dim=l_dim, k_dim=k_dim,
-    #     index=features.index))
-    # for n_iter in [100, 500, 1000, 2000, 5000, 10000, 50000, 100000, 500000, 1000000]:
-    #     sampler = GibbsSampler(constants.N_ITEMS, model)
-    #     sampler.train(n_iter)
-    #     exact_sampler = BruteForceSampler(constants.N_ITEMS, model)
-    #     exact_sampler.train()
-    #     error = 0
-    #     for subset, prob in zip(exact_sampler.ordered_sets,
-    #                             exact_sampler.probabilities):
-    #         if subset in sampler.counts:
-    #             error += abs(prob - (sampler.counts[subset] / sampler.samples))
-    #         else:
-    #             error += prob
-    #     print(error)
-        # samples = sampler.sample(1e5)
-        # len_histogram(samples)
-        # pairs_histogram(samples)
+    #plot_performance()
+    n_items = 50
+    dataset_name = constants.DATASET_NAME_TPL.format(n_items)
+    np.random.seed(constants.SEED)
+    l_dim = 20
+    k_dim = 20
+    features = IdentityFeatures(dataset_name, n_items, n_items)
+    features.load_from_file()
+    model = GeneralFeatures(n_items, features.as_array(),
+                            l_dim, k_dim)
+    model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+        dataset=dataset_name, fold=1, l_dim=l_dim, k_dim=k_dim,
+        index=features.index))
+    n_iter = 1000000
+    sampler = GibbsSampler(n_items, model)
+    sampler.train(n_iter)
+    samples = sampler.sample(100000)
+    len_histogram(samples)
+    #pairs_histogram(samples)
 
 
 if __name__ == '__main__':
