@@ -11,10 +11,7 @@ def compute_measures(true_item, ranked_suggestions):
 
 
 def rank_results(model_name, n_items):
-    if n_items == 10:
-        dataset_name = constants.DATASET_NAME
-    else:
-        dataset_name = constants.DATASET_NAME_TPL.format(n_items)
+    dataset_name = constants.DATASET_NAME_TPL.format('50_no_singles')
     cross_accuracies = [[] for _ in range(n_items)]
     cross_ranks = [[] for _ in range(n_items)]
     for fold in range(1, constants.N_FOLDS + 1):
@@ -76,24 +73,21 @@ def rank_results(model_name, n_items):
             mean_ranks.append(0.)
             std_ranks.append(0.)
     return mean_accuracies, std_accuracies, mean_ranks, std_ranks
-    # mean_accuracy = 100 * np.mean(cross_accuracies)
-    # std_accuracy = 100 * np.std(cross_accuracies)
-    # mean_rank = 100 * np.mean(cross_ranks)
-    # std_rank = 100 * np.std(cross_ranks)
-    # return mean_accuracy, std_accuracy, mean_rank, std_rank
 
 
 def main():
     models = [
-        'markov', 'pseudo_markov',
+        'markov', 'pseudo_markov', 'modular_features_0',
+        'submod_f_0_l_20_k_20'
         # 'proximity', 'proximity_r',
-        'submod_f_0_l_5_k_5', 'modular',
+        #'submod_f_0_l_5_k_5', 'modular',
         # 'submod_f_0_l_10_k_0', 'submod_f_0_l_0_k_10', 'submod_f_0_l_10_k_10',
         # 'submod_f_0_l_20_k_0', 'submod_f_0_l_0_k_20', 'submod_f_0_l_20_k_20',
         # 'submod_f_0_l_50_k_50'
     ]
     for model_name in models:
-        results = rank_results(model_name)
+        results = rank_results(model_name, 50)
+        print(results)
         #print('{:2.2f} \pm {:2.2f} & {:2.2f} \pm {:2.2f}'.format(*results))
 
 if __name__ == '__main__':

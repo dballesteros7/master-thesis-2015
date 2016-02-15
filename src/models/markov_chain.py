@@ -54,4 +54,4 @@ def train_and_evaluate(dataset_name: str, n_items: int):
                     output_file.write('\n')
 
 if __name__ == '__main__':
-    train_and_evaluate(constants.DATASET_NAME_TPL.format(50), 50)
+    train_and_evaluate(constants.DATASET_NAME_TPL.format('50_no_singles'), 50)

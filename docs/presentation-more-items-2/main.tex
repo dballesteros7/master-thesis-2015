@@ -78,7 +78,28 @@
 \section{Changing the learning}
 
 \begin{frame}{Learning from elements with at least 2 elements}
-  
+  \begin{itemize}
+    \item From now on the the number of items (i.e. mean-shift clusters) is 50.
+    \item Removing all singletons from the data leaves 2832 paths/sets. Including singletons the count is 12614.
+    \item For each fold the train set size is: 2548 and the test set size is: 284.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Results comparison}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\columnwidth]{set_size_score_50_no_singles}
+      \end{figure}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \centering
+        \includegraphics[width=\columnwidth]{set_size_score_50}
+      \end{figure}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 %\begin{frame}{References}

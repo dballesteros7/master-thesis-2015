@@ -56,7 +56,7 @@ class ModularWithFeatures:
 
 def main():
     n_items = 50
-    dataset_name = constants.DATASET_NAME_TPL.format(50)
+    dataset_name = constants.DATASET_NAME_TPL.format('50_no_singles')
     features = IdentityFeatures(dataset_name,
                                 n_items=n_items,
                                 m_features=n_items)

@@ -103,10 +103,11 @@ class PathFinder:
                     all_clusters[cluster_id] = next_cluster_index
                     next_cluster_index += 1
                 path_set.append(str(all_clusters[cluster_id]))
-            path_sets.append(path_set)
+            if len(path_set) > 1:
+                path_sets.append(path_set)
 
         with open(constants.ITEMS_DATA_PATH_TPL.format(
-                dataset=constants.DATASET_NAME_TPL.format(n_top)),
+                dataset=constants.DATASET_NAME_TPL.format('50_no_singles')),
                 'w') as items_file:
             sorted_clusters = sorted(all_clusters.items(), key=lambda x: x[1])
             for cluster_id, _ in sorted_clusters:
@@ -126,10 +127,10 @@ class PathFinder:
         kf = KFold(len(path_sets), n_folds=10, shuffle=True)
         for idx, (train_index, test_index) in enumerate(kf):
             with open(constants.DATA_PATH_TPL.format(
-                    dataset=constants.DATASET_NAME_TPL.format(n_top),
+                    dataset=constants.DATASET_NAME_TPL.format('50_no_singles'),
                     type='train', fold=idx + 1), 'w') as output_train, \
                     open(constants.DATA_PATH_TPL.format(
-                        dataset=constants.DATASET_NAME_TPL.format(n_top),
+                        dataset=constants.DATASET_NAME_TPL.format('50_no_singles'),
                         type='test', fold=idx + 1), 'w') as output_test:
                 for path_set in data[train_index]:
                     output_train.write(','.join(path_set) + '\n')
@@ -158,4 +159,3 @@ if __name__ == '__main__':
                         format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
     finder = PathFinder()
     finder.find_and_store_all_paths('zurich')
-    #finder.write_path_csv('zurich', '100m', -1, -1)
