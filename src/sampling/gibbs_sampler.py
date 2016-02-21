@@ -99,7 +99,7 @@ def plot_performance():
 def main():
     #plot_performance()
     n_items = 50
-    dataset_name = constants.DATASET_NAME_TPL.format(n_items)
+    dataset_name = constants.DATASET_NAME_TPL.format('50_no_singles')
     np.random.seed(constants.SEED)
     l_dim = 20
     k_dim = 20

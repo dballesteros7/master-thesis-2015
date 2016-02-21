@@ -5,6 +5,8 @@ from collections import defaultdict
 from collections import OrderedDict
 
 import numpy as np
+import sys
+from scipy import spatial
 from sklearn.cross_validation import KFold
 
 import constants
@@ -50,92 +52,177 @@ class PathFinder:
             paths.append(path)
         return paths
 
-    def find_and_store_all_paths(self, city_name, bandwidth='100m',
-                                 min_unique_users=1, min_cluster_photos=1):
-        all_photos = self.photo_storage.get_photos_for_city(
-            city_name=city_name)
-        logging.info('Loading cursor for photo collection.')
-        all_paths = defaultdict(OrderedDict)
-        logging.info('Starting iteration over photos.')
-        counter = 0
-        included = 0
-        discarded = 0
-        cluster_centers, labels = cluster_photos(all_photos, bandwidth)
-
-        photo_cluster_mapping = {}
-        cluster_counts = defaultdict(int)
-        for photo, label in zip(all_photos, labels):
-            photo_cluster_mapping[photo['id']] = label
-            if label < 0:
-                continue
-            cluster_counts[label] += 1
-
-        n_top = 50
-
-        top_clusters = sorted(
-            cluster_counts.items(), key=lambda x: x[1], reverse=True)[:n_top]
-        top_clusters = set(x[0] for x in top_clusters)
-
+    def unclustered_paths(self, all_photos, dataset_name: str):
+        all_paths = defaultdict(list)
+        seen_locations = set()
+        unique_photos = []
         for photo in all_photos:
-            cluster_label = photo_cluster_mapping[photo['id']]
-            if cluster_label in top_clusters:
-                all_paths[(parse_datetaken(photo), photo['owner'])][
-                    cluster_label] = True
-                included += 1
-            else:
-                discarded += 1
-            counter += 1
-            if counter % 5000 == 0:
-                logging.info('Processed {} photos so far, {} included and {} discarded'.format(
-                    counter, included, discarded))
-        logging.info('Done processing {} photos.'.format(counter))
-        paths = []
-        for date, owner in all_paths:
-            paths.append(list(all_paths[(date, owner)].keys()))
+            location = (photo['latitude'], photo['longitude'])
+            if location not in seen_locations:
+                seen_locations.add(location)
+                unique_photos.append(photo)
 
-        all_clusters = {}
-        next_cluster_index = 0
-        path_sets = []
-        for path in paths:
-            path_set = []
-            for cluster_id in path:
-                if cluster_id not in all_clusters:
-                    all_clusters[cluster_id] = next_cluster_index
-                    next_cluster_index += 1
-                path_set.append(str(all_clusters[cluster_id]))
-            if len(path_set) > 1:
-                path_sets.append(path_set)
+        for photo in unique_photos:
+            photo_date = parse_datetaken(photo)
+            photo_owner = photo['owner']
+
+            key = (photo_date, photo_owner)
+            all_paths[key].append(photo)
+        filtered_paths = defaultdict(list)
+        filtered_photos = []
+        for key in all_paths:
+            if len(all_paths[key]) > 3:
+                filtered_paths[key] = all_paths[key]
+                filtered_photos.extend(all_paths[key])
+        sample = np.random.choice(filtered_photos, 10000, replace=False)
+        sampled_paths = defaultdict(list)
+        sorted_sample = sorted(
+            sample, key=lambda x: datetime.datetime.strptime(
+                x['datetaken'], '%Y-%m-%d %H:%M:%S'))
+        for photo in sorted_sample:
+            photo_date = parse_datetaken(photo)
+            photo_owner = photo['owner']
+            key = (photo_date, photo_owner)
+            sampled_paths[key].append(photo)
+
+        final_paths = []
+        for key in sampled_paths:
+            if len(sampled_paths[key]) > 1:
+                final_paths.append(sampled_paths[key])
+
+        items = []
+        indexed_paths = []
+        index = 0
+        for path in final_paths:
+            indexed_path = []
+            for photo in path:
+                items.append(photo)
+                indexed_path.append(str(index))
+                index += 1
+            indexed_paths.append(indexed_path)
 
         with open(constants.ITEMS_DATA_PATH_TPL.format(
-                dataset=constants.DATASET_NAME_TPL.format('50_no_singles')),
+                dataset=constants.DATASET_NAME_TPL.format(dataset_name)),
                 'w') as items_file:
-            sorted_clusters = sorted(all_clusters.items(), key=lambda x: x[1])
-            for cluster_id, _ in sorted_clusters:
-                cluster_info = cluster_centers[cluster_id]
-                top_places = GoogleApi.get_places(
-                        cluster_info[0], cluster_info[1])
-                values = [str(cluster_info[0]),
-                          str(cluster_info[1]),
-                          str(cluster_counts[cluster_id])]
-                items_file.write(','.join(values))
-                items_file.write(',')
-                items_file.write(';'.join([result['name']
-                                           for result in top_places[:5]]))
-                items_file.write('\n')
+            first_photo = items[0]
+            sorted_keys = sorted(first_photo.keys())
+            items_file.write('{}\n'.format(','.join(sorted_keys)))
+            for photo in items:
+                values = [photo[key] for key in sorted_keys]
+                items_file.write('{}\n'.format(','.join(values)))
 
-        data = np.array(path_sets)
-        kf = KFold(len(path_sets), n_folds=10, shuffle=True)
-        for idx, (train_index, test_index) in enumerate(kf):
-            with open(constants.DATA_PATH_TPL.format(
-                    dataset=constants.DATASET_NAME_TPL.format('50_no_singles'),
-                    type='train', fold=idx + 1), 'w') as output_train, \
-                    open(constants.DATA_PATH_TPL.format(
-                        dataset=constants.DATASET_NAME_TPL.format('50_no_singles'),
+        with open(constants.ALL_DATA_PATH_TPL.format(
+                dataset=constants.DATASET_NAME_TPL.format(dataset_name)),
+                'w') as paths_file:
+            for path in indexed_paths:
+                paths_file.write('{}\n'.format(','.join(path)))
+
+        return items, indexed_paths
+
+
+def produce_top_clusters(all_photos, bandwidth='100m'):
+    cluster_centers, labels = cluster_photos(all_photos, bandwidth)
+    cluster_counts = defaultdict(int)
+    photo_count = 0
+    for photo, label in zip(all_photos, labels):
+        if label < 0:
+            continue
+        cluster_counts[label] += 1
+        photo_count += 1
+    n_top = 10
+    top_clusters = sorted(
+        cluster_counts.items(), key=lambda x: x[1], reverse=True)
+    top_clusters = top_clusters[:n_top]
+    top_clusters = set(x[0] for x in top_clusters)
+
+    cluster_label_to_idx = {}
+    for idx, cluster_label in enumerate(top_clusters):
+        cluster_label_to_idx[cluster_label] = idx
+
+    with open(constants.CLUSTER_FILE.format(id='k_10'), 'w') as cluster_file:
+        for cluster_label in top_clusters:
+            cluster = cluster_centers[cluster_label]
+            cluster_file.write('{},{}\n'.format(*cluster))
+
+    with open(constants.CLUSTER_ASSIGNATION_FILE.format(id='k_10'), 'w') as cluster_assign_file:
+        for photo, label in zip(all_photos, labels):
+            if label in cluster_label_to_idx:
+                cluster_assign_file.write('{},{}\n'.format(photo['id'], cluster_label_to_idx[label]))
+
+    clusters = []
+    for cluster_label in top_clusters:
+        clusters.append(cluster_centers[cluster_label])
+
+    cluster_assignment = {}
+    for photo, label in zip(all_photos, labels):
+        if label in cluster_label_to_idx:
+            cluster_assignment[photo['id']] = cluster_label_to_idx[label]
+    return clusters, cluster_assignment
+
+
+def find_and_store_all_paths(dataset_name, all_photos, cluster_assignment):
+    all_paths = defaultdict(OrderedDict)
+
+    for photo in all_photos:
+        if photo['id'] in cluster_assignment:
+            all_paths[(parse_datetaken(photo), photo['owner'])][
+                cluster_assignment[photo['id']]] = True
+
+    path_sets = list([str(item) for item in path]
+                     for path in all_paths.values())
+
+    with open(constants.ALL_DATA_PATH_TPL.format(
+            dataset=constants.DATASET_NAME_TPL.format(dataset_name)),
+            'w') as paths_file:
+        for path in path_sets:
+            paths_file.write('{}\n'.format(','.join(path)))
+
+    no_singleton_paths = [path for path in path_sets if len(path) > 1]
+    no_singleton_dataset_name = '{}_no_singles'.format(dataset_name)
+    with open(constants.ALL_DATA_PATH_TPL.format(
+            dataset=constants.DATASET_NAME_TPL.format(
+                no_singleton_dataset_name)), 'w') as paths_file:
+        for path in no_singleton_paths:
+            paths_file.write('{}\n'.format(','.join(path)))
+
+    return path_sets, no_singleton_paths
+
+
+def shuffle_train_and_test(dataset_name, total_set):
+    data = np.array(total_set)
+    kf = KFold(len(total_set), n_folds=10, shuffle=True)
+    for idx, (train_index, test_index) in enumerate(kf):
+        with open(constants.DATA_PATH_TPL.format(
+                dataset=constants.DATASET_NAME_TPL.format(dataset_name),
+                type='train', fold=idx + 1), 'w') as output_train, open(
+                constants.DATA_PATH_TPL.format(
+                        dataset=constants.DATASET_NAME_TPL.format(dataset_name),
                         type='test', fold=idx + 1), 'w') as output_test:
-                for path_set in data[train_index]:
-                    output_train.write(','.join(path_set) + '\n')
-                for path_set in data[test_index]:
-                    output_test.write(','.join(path_set) + '\n')
+            for path_set in data[train_index]:
+                output_train.write(','.join(path_set) + '\n')
+            for path_set in data[test_index]:
+                output_test.write(','.join(path_set) + '\n')
+
+
+def calculate_features_for_unclustered_items(dataset_name, items,
+                                             clusters):
+    item_features = []
+    for item in items:
+        item_pos = np.array(
+            [float(item['latitude']), float(item['longitude'])])
+        features = []
+        for cluster in clusters:
+            np_cluster = np.array(cluster)
+            features.append(
+                spatial.distance.euclidean(item_pos, np_cluster))
+        item_features.append(features)
+
+    with open(constants.ITEMS_FEATURE_PATH_TPL.format(
+            dataset=constants.DATASET_NAME_TPL.format(dataset_name),
+            i=1), 'w') as feature_file:
+        for features in item_features:
+            feature_file.write(
+                '{}\n'.format(','.join([str(x) for x in features])))
 
 
 def parse_datetaken(photo):
@@ -153,9 +240,24 @@ def sort_and_group_by_day(photos):
     return grouped_by_day
 
 
-if __name__ == '__main__':
+def main():
     np.random.seed(constants.SEED)
     logging.basicConfig(level=logging.INFO,
                         format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
+    dataset_name = 'cluster_features_sample_10k'
     finder = PathFinder()
-    finder.find_and_store_all_paths('zurich')
+    all_photos = finder.photo_storage.get_photos_for_city(city_name='zurich')
+    clusters, cluster_assignment = produce_top_clusters(all_photos)
+    items, indexed_paths = finder.unclustered_paths(all_photos, dataset_name)
+    shuffle_train_and_test(dataset_name, indexed_paths)
+    calculate_features_for_unclustered_items(dataset_name, items, clusters)
+    dataset_name = '10'
+    paths, no_singleton_paths = find_and_store_all_paths(
+        dataset_name, all_photos, cluster_assignment)
+    shuffle_train_and_test(dataset_name, paths)
+    shuffle_train_and_test('{}_no_singles'.format(dataset_name),
+                           no_singleton_paths)
+
+
+if __name__ == '__main__':
+    main()

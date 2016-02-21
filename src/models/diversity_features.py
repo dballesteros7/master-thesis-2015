@@ -279,8 +279,8 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    n_items = 50
-    dataset_name = constants.DATASET_NAME_TPL.format('50_no_singles')
+    n_items = 10
+    dataset_name = constants.DATASET_NAME_TPL.format('10')
     features = IdentityFeatures(dataset_name,
                                 n_items=n_items,
                                 m_features=n_items)

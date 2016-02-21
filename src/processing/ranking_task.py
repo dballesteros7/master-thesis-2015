@@ -1,3 +1,4 @@
+import copy
 from itertools import combinations
 from typing import Iterable
 
@@ -28,13 +29,15 @@ def generate_ranking_task(dataset_name: str):
 
         list_gt = []
         list_partial = []
-        for i, sample in enumerate(test_data):
+        for sample in test_data:
             if len(sample) < 2:
                 continue  # Ignores single item sets.
-
-            for partial_set in combinations(sample, len(sample) - 1):
-                list_gt.append(set(sample) - set(partial_set))
-                list_partial.append(partial_set)
+            sample = list(sample)
+            for i, item in enumerate(sample):
+                sample_copy = list(sample)
+                sample_copy[i] = '?'
+                list_partial.append(sample_copy)
+                list_gt.append([sample[i]])
 
         save_to_csv(ground_truth_path, list_gt)
         save_to_csv(partial_path, list_partial)
@@ -69,5 +72,6 @@ def generate_ranking_task_for_markov(dataset_name: str):
 
 
 if __name__ == '__main__':
-    generate_ranking_task_for_markov(dataset_name=constants.DATASET_NAME_TPL.format('50_no_singles'))
-    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('50_no_singles'))
+    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('cluster_features_sample_10k'))
+    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('10'))
+    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('10_no_singles'))

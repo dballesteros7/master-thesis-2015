@@ -10,8 +10,7 @@ def compute_measures(true_item, ranked_suggestions):
     return accuracy, rank
 
 
-def rank_results(model_name, n_items):
-    dataset_name = constants.DATASET_NAME_TPL.format('50_no_singles')
+def rank_results(dataset_name, model_name, n_items):
     cross_accuracies = [[] for _ in range(n_items)]
     cross_ranks = [[] for _ in range(n_items)]
     for fold in range(1, constants.N_FOLDS + 1):
@@ -43,7 +42,7 @@ def rank_results(model_name, n_items):
                 suggested_set = [int(item) for item in model_line.split(',')]
                 true_item = int(truth_line)
                 acc, rank = compute_measures(true_item, suggested_set)
-                partial_size = len(partial_line.split(','))
+                partial_size = len(partial_line.split(',')) - 1
                 accuracies[partial_size].append(acc)
                 ranks[partial_size].append(rank)
                 accuracies[0].append(acc)
@@ -76,17 +75,12 @@ def rank_results(model_name, n_items):
 
 
 def main():
+    dataset_name = constants.DATASET_NAME_TPL.format('10_no_singles')
     models = [
-        'markov', 'pseudo_markov', 'modular_features_0',
-        'submod_f_0_l_20_k_20'
-        # 'proximity', 'proximity_r',
-        #'submod_f_0_l_5_k_5', 'modular',
-        # 'submod_f_0_l_10_k_0', 'submod_f_0_l_0_k_10', 'submod_f_0_l_10_k_10',
-        # 'submod_f_0_l_20_k_0', 'submod_f_0_l_0_k_20', 'submod_f_0_l_20_k_20',
-        # 'submod_f_0_l_50_k_50'
+        'modular_features_0', 'submod_f_0_l_5_k_5'
     ]
     for model_name in models:
-        results = rank_results(model_name, 50)
+        results = rank_results(dataset_name, model_name, 1941)
         print(results)
         #print('{:2.2f} \pm {:2.2f} & {:2.2f} \pm {:2.2f}'.format(*results))
 

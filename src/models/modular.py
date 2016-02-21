@@ -55,18 +55,18 @@ class ModularWithFeatures:
 
 
 def main():
-    n_items = 50
-    dataset_name = constants.DATASET_NAME_TPL.format('50_no_singles')
-    features = IdentityFeatures(dataset_name,
-                                n_items=n_items,
-                                m_features=n_items)
+    n_items = 9141
+    dataset_name = constants.DATASET_NAME_TPL.format('cluster_features_sample_10k')
+    features = BasicFeaturesNoNormalized(dataset_name,
+                                         n_items=n_items,
+                                         m_features=10)
     features.load_from_file()
     features_array = features.as_array()
     for fold in range(1, constants.N_FOLDS + 1):
         loaded_data = file.load_csv_data(
             constants.TRAIN_DATA_PATH_TPL.format(
                 fold=fold, dataset=dataset_name))
-        loaded_test_data = file.load_csv_data(
+        loaded_test_data = file.load_csv_test_data(
             constants.RANKING_MODEL_PATH_TPL.format(
                 fold=fold, dataset=dataset_name,
                 model='partial'))
@@ -80,6 +80,8 @@ def main():
             model='modular_features_{}'.format(features.index))
         with open(target_path, 'w') as output_file:
             for subset in loaded_test_data:
+                subset.remove('?')
+                subset = [int(item) for item in subset]
                 result = modular_model.propose_set_item(subset)
                 output_file.write(','.join(str(item) for item in result))
                 output_file.write('\n')

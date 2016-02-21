@@ -1,5 +1,6 @@
 import os
 
+import datetime
 from pymongo import MongoClient
 
 import constants
@@ -48,7 +49,10 @@ class PhotoStorage:
                     for key, token in zip(keys, tokens):
                         item[key] = token
                     result.append(item)
-                return result
+                sorted_result = sorted(
+                    result, key=lambda x: datetime.datetime.strptime(
+                        x['datetaken'], '%Y-%m-%d %H:%M:%S'))
+                return sorted_result
         else:
             result = self.collection.find(
                     {'city_name': city_name}, sort=[('datetaken', 1)])
