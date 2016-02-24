@@ -23,8 +23,14 @@ class Proximity:
                 self.distances[other_index + index + 1][index] = distance
         np.fill_diagonal(self.distances, np.inf)
 
-    def propose_set_item(self, to_complete: np.ndarray) -> np.ndarray:
-        min_distances = np.min(self.distances[to_complete, :], axis=0)
+    def propose_set_item(self, to_complete):
+        to_complete = [int(item) if item != '?' else item for item in to_complete]
+        missing_index = to_complete.index('?')
+        if missing_index == 0:
+            return ['-']
+        else:
+            min_distances = np.copy(self.distances[to_complete[missing_index - 1], :])
+        to_complete = to_complete[:missing_index]
         if self.use_rejection:
             min_distances[to_complete] = np.inf
         sorted_indexes = np.argsort(min_distances)
@@ -37,15 +43,17 @@ def train_and_evaluate(dataset_name: str, n_items: int):
         items = []
         with open(constants.ITEMS_DATA_PATH_TPL.format(
                 dataset=dataset_name), 'r') as items_file:
+            first_line = items_file.readline()
+            keys = first_line.strip().split(',')
             for line in items_file:
                 tokens = line.strip().split(',')
-                items.append({
-                    'latitude': float(tokens[0]),
-                    'longitude': float(tokens[1])
-                })
+                item = dict(zip(keys, tokens))
+                item['latitude'] = float(item['latitude'])
+                item['longitude'] = float(item['longitude'])
+                items.append(item)
         model.train(items)
         for fold in range(1, constants.N_FOLDS + 1):
-            loaded_test_data = file.load_set_data(
+            loaded_test_data = file.load_csv_test_data(
                     constants.PARTIAL_DATA_PATH_TPL.format(
                         fold=fold, dataset=dataset_name))
             model_name = 'proximity_r' if rejection else 'proximity'
@@ -60,4 +68,6 @@ def train_and_evaluate(dataset_name: str, n_items: int):
 
 
 if __name__ == '__main__':
-    train_and_evaluate(constants.DATASET_NAME_TPL.format(50), 50)
+    train_and_evaluate(constants.DATASET_NAME_TPL.format('50'), 50)
+    train_and_evaluate(constants.DATASET_NAME_TPL.format('50_no_singles'), 50)
+    #train_and_evaluate(constants.DATASET_NAME_TPL.format('cluster_features_sample_10k'), 9141)

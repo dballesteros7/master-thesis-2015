@@ -102,11 +102,11 @@ void train_with_features(std::string data_file_path,
     }
     for (size_t i = 0; i < m_features; ++i) {
         for (size_t j = 0; j < l_dimensions; ++j) {
-            b_weights[index_b_weights(i, j)] = udouble_dist(random_engine);
+            b_weights[index_b_weights(i, j)] = 1e-3*udouble_dist(random_engine);
 //            std::cout << b_weights[index_b_weights(i, j)] << ",";
         }
         for (size_t j = 0; j < k_dimensions; ++j) {
-            c_weights[index_c_weights(i, j)] = udouble_dist(random_engine);
+            c_weights[index_c_weights(i, j)] = 1e-3*udouble_dist(random_engine);
         }
 //        std::cout << std::endl;
     }
@@ -198,7 +198,7 @@ void train_with_features(std::string data_file_path,
                                                          a_gradient[i]);
                     if (b_weights[index_b_weights(i, j)] <= 0) {
                         b_weights[index_b_weights(i, j)] =
-                                udouble_dist(random_engine);
+                                1e-3*udouble_dist(random_engine);
                     }
                 }
                 for (size_t j = 0; j < k_dimensions; ++j) {
@@ -206,7 +206,7 @@ void train_with_features(std::string data_file_path,
                             (a_gradient[i] - features[index_features(max_weight_c_indexes[j], i)]);
                     if (c_weights[index_c_weights(i, j)] <= 0) {
                         c_weights[index_c_weights(i, j)] =
-                            udouble_dist(random_engine);
+                            1e-3*udouble_dist(random_engine);
                     }
                 }
 //                std::cout << std::endl;
@@ -250,23 +250,24 @@ int main(int argc, char* argv[]) {
     int l_dimensions = std::stoi(argv[2]);
     int k_dimensions = std::stoi(argv[3]);
     int feature_set = std::stoi(argv[4]);
-    for (int d = 0; d <= l_dimensions; d += 5) {
-        for (int k = 0; k <= k_dimensions; k += 5) {
+    char* dataset_name = argv[5];
+    for (int d = 5; d <= l_dimensions; d += 5) {
+        for (int k = 5; k <= k_dimensions; k += 5) {
             for (int i = 1; i <= fold_number; ++i) {
                 train_with_features(
                         (boost::format(
-                                "/home/diegob/workspace/master-thesis-2015/data/path_set_10_nce_data_features_%1%_fold_%2%.csv") %
-                         feature_set % i).str(),
+                                "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_data_features_%2%_fold_%3%.csv") %
+                         dataset_name % feature_set % i).str(),
                         (boost::format(
-                                "/home/diegob/workspace/master-thesis-2015/data/path_set_10_nce_features_%1%.csv") %
-                         feature_set).str(),
+                                "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_features_%2%.csv") %
+                         dataset_name % feature_set).str(),
                         (boost::format(
-                                "/home/diegob/workspace/master-thesis-2015/data/path_set_10_nce_noise_features_%1%_fold_%2%.csv") %
-                         feature_set % i).str(),
+                                "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
+                         dataset_name % feature_set % i).str(),
                         10, 0.01, 0.1, static_cast<size_t>(d), static_cast<size_t>(k),
                         (boost::format(
-                                "/home/diegob/workspace/master-thesis-2015/data/models/path_set_10_nce_out_features_%1%_l_dim_%2%_k_dim_%3%_fold_%4%.csv") %
-                         feature_set % d % k % i).str());
+                                "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_out_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
+                         dataset_name % feature_set % d % k % i).str());
             }
         }
     }

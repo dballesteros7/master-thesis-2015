@@ -55,11 +55,10 @@ class ModularWithFeatures:
 
 
 def main():
-    n_items = 9141
-    dataset_name = constants.DATASET_NAME_TPL.format('cluster_features_sample_10k')
-    features = BasicFeaturesNoNormalized(dataset_name,
-                                         n_items=n_items,
-                                         m_features=10)
+    n_items = 10
+    dataset_name = constants.DATASET_NAME_TPL.format('10_pairs')
+    features = IdentityFeatures(dataset_name, n_items=n_items,
+                                         m_features=n_items)
     features.load_from_file()
     features_array = features.as_array()
     for fold in range(1, constants.N_FOLDS + 1):
@@ -74,6 +73,7 @@ def main():
         modular_model = ModularWithFeatures(
             n_items=n_items, features=features_array)
         modular_model.train(loaded_data)
+        print(modular_model.item_probs)
 
         target_path = constants.RANKING_MODEL_PATH_TPL.format(
             dataset=dataset_name, fold=fold,

@@ -27,7 +27,7 @@ class Features:
             for item_index, line in enumerate(input_file):
                 tokens = line.strip().split(',')
                 for feature_index, token in enumerate(tokens):
-                    self.features[item_index,feature_index] = float(token)
+                    self.features[item_index, feature_index] = float(token)
 
     def store_for_training(self):
         path = constants.NCE_FEATURES_PATH_TPL.format(

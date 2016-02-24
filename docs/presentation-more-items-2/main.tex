@@ -39,68 +39,170 @@
   \titlepage
 \end{frame}
 
-\section{Analysis of the evaluation}
+\section{Data and baseline model changes}
 
-\begin{frame}{Strict evaluation for Markov model}
+\begin{frame}{Clustering}
   \begin{itemize}
-    \item The test set is generated ensuring that the last element is the element before the one that was removed from the set.
-    \item Previously the order was not preserved and the ranking from the model was obtained summing the transition probabilities starting from each element in the partial set.
-    \item This is the evaluation for the Markov model from now on.
-      \begin{table}
-        \begin{tabular}{@{}lll@{}}
-          \hline
-          \textit{Model (N = 10)} & \textit{Accuracy} & \textit{MMR} \\
-          \hline
-          Markov & $27.93 \pm 3.02$ & $51.03 \pm 1.86$ \\
-          Markov (prev.) & $32.07 \pm 2.69$ & $52.40 \pm 1.76$ \\
-          Markov with heuristic & $39.74 \pm 3.62$ & $60.64 \pm 1.98$ \\
-          Markov with heuristic (prev.) & $36.50 \pm 3.10$ & $57.91 \pm 1.89$ \\
-          \hline
-        \end{tabular}
-      \end{table}
+    \item A minor change on the mean-shift algorithm settings. "Orphan" photos are ignored, previously they were assigned to the closest cluster even if they were outside the bandwidth.
+    \item This reduces the number of photos and paths in the dataset. E.g. For $N=10$ the number of paths is reduced from 8090 to 6781 and the number of photos covered is 30655. 
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Evaluation over different partial set sizes}
+\begin{frame}{Markov model}
+  \begin{itemize}
+    \item Previously the Markov model had two issues: The set order was not preserved in the evaluation data and the model could use "future" items in the path for the prediction.
+    \item After changes, the model is strictly as it would be used in an interactive system.
+    \item To suggest an item given a partial sequence $S_{k}$, only the last item $s_{k}$ is used and the results are ordered according to the transition probabilities, i.e. $P(s_{k+1} = x \mid s_{k})$, learned from the data.
+    \item The heuristic Markov model, assigns 0 probability to items previously seen in the path, i.e. $\forall_{x \in S_{k}} P(s_{k+1} = x \mid s_{k}) = 0$.
+    \item This makes the model slightly worse than before, but still better than the current sub-/super-modular model.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Proximity model}
+  \begin{itemize}
+    \item Same as with the Markov model, the proximity model now only considers the items already seen in the path and only uses the distance from the item immediately before the one to predict in the sequence.
+    \item This also decreases the accuracy score of the model.
+    \item These changes allow the model to be used in a setting where a user is requesting item $k+1$ given a sequence $S_{k}$.
+  \end{itemize}
+\end{frame}
+
+\section{Partial set size and scores}
+
+\begin{frame}{Partial set size effect on score for $N=10$}
   \begin{figure}
     \centering
     \includegraphics[width=0.8\textwidth]{set_size_score_10}
   \end{figure}
 \end{frame}
 
-\begin{frame}{Evaluation over different partial set sizes}
+\begin{frame}{Impact of heuristic methods}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{set_size_score_10_heuristic_comparison}
+  \end{figure}
+\end{frame}
+
+
+\begin{frame}{Partial set size effect on score for $N=50$}
   \begin{figure}
     \centering
     \includegraphics[width=0.8\textwidth]{set_size_score_50}
   \end{figure}
 \end{frame}
 
-\section{Changing the learning}
+\section{Changes in learning}
 
 \begin{frame}{Learning from elements with at least 2 elements}
   \begin{itemize}
-    \item From now on the the number of items (i.e. mean-shift clusters) is 50.
-    \item Removing all singletons from the data leaves 2832 paths/sets. Including singletons the count is 12614.
-    \item For each fold the train set size is: 2548 and the test set size is: 284.
+    \item A lot of the paths are singletons, which are not relevant to the evaluation and all methods except the modular one.
+    \item Removing all singletons changes the dataset from 6781 to 1242 for $N=10$, and from 12614 to 2832 for $N=50$.
+    \item The expectation is that singletons don't add relevant information when dealing with sets of 2 or more items.
+    \item Markov and proximity models are not affected by this change, they already learn only from non-singleton paths.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Results comparison}
-  \begin{columns}
-    \begin{column}{0.5\textwidth}
-      \begin{figure}
-        \centering
-        \includegraphics[width=\columnwidth]{set_size_score_50_no_singles}
-      \end{figure}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \begin{figure}
-        \centering
-        \includegraphics[width=\columnwidth]{set_size_score_50}
-      \end{figure}
-    \end{column}
-  \end{columns}
+\begin{frame}{Results comparison $N = 10$}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{set_size_score_10_no_singletons}
+  \end{figure}
 \end{frame}
+
+\begin{frame}{Results comparison $N = 50$}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{set_size_score_50_no_singletons}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Results comparison $N = 100$}
+  \begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{set_size_score_100_no_singletons}
+  \end{figure}
+\end{frame}
+
+\section{Data distribution and sampling}
+
+\begin{frame}{Set size distribution in data}
+  \begin{figure}
+    \centering
+    \includegraphics[height=0.8\textheight]{data_size_histogram}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Set size distribution after sampling}
+  \begin{figure}
+    \centering
+    \includegraphics[height=0.8\textheight]{data_sampling_histogram_10_with_singletons}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Set size distribution after sampling - no singletons}
+  \begin{figure}
+    \centering
+    \includegraphics[height=0.8\textheight]{data_sampling_histogram_10}
+  \end{figure}
+\end{frame}
+
+\section{Featurized models}
+
+\begin{frame}{Dataset creation}
+  \begin{itemize}
+    \item First remove "duplicates", i.e. photos with the exact same location.
+    \item Filter photos that do not form a path of more than one item, i.e. when a user takes a single photo in a day.
+    \item Sample 10k photos from the resulting set.
+    \item Form a path dataset from the sample and remove singleton paths.
+    \item The result has 1936 paths and comprises 9141 photos.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Feature definition}
+  \begin{itemize}
+    \item Ten reference points corresponding to the top 10 cluster centers calculated using mean-shift clustering.
+    \item For each item, the feature vector contains the distances to each cluster center.
+    \item $\mathbf{X} \in \mathbb{R}^{9141 \times 10}$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Models}
+  \begin{itemize}
+    \item A baseline proximity model that proposes an item closest to the previous item in the sequence.
+    \item Modular model that using frequencies computes the utility vector $\mathbf{u} \in \mathbb{R}^{10}$.
+    \item FLDC model with features, dimension parameters $L=10, K=10$.
+    \item The results are:
+    
+    \begin{table}
+      \centering
+      \begin{tabular}{@{}ll@{}}
+        \hline
+        \textbf{Model} & \textbf{MRR (\%)}\\
+        \hline
+        Proximity & $18.94 \pm 3.28$ \\
+        Modular & $0.11 \pm 0.04$ \\
+        FFLDC (L=10, K=10) & $0.10 \pm 0.04$ \\
+        FFLDC (L=20, K=20) & $0.07 \pm 0.03$ \\
+        \hline
+      \end{tabular}
+    \end{table}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bad model?}
+  \begin{itemize}
+    \item Another possible dataset to test the featurized model is the dataset of all mean-shift clusters without filtering the top N.
+    \item Feature vector is the location of each cluster center.
+    \item Dataset has 6431 paths with more than one element, out of 27707, and 2685 items.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Evaluation}
+  \begin{figure}
+    \centering
+    \includegraphics[height=0.8\textheight]{score_all}
+  \end{figure}
+\end{frame}
+
 
 %\begin{frame}{References}
 %  \bibliographystyle{acm}

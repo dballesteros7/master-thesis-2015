@@ -10,24 +10,18 @@ def compute_measures(true_item, ranked_suggestions):
     return accuracy, rank
 
 
-def rank_results(dataset_name, model_name, n_items):
-    cross_accuracies = [[] for _ in range(n_items)]
-    cross_ranks = [[] for _ in range(n_items)]
+def rank_results(dataset_name, model_name, eval_size):
+    cross_accuracies = [[] for _ in range(eval_size + 1)]
+    cross_ranks = [[] for _ in range(eval_size + 1)]
     for fold in range(1, constants.N_FOLDS + 1):
-        accuracies = [[] for _ in range(n_items)]
-        ranks = [[] for _ in range(n_items)]
-        if 'markov' in model_name:
-            partial_results = constants.PARTIAL_DATA_MARKOV_PATH_TPL.format(
+        accuracies = [[] for _ in range(eval_size + 1)]
+        ranks = [[] for _ in range(eval_size + 1)]
+
+        partial_results = constants.PARTIAL_DATA_PATH_TPL.format(
+            dataset=dataset_name, fold=fold)
+        ground_truth_results =\
+            constants.GROUND_TRUTH_DATA_PATH_TPL.format(
                 dataset=dataset_name, fold=fold)
-            ground_truth_results =\
-                constants.GROUND_TRUTH_MARKOV_DATA_PATH_TPL.format(
-                    dataset=dataset_name, fold=fold)
-        else:
-            partial_results = constants.PARTIAL_DATA_PATH_TPL.format(
-                dataset=dataset_name, fold=fold)
-            ground_truth_results =\
-                constants.GROUND_TRUTH_DATA_PATH_TPL.format(
-                    dataset=dataset_name, fold=fold)
         model_results = constants.RANKING_MODEL_PATH_TPL.format(
             dataset=dataset_name, fold=fold, model=model_name)
 
@@ -37,14 +31,20 @@ def rank_results(dataset_name, model_name, n_items):
             for model_line, truth_line, partial_line in zip(
                     model_file, ground_truth_file, partial_set_file):
                 model_line = model_line.strip()
+                if model_line == '-':
+                    continue
                 truth_line = truth_line.strip()
                 partial_line = partial_line.strip()
                 suggested_set = [int(item) for item in model_line.split(',')]
                 true_item = int(truth_line)
                 acc, rank = compute_measures(true_item, suggested_set)
                 partial_size = len(partial_line.split(',')) - 1
-                accuracies[partial_size].append(acc)
-                ranks[partial_size].append(rank)
+                if partial_size >= eval_size:
+                    accuracies[eval_size].append(acc)
+                    ranks[eval_size].append(rank)
+                else:
+                    accuracies[partial_size].append(acc)
+                    ranks[partial_size].append(rank)
                 accuracies[0].append(acc)
                 ranks[0].append(rank)
             for cross_accuracy, accuracy_list in zip(cross_accuracies, accuracies):
@@ -75,14 +75,19 @@ def rank_results(dataset_name, model_name, n_items):
 
 
 def main():
-    dataset_name = constants.DATASET_NAME_TPL.format('10_no_singles')
+    dataset_name = constants.DATASET_NAME_TPL.format('10_pairs')
     models = [
-        'modular_features_0', 'submod_f_0_l_5_k_5'
+        #'pseudo_markov',
+        'modular_features_0', 'submod_f_0_l_5_k_5', 'pseudo_markov'
+        #'modular_features_0', 'submod_f_0_l_10_k_10', 'markov', 'pseudo_markov',
+        #'proximity', 'proximity_r', 'submod_f_1_l_10_k_10'
+        #'modular_features_0', 'markov', 'pseudo_markov', 'proximity', 'proximity_r',
+        #'submod_f_0_l_20_k_20'
     ]
     for model_name in models:
-        results = rank_results(dataset_name, model_name, 1941)
-        print(results)
-        #print('{:2.2f} \pm {:2.2f} & {:2.2f} \pm {:2.2f}'.format(*results))
+        results = rank_results(dataset_name, model_name, 5)
+        print(results[2])
+        print(results[3])
 
 if __name__ == '__main__':
     main()

@@ -72,6 +72,6 @@ def generate_ranking_task_for_markov(dataset_name: str):
 
 
 if __name__ == '__main__':
-    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('cluster_features_sample_10k'))
-    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('10'))
-    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('10_no_singles'))
+    #generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('cluster_features_sample_10k'))
+    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('10_pairs'))
+    #generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('50_no_singles'))

@@ -41,17 +41,24 @@ def train_and_evaluate(dataset_name: str, n_items: int):
                     constants.TRAIN_DATA_PATH_TPL.format(
                             fold=fold, dataset=dataset_name))
             model.train(loaded_data)
-            loaded_test_data = file.load_set_data(
-                constants.PARTIAL_DATA_MARKOV_PATH_TPL.format(
+            print(model.first_order_counts)
+            loaded_test_data = file.load_csv_test_data(
+                constants.PARTIAL_DATA_PATH_TPL.format(
                     fold=fold, dataset=dataset_name))
             model_name = 'pseudo_markov' if use_rejection else 'markov'
             target_path = constants.RANKING_MODEL_PATH_TPL.format(
                 dataset=dataset_name, fold=fold, model=model_name)
             with open(target_path, 'w') as output_file:
                 for subset in loaded_test_data:
-                    result = model.propose_set_item(subset)
-                    output_file.write(','.join(str(item) for item in result))
-                    output_file.write('\n')
+                    if subset.index('?') > 0:
+                        short_subset = subset[:subset.index('?')]
+                        short_subset = [int(item) for item in short_subset]
+                        result = model.propose_set_item(np.array(short_subset))
+                        output_file.write(','.join(str(item) for item in result))
+                        output_file.write('\n')
+                    else:
+                        output_file.write('-\n')
 
 if __name__ == '__main__':
-    train_and_evaluate(constants.DATASET_NAME_TPL.format('50_no_singles'), 50)
+    train_and_evaluate(constants.DATASET_NAME_TPL.format('10_pairs'), 10)
+    #train_and_evaluate(constants.DATASET_NAME_TPL.format('50_no_singles'), 50)

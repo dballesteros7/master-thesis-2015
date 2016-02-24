@@ -120,7 +120,7 @@ class PathFinder:
         return items, indexed_paths
 
 
-def produce_top_clusters(all_photos, bandwidth='100m'):
+def produce_top_clusters(all_photos, n_items, bandwidth='100m'):
     cluster_centers, labels = cluster_photos(all_photos, bandwidth)
     cluster_counts = defaultdict(int)
     photo_count = 0
@@ -129,22 +129,23 @@ def produce_top_clusters(all_photos, bandwidth='100m'):
             continue
         cluster_counts[label] += 1
         photo_count += 1
-    n_top = 10
+
     top_clusters = sorted(
         cluster_counts.items(), key=lambda x: x[1], reverse=True)
-    top_clusters = top_clusters[:n_top]
+    if n_items:
+        top_clusters = top_clusters[:n_items]
     top_clusters = set(x[0] for x in top_clusters)
 
     cluster_label_to_idx = {}
     for idx, cluster_label in enumerate(top_clusters):
         cluster_label_to_idx[cluster_label] = idx
 
-    with open(constants.CLUSTER_FILE.format(id='k_10'), 'w') as cluster_file:
+    with open(constants.CLUSTER_FILE.format(id='k_{}'.format(n_items)), 'w') as cluster_file:
         for cluster_label in top_clusters:
             cluster = cluster_centers[cluster_label]
             cluster_file.write('{},{}\n'.format(*cluster))
 
-    with open(constants.CLUSTER_ASSIGNATION_FILE.format(id='k_10'), 'w') as cluster_assign_file:
+    with open(constants.CLUSTER_ASSIGNATION_FILE.format(id='k_{}'.format(n_items)), 'w') as cluster_assign_file:
         for photo, label in zip(all_photos, labels):
             if label in cluster_label_to_idx:
                 cluster_assign_file.write('{},{}\n'.format(photo['id'], cluster_label_to_idx[label]))
@@ -185,7 +186,15 @@ def find_and_store_all_paths(dataset_name, all_photos, cluster_assignment):
         for path in no_singleton_paths:
             paths_file.write('{}\n'.format(','.join(path)))
 
-    return path_sets, no_singleton_paths
+    just_pairs_path = [path for path in path_sets if len(path) == 2]
+    just_pairs_dataset_name = '{}_pairs'.format(dataset_name)
+    with open(constants.ALL_DATA_PATH_TPL.format(
+            dataset=constants.DATASET_NAME_TPL.format(
+                just_pairs_dataset_name)), 'w') as paths_file:
+        for path in just_pairs_path:
+            paths_file.write('{}\n'.format(','.join(path)))
+
+    return path_sets, no_singleton_paths, just_pairs_path
 
 
 def shuffle_train_and_test(dataset_name, total_set):
@@ -247,16 +256,18 @@ def main():
     dataset_name = 'cluster_features_sample_10k'
     finder = PathFinder()
     all_photos = finder.photo_storage.get_photos_for_city(city_name='zurich')
-    clusters, cluster_assignment = produce_top_clusters(all_photos)
-    items, indexed_paths = finder.unclustered_paths(all_photos, dataset_name)
-    shuffle_train_and_test(dataset_name, indexed_paths)
-    calculate_features_for_unclustered_items(dataset_name, items, clusters)
+    clusters, cluster_assignment = produce_top_clusters(all_photos, 10)
+    #items, indexed_paths = finder.unclustered_paths(all_photos, dataset_name)
+    #shuffle_train_and_test(dataset_name, indexed_paths)
+    #calculate_features_for_unclustered_items(dataset_name, items, clusters)
     dataset_name = '10'
-    paths, no_singleton_paths = find_and_store_all_paths(
+    paths, no_singleton_paths, just_pairs_path = find_and_store_all_paths(
         dataset_name, all_photos, cluster_assignment)
     shuffle_train_and_test(dataset_name, paths)
     shuffle_train_and_test('{}_no_singles'.format(dataset_name),
                            no_singleton_paths)
+    shuffle_train_and_test('{}_pairs'.format(dataset_name),
+                           just_pairs_path)
 
 
 if __name__ == '__main__':

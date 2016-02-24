@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 import constants
 from models.features import IdentityFeatures
 from models.general_features import GeneralFeatures
-from plots.histograms import len_histogram, pairs_histogram
-from sampling.brute_force import BruteForceSampler
+
 
 class GibbsSampler:
     def __init__(self, n_items: int, model):
@@ -114,7 +113,7 @@ def main():
     sampler = GibbsSampler(n_items, model)
     sampler.train(n_iter)
     samples = sampler.sample(100000)
-    len_histogram(samples)
+    #len_histogram(samples)
     #pairs_histogram(samples)
 
 
