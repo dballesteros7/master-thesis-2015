@@ -7,7 +7,9 @@ def load_csv_test_data(filename):
                 for line in input_file]
 
 
-def load_csv_data(filename) -> np.ndarray:
+def load_csv_data(filename:str) -> np.ndarray:
+    if not filename.endswith('.csv'):
+        filename += '.csv'
     with open(filename, 'r') as input_file:
         return [[int(item) for item in line.strip().split(',')]
                 for line in input_file]

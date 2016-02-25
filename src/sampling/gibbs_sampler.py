@@ -39,7 +39,7 @@ class GibbsSampler:
             else:
                 if has_element:
                     random_set = set_minus
-            if t > n_iter / 2:
+            if t > n_iter / 2 and len(random_set) > 0:
                 self.samples += 1
                 self.counts[frozenset(random_set)] += 1
 
@@ -97,11 +97,11 @@ def plot_performance():
 
 def main():
     #plot_performance()
-    n_items = 50
-    dataset_name = constants.DATASET_NAME_TPL.format('50_no_singles')
+    n_items = 4
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
     np.random.seed(constants.SEED)
-    l_dim = 20
-    k_dim = 20
+    l_dim = 4
+    k_dim = 2
     features = IdentityFeatures(dataset_name, n_items, n_items)
     features.load_from_file()
     model = GeneralFeatures(n_items, features.as_array(),
@@ -109,10 +109,11 @@ def main():
     model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
         dataset=dataset_name, fold=1, l_dim=l_dim, k_dim=k_dim,
         index=features.index))
-    n_iter = 1000000
+    n_iter = 100000
     sampler = GibbsSampler(n_items, model)
     sampler.train(n_iter)
-    samples = sampler.sample(100000)
+    for subset, count in sampler.counts.items():
+        print('{}:{:.2f}%'.format(list(subset), count * 100 / sampler.samples))
     #len_histogram(samples)
     #pairs_histogram(samples)
 

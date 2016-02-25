@@ -43,35 +43,7 @@ def generate_ranking_task(dataset_name: str):
         save_to_csv(partial_path, list_partial)
 
 
-def generate_ranking_task_for_markov(dataset_name: str):
-    for fold in range(1, constants.N_FOLDS + 1):
-        test_data_path = constants.TEST_DATA_PATH_TPL.format(
-                dataset=dataset_name, fold=fold)
-        ground_truth_path = constants.GROUND_TRUTH_MARKOV_DATA_PATH_TPL.format(
-                dataset=dataset_name, fold=fold)
-        partial_path = constants.PARTIAL_DATA_MARKOV_PATH_TPL.format(
-                dataset=dataset_name, fold=fold)
-
-        test_data = file.load_set_data(test_data_path)
-
-        list_gt = []
-        list_partial = []
-        for i, sample in enumerate(test_data):
-            if len(sample) < 2:
-                continue  # Ignores single item sets.
-
-            for item, next_item in itertools.zip_longest(sample, sample[1:]):
-                if next_item is not None:
-                    list_gt.append([next_item])
-                    partial = list(set(sample) - {item, next_item})
-                    partial.append(item)
-                    list_partial.append(partial)
-
-        save_to_csv(ground_truth_path, list_gt)
-        save_to_csv(partial_path, list_partial)
-
-
 if __name__ == '__main__':
     #generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('cluster_features_sample_10k'))
-    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('10_pairs'))
+    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('synthetic_2'))
     #generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('50_no_singles'))

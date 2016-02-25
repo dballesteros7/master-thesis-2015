@@ -1,3 +1,5 @@
+import os
+from collections import defaultdict
 from typing import Iterable
 
 import numpy as np
@@ -54,9 +56,19 @@ class ModularWithFeatures:
         return sorted_indexes[::-1]
 
 
+def learn_from_single_file():
+    n_items = 3
+    dataset_name = 'synthetic_1'
+    features = np.identity(n_items)
+    loaded_data = file.load_csv_data(
+        os.path.join(constants.DATA_PATH, dataset_name))
+    modular_model = ModularWithFeatures(
+            n_items=n_items, features=features)
+    modular_model.train(loaded_data)
+
 def main():
-    n_items = 10
-    dataset_name = constants.DATASET_NAME_TPL.format('10_pairs')
+    n_items = 4
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
     features = IdentityFeatures(dataset_name, n_items=n_items,
                                          m_features=n_items)
     features.load_from_file()
@@ -73,7 +85,17 @@ def main():
         modular_model = ModularWithFeatures(
             n_items=n_items, features=features_array)
         modular_model.train(loaded_data)
-        print(modular_model.item_probs)
+
+        samples = modular_model.sample(100000)
+        counts = defaultdict(int)
+        sum = 0
+        for sample in samples:
+            counts[frozenset(sample)] += 1
+            sum += 1
+        for subset, count in counts.items():
+            print('{}:{:.2f}%'.format(list(subset), count * 100 / sum))
+
+        print('----------break------------')
 
         target_path = constants.RANKING_MODEL_PATH_TPL.format(
             dataset=dataset_name, fold=fold,

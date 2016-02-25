@@ -251,25 +251,22 @@ int main(int argc, char* argv[]) {
     int k_dimensions = std::stoi(argv[3]);
     int feature_set = std::stoi(argv[4]);
     char* dataset_name = argv[5];
-    for (int d = 5; d <= l_dimensions; d += 5) {
-        for (int k = 5; k <= k_dimensions; k += 5) {
-            for (int i = 1; i <= fold_number; ++i) {
-                train_with_features(
-                        (boost::format(
-                                "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_data_features_%2%_fold_%3%.csv") %
-                         dataset_name % feature_set % i).str(),
-                        (boost::format(
-                                "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_features_%2%.csv") %
-                         dataset_name % feature_set).str(),
-                        (boost::format(
-                                "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
-                         dataset_name % feature_set % i).str(),
-                        10, 0.01, 0.1, static_cast<size_t>(d), static_cast<size_t>(k),
-                        (boost::format(
-                                "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_out_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
-                         dataset_name % feature_set % d % k % i).str());
-            }
-        }
+    for (int i = 1; i <= fold_number; ++i) {
+        train_with_features(
+                (boost::format(
+                        "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_data_features_%2%_fold_%3%.csv") %
+                 dataset_name % feature_set % i).str(),
+                (boost::format(
+                        "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_features_%2%.csv") %
+                 dataset_name % feature_set).str(),
+                (boost::format(
+                        "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
+                 dataset_name % feature_set % i).str(),
+                10, 0.01, 0.1,
+                static_cast<size_t>(l_dimensions),
+                static_cast<size_t>(k_dimensions),
+                (boost::format(
+                        "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_out_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
+                 dataset_name % feature_set % l_dimensions % k_dimensions % i).str());
     }
-
 }
