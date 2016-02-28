@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+from itertools import combinations
 from typing import Iterable
 
 import numpy as np
@@ -49,6 +50,19 @@ class ModularWithFeatures:
     def __call__(self, item_set: Iterable[int]) -> float:
         return np.sum(self.utilities[item_set]) - self.logz
 
+    def full_distribution(self):
+        self.distribution = {}
+        sum = 0
+        for length in range(1, self.n_items + 1):
+            for subset in combinations(range(self.n_items), length):
+                prob = np.exp(self(list(subset)))
+                sum += prob
+                self.distribution[frozenset(subset)] = prob
+
+        for subset in self.distribution:
+            self.distribution[subset] /= sum
+        return self.distribution
+
     def propose_set_item(self, to_complete: Iterable[int]) -> Iterable[int]:
         utilities = np.copy(self.utilities)
         utilities[to_complete] = -np.inf
@@ -66,11 +80,12 @@ def learn_from_single_file():
             n_items=n_items, features=features)
     modular_model.train(loaded_data)
 
+
 def main():
-    n_items = 10
-    dataset_name = constants.DATASET_NAME_TPL.format('10')
-    features = GaussianFeatures(dataset_name, n_items=n_items,
-                                         m_features=n_items, sigma=0.05)
+    n_items = 4
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
+    features = IdentityFeatures(dataset_name, n_items=n_items,
+                                         m_features=n_items)
     features.load_from_file()
     features_array = features.as_array()
     for fold in range(1, constants.N_FOLDS + 1):
@@ -86,15 +101,10 @@ def main():
             n_items=n_items, features=features_array)
         modular_model.train(loaded_data)
 
-        # samples = modular_model.sample(100000)
-        # counts = defaultdict(int)
-        # sum = 0
-        # for sample in samples:
-        #     counts[frozenset(sample)] += 1
-        #     sum += 1
-        # for subset, count in counts.items():
-        #     print('{}:{:.2f}%'.format(list(subset), count * 100 / sum))
-        # print('----------break------------')
+        modular_model.full_distribution()
+        for subset, prob in modular_model.distribution.items():
+            print('{}:{:.2f}%'.format(list(subset), prob * 100))
+        print('----------break------------')
 
         target_path = constants.RANKING_MODEL_PATH_TPL.format(
             dataset=dataset_name, fold=fold,

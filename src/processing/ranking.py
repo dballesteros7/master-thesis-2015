@@ -55,6 +55,7 @@ def rank_results(dataset_name, model_name, eval_size):
                     cross_rank.append(np.mean([1 / rank for rank in rank_list]))
     mean_accuracies = []
     std_accuracies = []
+    print(cross_accuracies[0])
     for accuracies in cross_accuracies:
         if len(accuracies):
             mean_accuracies.append(100 * np.mean(accuracies))
@@ -75,15 +76,16 @@ def rank_results(dataset_name, model_name, eval_size):
 
 
 def main():
-    dataset_name = constants.DATASET_NAME_TPL.format('10')
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
     models = [
-        #'pseudo_markov',
-        'modular_features_0', 'modular_features_3', 'submod_f_0_l_2_k_2', 'submod_f_3_l_2_k_2', #'submod_f_0_l_2_k_0',
-        #'submod_f_0_l_3_k_0', 'submod_f_0_l_4_k_0', 'submod_f_0_l_4_k_2'
-        #'modular_features_0', 'submod_f_0_l_10_k_10', 'markov', 'pseudo_markov',
-        #'proximity', 'proximity_r', 'submod_f_1_l_10_k_10'
-        #'modular_features_0', 'markov', 'pseudo_markov', 'proximity', 'proximity_r',
-        #'submod_f_0_l_20_k_20'
+        #'modular_features_0', 'submod_f_0_l_1_k_0',
+        'submod_f_0_l_2_k_0', 'submod_f_0_l_3_k_0',
+        'submod_f_0_l_4_k_0', 'submod_f_0_l_4_k_2',
+        # 'submod_f_gauss_0.1_l_2_k_2', 'submod_f_gauss_0.2_l_2_k_2',
+        # 'submod_f_gauss_0.30000000000000004_l_2_k_2', 'submod_f_gauss_0.4_l_2_k_2',
+        # 'submod_f_gauss_0.5_l_2_k_2', 'submod_f_gauss_0.6_l_2_k_2',
+        # 'submod_f_gauss_0.7000000000000001_l_2_k_2', 'submod_f_gauss_0.8_l_2_k_2',
+        # 'submod_f_gauss_0.9_l_2_k_2', 'submod_f_gauss_1.0_l_2_k_2',
     ]
     for model_name in models:
         results = rank_results(dataset_name, model_name, 5)

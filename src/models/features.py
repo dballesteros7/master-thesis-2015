@@ -113,18 +113,24 @@ class GaussianFeatures(Features):
                 latitude = float(tokens[self.keys['latitude']])
                 longitude = float(tokens[self.keys['longitude']])
                 locations.append((latitude, longitude))
+
+            locations = np.array(locations)
+            locations = (locations - np.min(locations, axis=0)) /\
+                (np.max(locations, axis=0) - np.min(locations, axis=0))
+
             for i in range(self.n_items):
                 for j in range(self.n_items):
                     if i == j:
                         self.features[i, j] = 1
                     x_diff = np.power(locations[j][0] - locations[i][0], 2)
                     y_diff = np.power(locations[j][1] - locations[i][1], 2)
-                    self.features[i, j] = np.exp(-(x_diff + y_diff)/(2*np.power(self.sigma, 2)))
+                    self.features[i, j] = np.exp(
+                        -(x_diff + y_diff) / (2 * np.power(self.sigma, 2)))
 
     def as_array(self):
         return np.copy(self.features)
 
 if __name__ == '__main__':
-    f = GaussianFeatures('path_set_10', 10, 10, 0.01)
+    f = GaussianFeatures('path_set_10', 10, 10, 0.4)
     f.load_from_file()
     print(f.features)

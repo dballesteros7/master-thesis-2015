@@ -1,3 +1,5 @@
+from itertools import combinations
+
 import numpy as np
 import time
 
@@ -35,6 +37,7 @@ class GeneralFeatures:
             'params_time': [0.0, 0],
             'evaluation': [0.0, 0]
         }
+        self.distribution = {}
 
     def update_composite_parameters(self):
         start = time.time()
@@ -65,6 +68,18 @@ class GeneralFeatures:
         self.stats['evaluation'][0] += elapsed
         self.stats['evaluation'][1] += 1
         return logprob
+
+    def full_distribution(self):
+        sum = 0
+        for length in range(1, self.n_items + 1):
+            for subset in combinations(range(self.n_items), length):
+                prob = np.exp(self(list(subset)))
+                sum += prob
+                self.distribution[frozenset(subset)] = prob
+
+        for subset in self.distribution:
+            self.distribution[subset] /= sum
+        return self.distribution
 
     def propose_set_item(self, to_complete: np.ndarray) -> np.ndarray:
         gains = np.zeros(self.n_items)
@@ -142,12 +157,16 @@ class GeneralFeatures:
 
 def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
     for fold in range(1, constants.N_FOLDS + 1):
-        for l_dim in [2]:
+        for l_dim in [4]:
             for k_dim in [2]:
                 model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
                 model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
                     dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
                     index=features.index))
+                model.full_distribution()
+                for subset, prob in model.distribution.items():
+                    print('{}:{:.2f}%'.format(list(subset), prob * 100))
+                print('----------break------------')
 
                 loaded_test_data = file.load_csv_test_data(
                     constants.PARTIAL_DATA_PATH_TPL.format(
@@ -165,16 +184,15 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    for sigma in [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2]:
-        n_items = 10
-        dataset_name = constants.DATASET_NAME_TPL.format('10')
-        features = GaussianFeatures(dataset_name, n_items=n_items,
-                                    m_features=n_items, sigma=sigma)
-        # features = IdentityFeatures(dataset_name, n_items=n_items,
-        #                             m_features=n_items)
+    n_items = 4
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
+    # features = GaussianFeatures(dataset_name, n_items=n_items,
+    #                             m_features=n_items, sigma=sigma)
+    features = IdentityFeatures(dataset_name, n_items=n_items,
+                                m_features=n_items)
 
-        features.load_from_file()
-        load_and_evaluate(dataset_name, n_items, features)
+    features.load_from_file()
+    load_and_evaluate(dataset_name, n_items, features)
 
 if __name__ == '__main__':
     main()

@@ -16,18 +16,17 @@ def generate_three_elements():
     model.b_weights = np.array([0, 100, 100]).reshape((3, 1))
 
     model.update_composite_parameters()
+    model.full_distribution()
+    for subset, prob in model.distribution.items():
+        print('{}:{:.2f}%'.format(list(subset), prob * 100))
+    return
+    keys = []
+    probs = []
+    for key, prob in model.distribution.items():
+        keys.append([str(x) for x in key])
+        probs.append(prob)
 
-    sampler = GibbsSampler(3, model)
-    sampler.train(100000)
-    for subset, count in sampler.counts.items():
-        print('{}:{:.2f}%'.format(list(subset), count * 100 / sampler.samples))
-    all_data = []
-
-    for subset, count in sampler.counts.items():
-        if len(subset) == 0:
-            continue
-        for _ in range(count):
-            all_data.append(list(str(i) for i in subset))
+    all_data = np.random.choice(keys, 10000, True, probs)
 
     with open(os.path.join(
             constants.DATA_PATH, 'path_set_synthetic_1.csv'), 'w') as out_file:
@@ -46,18 +45,17 @@ def generate_four_elements():
     model.c_weights = np.array([[5, 0], [5, 0], [0, 5], [0, 5]])
 
     model.update_composite_parameters()
+    model.full_distribution()
+    for subset, prob in model.distribution.items():
+        print('{}:{:.2f}%'.format(list(subset), prob * 100))
+    return
+    keys = []
+    probs = []
+    for key, prob in model.distribution.items():
+        keys.append([str(x) for x in key])
+        probs.append(prob)
 
-    sampler = GibbsSampler(4, model)
-    sampler.train(100000)
-    for subset, count in sampler.counts.items():
-        print('{}:{:.2f}%'.format(list(subset), count * 100 / sampler.samples))
-    all_data = []
-
-    for subset, count in sampler.counts.items():
-        if len(subset) == 0:
-            continue
-        for _ in range(count):
-            all_data.append(list(str(i) for i in subset))
+    all_data = np.random.choice(keys, 10000, True, probs)
 
     with open(os.path.join(
             constants.DATA_PATH, 'path_set_synthetic_2.csv'), 'w') as out_file:
@@ -66,8 +64,10 @@ def generate_four_elements():
 
     shuffle_train_and_test('synthetic_2', all_data)
 
+
 def main():
     np.random.seed(constants.SEED)
+    generate_three_elements()
     generate_four_elements()
 
 if __name__ == '__main__':
