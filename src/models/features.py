@@ -91,3 +91,40 @@ class BasicFeaturesExtended(Features):
              np.min(self.features[:, :4], axis=0)))
 
         return np.hstack((normalized_features, np.identity(self.n_items)))
+
+
+class GaussianFeatures(Features):
+    def __init__(self, dataset_name: str, n_items: int, m_features: int, sigma: float):
+        super(GaussianFeatures, self).__init__(dataset_name, n_items, m_features)
+        self.sigma = sigma
+        self.index = 'gauss_{}'.format(sigma)
+
+    def load_from_file(self):
+        path = constants.ITEMS_DATA_PATH_TPL.format(
+            dataset=self.dataset_name)
+        with open(path, 'r') as input_file:
+            first_line = input_file.readline()
+            tokens = first_line.strip().split(',')
+            self.keys = dict((token, index)
+                             for index, token in enumerate(tokens))
+            locations = []
+            for item_index, line in enumerate(input_file):
+                tokens = line.strip().split(',')
+                latitude = float(tokens[self.keys['latitude']])
+                longitude = float(tokens[self.keys['longitude']])
+                locations.append((latitude, longitude))
+            for i in range(self.n_items):
+                for j in range(self.n_items):
+                    if i == j:
+                        self.features[i, j] = 1
+                    x_diff = np.power(locations[j][0] - locations[i][0], 2)
+                    y_diff = np.power(locations[j][1] - locations[i][1], 2)
+                    self.features[i, j] = np.exp(-(x_diff + y_diff)/(2*np.power(self.sigma, 2)))
+
+    def as_array(self):
+        return np.copy(self.features)
+
+if __name__ == '__main__':
+    f = GaussianFeatures('path_set_10', 10, 10, 0.01)
+    f.load_from_file()
+    print(f.features)

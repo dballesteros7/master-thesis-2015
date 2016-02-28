@@ -75,11 +75,11 @@ def rank_results(dataset_name, model_name, eval_size):
 
 
 def main():
-    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
+    dataset_name = constants.DATASET_NAME_TPL.format('10')
     models = [
         #'pseudo_markov',
-        'modular_features_0', 'submod_f_0_l_1_k_0', 'submod_f_0_l_2_k_0',
-        'submod_f_0_l_3_k_0', 'submod_f_0_l_4_k_0', 'submod_f_0_l_4_k_2'
+        'modular_features_0', 'modular_features_3', 'submod_f_0_l_2_k_2', 'submod_f_3_l_2_k_2', #'submod_f_0_l_2_k_0',
+        #'submod_f_0_l_3_k_0', 'submod_f_0_l_4_k_0', 'submod_f_0_l_4_k_2'
         #'modular_features_0', 'submod_f_0_l_10_k_10', 'markov', 'pseudo_markov',
         #'proximity', 'proximity_r', 'submod_f_1_l_10_k_10'
         #'modular_features_0', 'markov', 'pseudo_markov', 'proximity', 'proximity_r',

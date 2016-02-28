@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
     int fold_number = std::stoi(argv[1]);
     int l_dimensions = std::stoi(argv[2]);
     int k_dimensions = std::stoi(argv[3]);
-    int feature_set = std::stoi(argv[4]);
+    char* feature_set = argv[4];
     char* dataset_name = argv[5];
     for (int i = 1; i <= fold_number; ++i) {
         train_with_features(

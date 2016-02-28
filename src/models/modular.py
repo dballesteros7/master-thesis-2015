@@ -8,7 +8,7 @@ from scipy import special
 
 import constants
 from models.features import BasicFeatures, IdentityFeatures, \
-    BasicFeaturesNoNormalized, BasicFeaturesExtended
+    BasicFeaturesNoNormalized, BasicFeaturesExtended, GaussianFeatures
 from utils import file
 
 
@@ -67,10 +67,10 @@ def learn_from_single_file():
     modular_model.train(loaded_data)
 
 def main():
-    n_items = 4
-    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
-    features = IdentityFeatures(dataset_name, n_items=n_items,
-                                         m_features=n_items)
+    n_items = 10
+    dataset_name = constants.DATASET_NAME_TPL.format('10')
+    features = GaussianFeatures(dataset_name, n_items=n_items,
+                                         m_features=n_items, sigma=0.05)
     features.load_from_file()
     features_array = features.as_array()
     for fold in range(1, constants.N_FOLDS + 1):
@@ -86,16 +86,15 @@ def main():
             n_items=n_items, features=features_array)
         modular_model.train(loaded_data)
 
-        samples = modular_model.sample(100000)
-        counts = defaultdict(int)
-        sum = 0
-        for sample in samples:
-            counts[frozenset(sample)] += 1
-            sum += 1
-        for subset, count in counts.items():
-            print('{}:{:.2f}%'.format(list(subset), count * 100 / sum))
-
-        print('----------break------------')
+        # samples = modular_model.sample(100000)
+        # counts = defaultdict(int)
+        # sum = 0
+        # for sample in samples:
+        #     counts[frozenset(sample)] += 1
+        #     sum += 1
+        # for subset, count in counts.items():
+        #     print('{}:{:.2f}%'.format(list(subset), count * 100 / sum))
+        # print('----------break------------')
 
         target_path = constants.RANKING_MODEL_PATH_TPL.format(
             dataset=dataset_name, fold=fold,

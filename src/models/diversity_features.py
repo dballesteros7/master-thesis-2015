@@ -8,7 +8,7 @@ import numpy as np
 
 import constants
 from models.features import BasicFeatures, Features, IdentityFeatures, \
-    BasicFeaturesExtended, BasicFeaturesNoNormalized
+    BasicFeaturesExtended, BasicFeaturesNoNormalized, GaussianFeatures
 from models.modular import ModularWithFeatures
 from utils import file
 
@@ -279,13 +279,16 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    n_items = 4
-    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
-    features = IdentityFeatures(dataset_name, n_items=n_items,
-                                m_features=n_items)
-    features.load_from_file()
-    process_data_and_store(dataset_name, features, n_items)
-    features.store_for_training()
+    for sigma in [0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.2]:
+        n_items = 10
+        dataset_name = constants.DATASET_NAME_TPL.format('10')
+        features = GaussianFeatures(dataset_name, n_items=n_items,
+                                    m_features=n_items, sigma=sigma)
+        # features = IdentityFeatures(dataset_name, n_items=n_items,
+        #                             m_features=n_items)
+        features.load_from_file()
+        process_data_and_store(dataset_name, features, n_items)
+        features.store_for_training()
 
 if __name__ == '__main__':
     main()
