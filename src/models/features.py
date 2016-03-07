@@ -97,7 +97,7 @@ class GaussianFeatures(Features):
     def __init__(self, dataset_name: str, n_items: int, m_features: int, sigma: float):
         super(GaussianFeatures, self).__init__(dataset_name, n_items, m_features)
         self.sigma = sigma
-        self.index = 'gauss_{}'.format(sigma)
+        self.index = 'gauss_{}_k_{}'.format(sigma, m_features)
 
     def load_from_file(self):
         path = constants.ITEMS_DATA_PATH_TPL.format(
@@ -119,7 +119,7 @@ class GaussianFeatures(Features):
                 (np.max(locations, axis=0) - np.min(locations, axis=0))
 
             for i in range(self.n_items):
-                for j in range(self.n_items):
+                for j in range(self.m_features):
                     if i == j:
                         self.features[i, j] = 1
                     x_diff = np.power(locations[j][0] - locations[i][0], 2)
@@ -131,6 +131,6 @@ class GaussianFeatures(Features):
         return np.copy(self.features)
 
 if __name__ == '__main__':
-    f = GaussianFeatures('path_set_10', 10, 10, 0.4)
+    f = GaussianFeatures('path_set_10', 10, 5, 0.3)
     f.load_from_file()
     print(f.features)
