@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
                 (boost::format(
                         "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
                  dataset_name % feature_set % i).str(),
-                10, 0.01, 0.1,
+                100, 0.01, 0.1,
                 static_cast<size_t>(l_dimensions),
                 static_cast<size_t>(k_dimensions),
                 (boost::format(

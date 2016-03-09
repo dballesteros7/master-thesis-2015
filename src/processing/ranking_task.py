@@ -45,6 +45,6 @@ def generate_ranking_task(dataset_name: str):
 
 if __name__ == '__main__':
     #generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('cluster_features_sample_10k'))
-    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('synthetic_1'))
-    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('synthetic_2'))
+    generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('synthetic_3'))
+    #generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('synthetic_2'))
     #generate_ranking_task(dataset_name=constants.DATASET_NAME_TPL.format('50_no_singles'))

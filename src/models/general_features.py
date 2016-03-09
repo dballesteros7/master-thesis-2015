@@ -2,6 +2,7 @@ from itertools import combinations
 
 import numpy as np
 import time
+from matplotlib import pyplot as plt
 
 import constants
 from models.features import Features, IdentityFeatures, BasicFeatures, \
@@ -46,6 +47,8 @@ class GeneralFeatures:
             np.dot(self.features, self.b_weights, out=self.diversity_weights)
         if self.k_dims:
             np.dot(self.features, self.c_weights, out=self.coherence_weights)
+        print(self.diversity_weights)
+        print(self.coherence_weights)
         elapsed = time.time() - start
         self.stats['params_time'][0] += elapsed
         self.stats['params_time'][1] += 1
@@ -156,40 +159,44 @@ class GeneralFeatures:
 
 
 def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
-    for fold in range(1, constants.N_FOLDS + 1):
-        for l_dim in [2]:
-            for k_dim in [2]:
-                model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
-                model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
-                    dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
-                    index=features.index))
-                model.full_distribution()
-                for subset, prob in model.distribution.items():
-                    print('{}:{:.2f}%'.format(list(subset), prob * 100))
-                print('----------break------------')
-
-                loaded_test_data = file.load_csv_test_data(
-                    constants.PARTIAL_DATA_PATH_TPL.format(
-                        fold=fold, dataset=dataset_name))
-                target_path = constants.RANKING_MODEL_PATH_TPL.format(
-                    dataset=dataset_name, fold=fold,
-                    model='submod_f_{}_l_{}_k_{}'.format(features.index, l_dim, k_dim))
-                with open(target_path, 'w') as output_file:
-                    for subset in loaded_test_data:
-                        subset.remove('?')
-                        subset = np.array([int(item) for item in subset])
-                        result = model.propose_set_item(subset)
-                        output_file.write(','.join(str(item) for item in result))
-                        output_file.write('\n')
+    for fold in range(1, 2):
+        for l_dim in range(2, 3):
+            k_dim = l_dim
+            model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
+            model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+                dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
+                index=features.index))
+            # model.full_distribution()
+            # for subset, prob in sorted(model.distribution.items(), key=lambda x: x[1]):
+            #     print('{}:{:.2f}%'.format(list(subset), prob * 100))
+            # print('----------break------------')
+            plt.matshow(model.diversity_weights.dot(model.diversity_weights.transpose()))
+            plt.colorbar()
+            plt.show()
+            loaded_test_data = file.load_csv_test_data(
+                constants.PARTIAL_DATA_PATH_TPL.format(
+                    fold=fold, dataset=dataset_name))
+            target_path = constants.RANKING_MODEL_PATH_TPL.format(
+                dataset=dataset_name, fold=fold,
+                model='submod_f_{}_l_{}_k_{}'.format(features.index, l_dim, k_dim))
+            with open(target_path, 'w') as output_file:
+                for subset in loaded_test_data:
+                    subset.remove('?')
+                    subset = np.array([int(item) for item in subset])
+                    result = model.propose_set_item(subset)
+                    output_file.write(','.join(str(item) for item in result))
+                    output_file.write('\n')
 
 
 def main():
     n_items = 10
     dataset_name = constants.DATASET_NAME_TPL.format('10')
+    sigma = 0.4
+    m_feats = 5
     features = GaussianFeatures(dataset_name, n_items=n_items,
-                                m_features=6, sigma=0.4)
-    # features = IdentityFeatures(dataset_name, n_items=n_items,
-    #                             m_features=n_items)
+                                m_features=n_items, sigma=sigma)
+    # features = BasicFeatures(dataset_name, n_items=n_items,
+    #                                      m_features=3)
 
     features.load_from_file()
     load_and_evaluate(dataset_name, n_items, features)

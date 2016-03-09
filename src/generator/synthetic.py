@@ -65,10 +65,53 @@ def generate_four_elements():
     shuffle_train_and_test('synthetic_2', all_data)
 
 
+def generate_features():
+    n_items = 7
+    features = np.array([
+        [5., 0., 1.],
+        [5., 1., 0.],
+        [5., 1., 1.],
+        [3., 0., 1.],
+        [3., 0., 0.],
+        [1., 1., 1.],
+        [1., 1., 0.]
+    ])
+
+    model = GeneralFeatures(n_items=n_items, features=features,
+                            l_dims=1, k_dims=1)
+    model.a_weights = np.array([0, 0, 0])
+    model.b_weights = np.array([[0], [20], [20]])
+    model.c_weights = np.array([[2], [0], [0]])
+    model.update_composite_parameters()
+    model.full_distribution()
+    for subset, prob in sorted(model.distribution.items(), key=lambda x: x[1]):
+        print('{}:{:.2f}%'.format(list(subset), prob * 100))
+    keys = []
+    probs = []
+    for key, prob in model.distribution.items():
+        keys.append([str(x) for x in key])
+        probs.append(prob)
+
+    all_data = np.random.choice(keys, 10000, True, probs)
+
+    with open(os.path.join(
+            constants.DATA_PATH, 'path_set_synthetic_3.csv'), 'w') as out_file:
+        for sample in all_data:
+            out_file.write('{}\n'.format(','.join(sample)))
+
+    with open(
+        constants.ITEMS_DATA_PATH_TPL.format(dataset='path_set_synthetic_3'),
+            'w') as out_file:
+        for item in features:
+            out_file.write('{}\n'.format(','.join([str(x) for x in item])))
+
+    shuffle_train_and_test('synthetic_3', all_data)
+
 def main():
     np.random.seed(constants.SEED)
-    generate_three_elements()
-    generate_four_elements()
+    #generate_three_elements()
+    #generate_four_elements()
+    generate_features()
 
 if __name__ == '__main__':
     main()

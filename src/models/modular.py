@@ -82,10 +82,14 @@ def learn_from_single_file():
 
 
 def main():
-    n_items = 10
-    dataset_name = constants.DATASET_NAME_TPL.format('10')
-    features = GaussianFeatures(dataset_name, n_items=n_items,
-                                m_features=5, sigma=0.4)
+    # for n_feats in range(10, 110, 10):
+    #     for sigma in range(1, 11):
+    #         sigma /= 10
+    #         sigma = round(sigma, 1)
+    n_items = 7
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_3')
+    features = BasicFeaturesNoNormalized(dataset_name, n_items=n_items,
+                                m_features=3)
     features.load_from_file()
     features_array = features.as_array()
     for fold in range(1, constants.N_FOLDS + 1):
@@ -100,11 +104,10 @@ def main():
         modular_model = ModularWithFeatures(
             n_items=n_items, features=features_array)
         modular_model.train(loaded_data)
-
-        modular_model.full_distribution()
-        for subset, prob in modular_model.distribution.items():
-            print('{}:{:.2f}%'.format(list(subset), prob * 100))
-        print('----------break------------')
+        # modular_model.full_distribution()
+        # for subset, prob in modular_model.distribution.items():
+        #     print('{}:{:.2f}%'.format(list(subset), prob * 100))
+        # print('----------break------------')
 
         target_path = constants.RANKING_MODEL_PATH_TPL.format(
             dataset=dataset_name, fold=fold,

@@ -75,21 +75,21 @@ def rank_results(dataset_name, model_name, eval_size):
 
 
 def main():
-    dataset_name = constants.DATASET_NAME_TPL.format('10')
-    models = [
-        #'modular_features_0', 'submod_f_0_l_1_k_0',
-        #'submod_f_0_l_2_k_0', 'submod_f_0_l_3_k_0',
-        #'submod_f_0_l_4_k_0', 'submod_f_0_l_4_k_2',
-        'submod_f_gauss_0.4_k_6_l_2_k_2', 'submod_f_gauss_0.4_l_2_k_2',
-        # 'submod_f_gauss_0.30000000000000004_l_2_k_2', 'submod_f_gauss_0.4_l_2_k_2',
-        # 'submod_f_gauss_0.5_l_2_k_2', 'submod_f_gauss_0.6_l_2_k_2',
-        # 'submod_f_gauss_0.7000000000000001_l_2_k_2', 'submod_f_gauss_0.8_l_2_k_2',
-        # 'submod_f_gauss_0.9_l_2_k_2', 'submod_f_gauss_1.0_l_2_k_2',
-    ]
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_3')
+    models = ['modular_features_0', 'submod_f_1_l_1_k_1', 'submod_f_0_l_1_k_1']
+    # models = ['modular_features_0', 'submod_f_0_l_20_k_20']
+    # sigma = 0.16
+    # n_feats = 100
+    # for sigma in [0.1, 0.2, 0.3, 0.4]:
+    #     for n_feats in [100, 80, 60, 50]:
+    #         models.append('modular_features_gauss_{}_k_{}'.format(sigma, n_feats))
+    # sigma = 0.16
+    # n_feats = 100
+    # for dim in range(5, 35, 5):
+    #     models.append('submod_f_gauss_{0}_k_{1}_l_{2}_k_{2}'.format(sigma, n_feats, dim))
     for model_name in models:
         results = rank_results(dataset_name, model_name, 5)
-        print(results[0])
-        print(results[1])
+        print('{}: {} +- {}'.format(model_name, results[0][0], results[1][0]))
 
 if __name__ == '__main__':
     main()

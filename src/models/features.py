@@ -131,6 +131,6 @@ class GaussianFeatures(Features):
         return np.copy(self.features)
 
 if __name__ == '__main__':
-    f = GaussianFeatures('path_set_10', 10, 5, 0.3)
+    f = GaussianFeatures('path_set_10', 10, 10, 0.2)
     f.load_from_file()
     print(f.features)
