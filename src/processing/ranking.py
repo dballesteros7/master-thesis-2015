@@ -75,8 +75,10 @@ def rank_results(dataset_name, model_name, eval_size):
 
 
 def main():
-    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_3')
-    models = ['modular_features_0', 'submod_f_1_l_1_k_1', 'submod_f_0_l_1_k_1']
+    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
+    models = ['modular_features_0',
+              'submod_f_0_l_5_k_5',
+              'submod_f_gauss_0.2_k_100_l_5_k_5']
     # models = ['modular_features_0', 'submod_f_0_l_20_k_20']
     # sigma = 0.16
     # n_feats = 100

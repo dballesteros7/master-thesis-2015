@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 import constants
 
@@ -131,6 +132,7 @@ class GaussianFeatures(Features):
         return np.copy(self.features)
 
 if __name__ == '__main__':
-    f = GaussianFeatures('path_set_10', 10, 10, 0.2)
+    f = GaussianFeatures('path_set_100_no_singles', 100, 100, 0.2)
     f.load_from_file()
-    print(f.features)
+    plt.matshow(f.features)
+    plt.show()

@@ -227,8 +227,11 @@ def store_to_file(n_items: int, features: np.ndarray,
             output_file.write(','.join([str(x) for x in sample]))
             output_file.write('\n')
         for sample in noise_samples:
-            output_file.write('0,')
-            output_file.write(','.join([str(x) for x in sample]))
+            if len(sample):
+                output_file.write('0,')
+                output_file.write(','.join([str(x) for x in sample]))
+            else:
+                output_file.write('0')
             output_file.write('\n')
     with open(output_noise_path, 'w') as output_file:
         output_file.write(','.join(
@@ -280,13 +283,9 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 def main():
     n_items = 7
-    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_3')
-    sigma = 0.16
-    n_feats = 100
-    # features = GaussianFeatures(dataset_name, n_items=n_items,
-    #                             m_features=n_feats, sigma=sigma)
-    features = IdentityFeatures(dataset_name, n_items=n_items,
-                                         m_features=n_items)
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_4')
+    features = BasicFeaturesNoNormalized(dataset_name, n_items=n_items,
+                                         m_features=3)
     features.load_from_file()
     process_data_and_store(dataset_name, features, n_items)
     features.store_for_training()

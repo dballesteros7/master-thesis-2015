@@ -20,3 +20,16 @@ def cluster_photos(entries, bandwidth='100m'):
     clusterer.fit(np_locations)
     logging.info('Clustering finished.')
     return clusterer.cluster_centers_, clusterer.labels_
+
+if __name__ == '__main__':
+    from processing.path_discovery import PathFinder
+    finder = PathFinder()
+    all_photos = finder.photo_storage.get_photos_for_city(city_name='zurich')
+    centers_1, labels_1 = cluster_photos(all_photos, bandwidth='100m')
+    centers_2, labels_2 = cluster_photos(all_photos, bandwidth='200m')
+    centers_3, labels_3 = cluster_photos(all_photos, bandwidth='500m')
+    centers_4, labels_4 = cluster_photos(all_photos, bandwidth='1km')
+    print(len(centers_1))
+    print(len(centers_2))
+    print(len(centers_3))
+    print(len(centers_4))

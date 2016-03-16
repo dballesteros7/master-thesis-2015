@@ -47,8 +47,6 @@ class GeneralFeatures:
             np.dot(self.features, self.b_weights, out=self.diversity_weights)
         if self.k_dims:
             np.dot(self.features, self.c_weights, out=self.coherence_weights)
-        print(self.diversity_weights)
-        print(self.coherence_weights)
         elapsed = time.time() - start
         self.stats['params_time'][0] += elapsed
         self.stats['params_time'][1] += 1
@@ -159,20 +157,13 @@ class GeneralFeatures:
 
 
 def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
-    for fold in range(1, 2):
-        for l_dim in range(2, 3):
+    for fold in range(1, constants.N_FOLDS + 1):
+        for l_dim in range(5, 6):
             k_dim = l_dim
             model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
             model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
                 dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
                 index=features.index))
-            # model.full_distribution()
-            # for subset, prob in sorted(model.distribution.items(), key=lambda x: x[1]):
-            #     print('{}:{:.2f}%'.format(list(subset), prob * 100))
-            # print('----------break------------')
-            plt.matshow(model.diversity_weights.dot(model.diversity_weights.transpose()))
-            plt.colorbar()
-            plt.show()
             loaded_test_data = file.load_csv_test_data(
                 constants.PARTIAL_DATA_PATH_TPL.format(
                     fold=fold, dataset=dataset_name))
@@ -189,15 +180,10 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    n_items = 10
-    dataset_name = constants.DATASET_NAME_TPL.format('10')
-    sigma = 0.4
-    m_feats = 5
+    n_items = 100
+    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
     features = GaussianFeatures(dataset_name, n_items=n_items,
-                                m_features=n_items, sigma=sigma)
-    # features = BasicFeatures(dataset_name, n_items=n_items,
-    #                                      m_features=3)
-
+                                m_features=n_items, sigma=0.2)
     features.load_from_file()
     load_and_evaluate(dataset_name, n_items, features)
 

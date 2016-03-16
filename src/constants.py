@@ -40,4 +40,5 @@ NCE_NOISE_PATH_TPL = os.path.join(
 NCE_FEATURES_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_nce_features_{index}.csv')
 NCE_OUT_PATH_TPL = os.path.join(MODEL_PATH, '{dataset}_nce_out_features_{index}_dim_{dim}_fold_{fold}.csv')
 NCE_OUT_GENERAL_PATH_TPL = os.path.join(MODEL_PATH, '{dataset}_nce_out_features_{index}_l_dim_{l_dim}_k_dim_{k_dim}_fold_{fold}.csv')
+NCE_OUT_OBJECTIVE_PATH_TPL = os.path.join(MODEL_PATH, '{dataset}_nce_objective_features_{index}_l_dim_{l_dim}_k_dim_{k_dim}_fold_{fold}.csv')
 SEED = int(time.time())
