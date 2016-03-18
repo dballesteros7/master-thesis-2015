@@ -41,7 +41,6 @@ def train_and_evaluate(dataset_name: str, n_items: int):
                     constants.TRAIN_DATA_PATH_TPL.format(
                             fold=fold, dataset=dataset_name))
             model.train(loaded_data)
-            print(model.first_order_counts)
             loaded_test_data = file.load_csv_test_data(
                 constants.PARTIAL_DATA_PATH_TPL.format(
                     fold=fold, dataset=dataset_name))
@@ -60,5 +59,5 @@ def train_and_evaluate(dataset_name: str, n_items: int):
                         output_file.write('-\n')
 
 if __name__ == '__main__':
-    train_and_evaluate(constants.DATASET_NAME_TPL.format('10_pairs'), 10)
+    train_and_evaluate(constants.DATASET_NAME_TPL.format('100_no_singles'), 100)
     #train_and_evaluate(constants.DATASET_NAME_TPL.format('50_no_singles'), 50)

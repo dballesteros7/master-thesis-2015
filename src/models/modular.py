@@ -3,6 +3,11 @@ from collections import defaultdict
 from itertools import combinations
 from typing import Iterable
 
+import matplotlib as mpl
+from matplotlib import pyplot as plt
+import seaborn as sns
+
+
 import numpy as np
 from sklearn import linear_model
 from scipy import linalg
@@ -45,6 +50,12 @@ class ModularWithFeatures:
         self.utilities = np.dot(self.features, self.feature_weights)
         self.logz = np.sum(np.log1p(np.exp(self.utilities)))
         self.model_probs = special.expit(self.utilities)
+        cmap = mpl.colors.ListedColormap(sns.color_palette('RdBu_r', 10))
+        print(np.sum(np.power(self.utilities - y_values, 2)))
+        img = plt.matshow(np.abs(self.utilities - y_values).reshape(1, self.n_items), cmap=cmap)
+        plt.colorbar(img)
+        plt.show()
+        return
 
     def sample(self, n: int) -> np.ndarray:
         data = []
@@ -88,14 +99,10 @@ def learn_from_single_file():
 
 
 def main():
-    # for n_feats in range(10, 110, 10):
-    #     for sigma in range(1, 11):
-    #         sigma /= 10
-    #         sigma = round(sigma, 1)
     n_items = 100
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    features = IdentityFeatures(dataset_name, n_items=n_items,
-                                m_features=n_items)
+    features = GaussianFeatures(dataset_name, n_items=n_items,
+                                m_features=10, sigma=0.15)
     features.load_from_file()
     features_array = features.as_array()
     set_probabilities = defaultdict(list)

@@ -6,14 +6,21 @@
 
 
 #include <boost/algorithm/string.hpp>
+#include <boost/random/uniform_real.hpp>
 #include <boost/format.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <boost/random/lagged_fibonacci.hpp>
 
 
-auto random_engine = std::mt19937(std::time(NULL));
+typedef boost::lagged_fibonacci607 base_generator_type;
 
-void train_with_features(std::string data_file_path,
-                         std::string features_file_path,
+base_generator_type generator(std::time(0));
+auto random_engine = std::default_random_engine{};
+
+
+void train_no_features(std::string data_file_path,
                          std::string noise_file_path,
+                         int n_items,
                          int n_steps, double eta_0, double iter_power,
                          size_t l_dimensions, size_t k_dimensions,
                          std::string output_file_path,
@@ -50,30 +57,13 @@ void train_with_features(std::string data_file_path,
         data_index += tokens.size() + 1;
     }
 
-    size_t n_items;
-    size_t m_features;
-    std::vector<double> features;
-    auto index_features = [&m_features](size_t i, size_t j) -> size_t {
-        return (i * m_features) + j;
-    };
-    masterthesis::readFeatureFile(
-            features_file_path, &n_items, &m_features, &features);
-
     std::fstream noise_file_input;
     noise_file_input.open(noise_file_path, std::ios::in);
     getline(noise_file_input, line);
     boost::split(tokens, line, boost::is_any_of(","));
-    std::vector<double> noise_weights(m_features);
-    for (size_t i = 0; i < m_features; ++i) {
-        noise_weights[i] = stod(tokens[i]);
-    }
     std::vector<double> noise_utilities(n_items);
     for (size_t i = 0; i < n_items; ++i) {
-        noise_utilities[i] = 0;
-        for (size_t j = 0; j < m_features; ++j) {
-            noise_utilities[i] +=
-                    features[index_features(i, j)] * noise_weights[j];
-        }
+        noise_utilities[i] = stod(tokens[i]);
     }
 
 
@@ -86,10 +76,12 @@ void train_with_features(std::string data_file_path,
     }
 
     // Initialize parameters.
-    std::uniform_real_distribution<double_t> udouble_dist(0, 1);
-    std::vector<double> b_weights(m_features * l_dimensions);
-    std::vector<double> c_weights(m_features * k_dimensions);
-    std::vector<double> a_weights(m_features);
+    // std::uniform_real_distribution<double_t> udouble_dist(0, 1e-3);
+    boost::uniform_real<> uni_dist(0, 1e-3);
+    boost::variate_generator<base_generator_type&, boost::uniform_real<>> uni(generator, uni_dist);
+    std::vector<double> b_weights(n_items * l_dimensions);
+    std::vector<double> c_weights(n_items * k_dimensions);
+    std::vector<double> a_weights(n_items);
     double n_logz = 0;
 
     auto index_b_weights = [&l_dimensions](size_t i, size_t j) -> size_t {
@@ -100,22 +92,21 @@ void train_with_features(std::string data_file_path,
         return (i * k_dimensions) + j;
     };
 
-    for (size_t i = 0; i < m_features; ++i) {
-        a_weights[i] = noise_weights[i];
+    for (size_t i = 0; i < n_items; ++i) {
+        a_weights[i] = noise_utilities[i];
     }
-    for (size_t i = 0; i < m_features; ++i) {
+    for (size_t i = 0; i < n_items; ++i) {
         for (size_t j = 0; j < l_dimensions; ++j) {
-            b_weights[index_b_weights(i, j)] = udouble_dist(random_engine);
+            b_weights[index_b_weights(i, j)] = uni();
         }
         for (size_t j = 0; j < k_dimensions; ++j) {
-            c_weights[index_c_weights(i, j)] = udouble_dist(random_engine);
+            c_weights[index_c_weights(i, j)] = uni();
         }
     }
     for (size_t i = 0; i < n_items; ++i) {
         n_logz -= masterthesis::log1exp(noise_utilities[i]);
     }
 
-    std::vector<double> a_gradient(m_features);
     std::vector<double> objectives(n_steps);
     for (size_t iter = 0; iter < n_steps; ++iter) {
         double objective = 0;
@@ -130,24 +121,14 @@ void train_with_features(std::string data_file_path,
             int label = data[start_idx];
             double p_model = n_logz;
             double p_noise = -logz_noise;
-            for (size_t j = 0; j < m_features; ++j) {
-                a_gradient[j] = 0;
-                for (size_t i = start_idx + 1; i < end_idx; ++i) {
-                    a_gradient[j] += features[index_features(data[i], j)];
-                    p_model += features[index_features(data[i], j)] *
-                               a_weights[j];
-                    p_noise += features[index_features(data[i], j)] *
-                               noise_weights[j];
-                }
+            for (size_t i = start_idx + 1; i < end_idx; ++i) {
+                p_model += a_weights[data[i]];
+                p_noise += noise_utilities[data[i]];
             }
             for (size_t j = 0; j < l_dimensions; ++j) {
                 double max_b_weight = -1;
                 for (size_t i = start_idx + 1; i < end_idx; ++i) {
-                    double weight = 0;
-                    for (size_t k = 0; k < m_features; ++k) {
-                        weight += features[index_features(data[i], k)] *
-                                  b_weights[index_b_weights(k, j)];
-                    }
+                    double weight = b_weights[index_b_weights(data[i], j)];
                     if (weight > max_b_weight) {
                         max_b_weight = weight;
                     }
@@ -160,11 +141,7 @@ void train_with_features(std::string data_file_path,
             for (size_t j = 0; j < k_dimensions; ++j) {
                 double max_c_weight = -1;
                 for (size_t i = start_idx + 1; i < end_idx; ++i) {
-                    double weight = 0;
-                    for (size_t k = 0; k < m_features; ++k) {
-                        weight += features[index_features(data[i], k)] *
-                                  c_weights[index_c_weights(k, j)];
-                    }
+                    double weight = c_weights[index_c_weights(data[i], j)];
                     if (weight > max_c_weight) {
                         max_c_weight = weight;
                     }
@@ -194,15 +171,9 @@ void train_with_features(std::string data_file_path,
             int label = data[start_idx];
             double p_model = n_logz;
             double p_noise = -logz_noise;
-            for (size_t j = 0; j < m_features; ++j) {
-                a_gradient[j] = 0;
-                for (size_t i = start_idx + 1; i < end_idx; ++i) {
-                    a_gradient[j] += features[index_features(data[i], j)];
-                    p_model += features[index_features(data[i], j)] *
-                               a_weights[j];
-                    p_noise += features[index_features(data[i], j)] *
-                               noise_weights[j];
-                }
+            for (size_t i = start_idx + 1; i < end_idx; ++i) {
+                p_model += a_weights[data[i]];
+                p_noise += noise_utilities[data[i]];
             }
 
             std::vector<double> max_b_weights(l_dimensions);
@@ -214,11 +185,7 @@ void train_with_features(std::string data_file_path,
                     max_b_weights[j] = -1;
                     max_weight_b_indexes[j] = -1;
                     for (size_t i = start_idx + 1; i < end_idx; ++i) {
-                        double weight = 0;
-                        for (size_t k = 0; k < m_features; ++k) {
-                            weight += features[index_features(data[i], k)] *
-                                      b_weights[index_b_weights(k, j)];
-                        }
+                        double weight = b_weights[index_b_weights(data[i], j)];
                         if (weight > max_b_weights[j]) {
                             max_b_weights[j] = weight;
                             max_weight_b_indexes[j] = data[i];
@@ -232,18 +199,14 @@ void train_with_features(std::string data_file_path,
                     max_c_weights[j] = -1;
                     max_weight_c_indexes[j] = -1;
                     for (size_t i = start_idx + 1; i < end_idx; ++i) {
-                        double weight = 0;
-                        for (size_t k = 0; k < m_features; ++k) {
-                            weight += features[index_features(data[i], k)] *
-                                      c_weights[index_c_weights(k, j)];
-                        }
+                        double weight = c_weights[index_c_weights(data[i], j)];
                         if (weight > max_c_weights[j]) {
                             max_c_weights[j] = weight;
                             max_weight_c_indexes[j] = data[i];
                         }
                         p_model += weight;
                     }
-                    p_model -= max_c_weights[j];
+                        p_model -= max_c_weights[j];
                 }
             }
 
@@ -253,26 +216,22 @@ void train_with_features(std::string data_file_path,
                             (label - masterthesis::expit(p_model - p_noise - log_nu));
 
             if (!isEmpty) {
-                for (size_t i = 0; i < m_features; ++i) {
-                    a_weights[i] += factor * a_gradient[i];
+                for (size_t i = start_idx + 1; i < end_idx; ++i) {
+                    a_weights[data[i]] += factor;
                     for (size_t j = 0; j < l_dimensions; ++j) {
-                        b_weights[index_b_weights(i, j)] += factor *
-                                                            (features[index_features(
-                                                                    max_weight_b_indexes[j],
-                                                                    i)] -
-                                                             a_gradient[i]);
-                        if (b_weights[index_b_weights(i, j)] <= 0) {
-                            b_weights[index_b_weights(i, j)] = udouble_dist(random_engine);
+                        if (data[i] != max_weight_b_indexes[j]) {
+                            b_weights[index_b_weights(data[i], j)] -= factor;
+                            if (b_weights[index_b_weights(data[i], j)] <= 0) {
+                                b_weights[index_b_weights(data[i], j)] = uni();
+                            }
                         }
                     }
                     for (size_t j = 0; j < k_dimensions; ++j) {
-                        c_weights[index_c_weights(i, j)] += factor *
-                                                            (a_gradient[i] -
-                                                             features[index_features(
-                                                                     max_weight_c_indexes[j],
-                                                                     i)]);
-                        if (c_weights[index_c_weights(i, j)] <= 0) {
-                            c_weights[index_c_weights(i, j)] = udouble_dist(random_engine);
+                        if (data[i] != max_weight_c_indexes[j]) {
+                            c_weights[index_c_weights(data[i], j)] += factor;
+                            if (c_weights[index_c_weights(data[i], j)] <= 0) {
+                                c_weights[index_c_weights(data[i], j)] = uni();
+                            }
                         }
                     }
                 }
@@ -284,12 +243,12 @@ void train_with_features(std::string data_file_path,
     std::fstream output_file(output_file_path, std::ios::out);
 
     output_file << n_logz << std::endl;
-    for (size_t i = 0; i < m_features - 1; ++i) {
+    for (size_t i = 0; i < n_items - 1; ++i) {
         output_file << a_weights[i] << ",";
     }
-    output_file << a_weights[m_features - 1] << std::endl;
+    output_file << a_weights[n_items - 1] << std::endl;
 
-    for (size_t i = 0; i < m_features; ++i) {
+    for (size_t i = 0; i < n_items; ++i) {
         if (l_dimensions > 0) {
             for (size_t j = 0; j < l_dimensions - 1; ++j) {
                 output_file << b_weights[index_b_weights(i, j)] << ",";
@@ -298,7 +257,7 @@ void train_with_features(std::string data_file_path,
         }
     }
 
-    for (size_t i = 0; i < m_features; ++i) {
+    for (size_t i = 0; i < n_items; ++i) {
         if (k_dimensions > 0) {
             for (size_t j = 0; j < k_dimensions - 1; ++j) {
                 output_file << c_weights[index_c_weights(i, j)] << ",";
@@ -326,19 +285,19 @@ int main(int argc, char* argv[]) {
     char* feature_set = argv[4];
     char* dataset_name = argv[5];
     int iterations = std::stoi(argv[6]);
+    int items = std::stoi(argv[7]);
     std::vector<double> times(fold_number);
+    random_engine.seed(std::time(NULL));
     for (int i = 1; i <= fold_number; ++i) {
         time_t start = time(0);
-        train_with_features(
+        train_no_features(
                 (boost::format(
                         "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_data_features_%2%_fold_%3%.csv") %
                  dataset_name % feature_set % i).str(),
                 (boost::format(
-                        "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_features_%2%.csv") %
-                 dataset_name % feature_set).str(),
-                (boost::format(
                         "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
                  dataset_name % feature_set % i).str(),
+                items,
                 iterations, 0.005, 0.1,
                 static_cast<size_t>(l_dimensions),
                 static_cast<size_t>(k_dimensions),

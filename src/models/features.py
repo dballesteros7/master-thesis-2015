@@ -132,7 +132,8 @@ class GaussianFeatures(Features):
         return np.copy(self.features)
 
 if __name__ == '__main__':
-    f = GaussianFeatures('path_set_100_no_singles', 100, 100, 0.2)
+    f = GaussianFeatures('path_set_100_no_singles', 100, 10, 0.15)
     f.load_from_file()
     plt.matshow(f.features)
+    plt.colorbar()
     plt.show()

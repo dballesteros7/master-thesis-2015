@@ -156,36 +156,35 @@ class GeneralFeatures:
             self.update_composite_parameters()
 
 
-def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
+def load_and_evaluate(dataset_name: str, n_items: int,
+                      features: Features, l_dim: int, k_dim: int):
     for fold in range(1, constants.N_FOLDS + 1):
-        for l_dim in range(5, 6):
-            k_dim = l_dim
-            model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
-            model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
-                dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
-                index=features.index))
-            loaded_test_data = file.load_csv_test_data(
-                constants.PARTIAL_DATA_PATH_TPL.format(
-                    fold=fold, dataset=dataset_name))
-            target_path = constants.RANKING_MODEL_PATH_TPL.format(
-                dataset=dataset_name, fold=fold,
-                model='submod_f_{}_l_{}_k_{}'.format(features.index, l_dim, k_dim))
-            with open(target_path, 'w') as output_file:
-                for subset in loaded_test_data:
-                    subset.remove('?')
-                    subset = np.array([int(item) for item in subset])
-                    result = model.propose_set_item(subset)
-                    output_file.write(','.join(str(item) for item in result))
-                    output_file.write('\n')
+        model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
+        model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+            dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
+            index=features.index))
+        loaded_test_data = file.load_csv_test_data(
+            constants.PARTIAL_DATA_PATH_TPL.format(
+                fold=fold, dataset=dataset_name))
+        target_path = constants.RANKING_MODEL_PATH_TPL.format(
+            dataset=dataset_name, fold=fold,
+            model='submod_f_{}_l_{}_k_{}'.format(features.index, l_dim, k_dim))
+        with open(target_path, 'w') as output_file:
+            for subset in loaded_test_data:
+                subset.remove('?')
+                subset = np.array([int(item) for item in subset])
+                result = model.propose_set_item(subset)
+                output_file.write(','.join(str(item) for item in result))
+                output_file.write('\n')
 
 
 def main():
     n_items = 100
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
     features = GaussianFeatures(dataset_name, n_items=n_items,
-                                m_features=n_items, sigma=0.2)
+                                m_features=10, sigma=0.15)
     features.load_from_file()
-    load_and_evaluate(dataset_name, n_items, features)
+    load_and_evaluate(dataset_name, n_items, features, 0, 30)
 
 if __name__ == '__main__':
     main()

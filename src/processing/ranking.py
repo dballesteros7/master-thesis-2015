@@ -1,6 +1,8 @@
 from collections import defaultdict
 
 import numpy as np
+import pandas as pd
+
 import constants
 
 
@@ -10,7 +12,7 @@ def compute_measures(true_item, ranked_suggestions):
     return accuracy, rank
 
 
-def rank_results(dataset_name, model_name, eval_size):
+def _rank_results(dataset_name, model_name, eval_size):
     cross_accuracies = [[] for _ in range(eval_size + 1)]
     cross_ranks = [[] for _ in range(eval_size + 1)]
     for fold in range(1, constants.N_FOLDS + 1):
@@ -53,6 +55,12 @@ def rank_results(dataset_name, model_name, eval_size):
             for cross_rank, rank_list in zip(cross_ranks, ranks):
                 if len(rank_list):
                     cross_rank.append(np.mean([1 / rank for rank in rank_list]))
+    return cross_accuracies, cross_ranks
+
+
+def rank_results(dataset_name, model_name, eval_size):
+    cross_accuracies, cross_ranks = _rank_results(
+        dataset_name, model_name, eval_size)
     mean_accuracies = []
     std_accuracies = []
     for accuracies in cross_accuracies:
@@ -74,11 +82,22 @@ def rank_results(dataset_name, model_name, eval_size):
     return mean_accuracies, std_accuracies, mean_ranks, std_ranks
 
 
+def rank_results_pandas(dataset_name, model_name, eval_size):
+    cross_accuracies, cross_ranks = _rank_results(
+        dataset_name, model_name, eval_size)
+
+    return pd.Series(np.array(cross_accuracies[0]), dtype=np.float64)
+
+
 def main():
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
     models = ['modular_features_0',
-              'submod_f_0_l_5_k_5',
-              'submod_f_gauss_0.2_k_100_l_5_k_5']
+              'modular_features_gauss_0.15_k_10',
+              'pseudo_markov',
+              'submod_f_0_l_50_k_50',
+              'submod_f_gauss_0.15_k_10_l_0_k_30',
+              ]
+    #models = ['modular_features_0', 'submod_f_0_l_2_k_2']
     # models = ['modular_features_0', 'submod_f_0_l_20_k_20']
     # sigma = 0.16
     # n_feats = 100

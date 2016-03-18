@@ -2,29 +2,47 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 
 import constants
-from processing.ranking import rank_results
+from processing.ranking import rank_results, rank_results_pandas
 
+def plot_score():
+    accuracies = []
+    accuracies_error = []
+    model_template = 'submod_f_0_l_{0}_k_{0}'
+    k_values = [10, 20, 30, 40, 50, 60, 70]
+    for k in k_values:
+        model = model_template.format(k)
+        acc, acc_std, _, _ = rank_results('path_set_100_no_singles', model, 0)
+        accuracies.append(acc[0])
+        accuracies_error.append(acc_std)
+    fig, ax = plt.subplots()
+    plt.errorbar(k_values, accuracies, yerr=accuracies_error, marker='o')
+    ax.set_title('Model accuracy')
+    ax.set_ylabel('Accuracy (%)')
+    ax.set_xlabel('L,K')
+    plt.savefig(os.path.join(
+       constants.IMAGE_PATH, 'score_100_no_singles_no_features_dim.eps'),
+       bbox_inches='tight')
+    plt.show()
 
 def plot_scores_total():
-    x_values = np.arange(5)
-
-    values = [13.580926666750148, 7.1600711284758578, 0.0047103155911446069, 8.993418055849526, 0.0047103155911446069]
-    error = [0.79855330773358579, 0.67832228203036116, 0.014130946773433821, 0.73251292320851713, 0.014130946773433821]
-    fig, ax = plt.subplots()
-    ax.bar(x_values, values, color='#e41a1c',
-           yerr=error, width=1,
-           alpha=0.8, ecolor='#000000')
+    sns.set_palette(sns.color_palette('Set2', 4))
+    accuracy_data = {}
+    models = ['pseudo_markov', 'submod_f_0_l_50_k_50', 'modular_features_0', 'submod_f_gauss_0.15_k_10_l_0_k_30']
+    for model in models:
+        accuracy_data[model] = 100*rank_results_pandas('path_set_100_no_singles', model, 0)
+    dataset = pd.DataFrame(accuracy_data)
+    ax = sns.barplot(data=dataset, order=models, ci=95)
+    ax.set_title('Model accuracy scores')
     ax.set_ylabel('Accuracy (%)')
     ax.set_xlabel('Model')
-    ax.set_title('Model accuracy')
-    ax.set_xticks(x_values + 0.5)
-    ticks = ['Markov (H)', 'Modular', 'Modular (F)', 'FLDC', 'FFLDC']
+    ticks = ['Markov (H)', 'FLDC (L=50, K=50)', 'Modular', 'FFLDC (L=0, K=30)']
     ax.set_xticklabels(ticks)
-    ax.set_ylim([0, 15])
     plt.savefig(os.path.join(
-       constants.IMAGE_PATH, 'score_all.eps'),
+       constants.IMAGE_PATH, 'score_100_no_singles_with_features.eps'),
        bbox_inches='tight')
     plt.show()
 

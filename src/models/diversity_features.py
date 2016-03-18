@@ -282,10 +282,10 @@ def load_and_evaluate(dataset_name: str, n_items: int, features: Features):
 
 
 def main():
-    n_items = 7
-    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_4')
-    features = BasicFeaturesNoNormalized(dataset_name, n_items=n_items,
-                                         m_features=3)
+    n_items = 100
+    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
+    features = GaussianFeatures(dataset_name, n_items=n_items,
+                                m_features=10, sigma=0.15)
     features.load_from_file()
     process_data_and_store(dataset_name, features, n_items)
     features.store_for_training()
