@@ -184,7 +184,7 @@ def main():
     features = GaussianFeatures(dataset_name, n_items=n_items,
                                 m_features=10, sigma=0.15)
     features.load_from_file()
-    load_and_evaluate(dataset_name, n_items, features, 0, 30)
+    load_and_evaluate(dataset_name, n_items, features, 0, 2)
 
 if __name__ == '__main__':
     main()

@@ -28,9 +28,10 @@ class ModularWithFeatures:
         self.feature_weights = np.zeros(self.n_features)
         self.features = features
         self.logz = 0.
-        self.utilities = np.zeros(self.n_features)
+        self.exact_utilities = np.zeros(self.n_items)
+        self.utilities = np.zeros(self.n_items)
         self.item_probs = np.ones(self.n_items)
-        self.model_probs = np.zeros_like(self.item_probs)
+        self.model_probs = np.zeros(self.n_items)
         self.distribution = {}
         self.is_identity_features = ((
             np.identity(n_items) == self.features).all()
@@ -42,26 +43,23 @@ class ModularWithFeatures:
                 self.item_probs[element] += 1
         self.item_probs /= len(set_samples)
 
-        y_values = -np.log(1 / self.item_probs - 1)
+        np.log(1 / self.item_probs - 1, out=self.exact_utilities)
+        self.exact_utilities *= -1
         regularized = linear_model.Ridge(alpha=0.001, fit_intercept=False,
                                          normalize=False, copy_X=True)
-        regularized.fit(self.features, y_values)
+        regularized.fit(self.features, self.exact_utilities)
         self.feature_weights = regularized.coef_
-        self.utilities = np.dot(self.features, self.feature_weights)
+        np.dot(self.features, self.feature_weights, out=self.utilities)
+        special.expit(self.utilities, out=self.model_probs)
+        special.expit(self.exact_utilities, out=self.item_probs)
         self.logz = np.sum(np.log1p(np.exp(self.utilities)))
-        self.model_probs = special.expit(self.utilities)
-        cmap = mpl.colors.ListedColormap(sns.color_palette('RdBu_r', 10))
-        print(np.sum(np.power(self.utilities - y_values, 2)))
-        img = plt.matshow(np.abs(self.utilities - y_values).reshape(1, self.n_items), cmap=cmap)
-        plt.colorbar(img)
-        plt.show()
-        return
 
-    def sample(self, n: int) -> np.ndarray:
+    def sample(self, n: int, use_real_probs: bool = False) -> np.ndarray:
+        probs = self.item_probs if use_real_probs else self.model_probs
         data = []
         for _ in range(n):
             s = np.nonzero(
-                np.random.random_sample(self.n_items) <= self.model_probs)[0]
+                np.random.random_sample(self.n_items) <= probs)[0]
             data.append(s)
         return np.array(data)
 

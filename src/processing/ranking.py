@@ -95,8 +95,11 @@ def main():
               'modular_features_gauss_0.15_k_10',
               'pseudo_markov',
               'submod_f_0_l_50_k_50',
-              'submod_f_gauss_0.15_k_10_l_0_k_30',
-              ]
+              'submod_f_gauss_0.15_k_10_l_0_k_2',
+              'submod_f_gauss_0.15_k_10_l_2_k_2',
+              'submod_f_gauss_0.15_k_10_l_0_k_5',
+              'submod_f_gauss_0.15_k_10_l_0_k_10',
+              'submod_f_gauss_0.15_k_10_l_0_k_20']
     #models = ['modular_features_0', 'submod_f_0_l_2_k_2']
     # models = ['modular_features_0', 'submod_f_0_l_20_k_20']
     # sigma = 0.16

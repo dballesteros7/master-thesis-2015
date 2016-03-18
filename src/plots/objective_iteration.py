@@ -36,7 +36,7 @@ def plot_objective_progress(dataset_name, features_name, l_dim, k_dim):
     # std_objectives_2 = np.std(objectives, axis=0)
 
     fig, ax = plt.subplots()
-    line_1 = plt.errorbar(np.arange(50), avg_objectives_1, marker='o',
+    line_1 = plt.errorbar(np.arange(100), avg_objectives_1, marker='o',
                           yerr=std_objectives_1)
     # line_2 = plt.errorbar(np.arange(100), avg_objectives_2, color='#3E9651',
     #              linestyle='-', marker='^', alpha=0.8,
@@ -44,11 +44,11 @@ def plot_objective_progress(dataset_name, features_name, l_dim, k_dim):
     ax.set_xlabel(r'$i$')
     ax.set_ylabel(r'$g(\theta)$')
     ax.set_title('NCE objective')
-    ax.set_xlim([0, 49])
-    ax.set_ylim([-200000, -100000])
-    plt.savefig(os.path.join(
-       constants.IMAGE_PATH, '100_no_singles_features_objective.eps'),
-       bbox_inches='tight')
+    # ax.set_xlim([0, 49])
+    ax.set_ylim([-900000, 0])
+    # plt.savefig(os.path.join(
+    #    constants.IMAGE_PATH, '100_no_singles_features_objective.eps'),
+    #    bbox_inches='tight')
     plt.show()
 
 
@@ -56,7 +56,7 @@ def main():
     dataset_name = 'path_set_100_no_singles'
     features_name = 'gauss_0.15_k_10'
     l_dim = 0
-    k_dim = 30
+    k_dim = 10
     plot_objective_progress(dataset_name, features_name, l_dim, k_dim)
 
 if __name__ == '__main__':

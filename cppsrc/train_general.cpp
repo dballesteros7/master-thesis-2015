@@ -63,17 +63,15 @@ void train_with_features(std::string data_file_path,
     noise_file_input.open(noise_file_path, std::ios::in);
     getline(noise_file_input, line);
     boost::split(tokens, line, boost::is_any_of(","));
-    std::vector<double> noise_weights(m_features);
+    std::vector<double> a_weights(m_features);
     for (size_t i = 0; i < m_features; ++i) {
-        noise_weights[i] = stod(tokens[i]);
+        a_weights[i] = stod(tokens[i]);
     }
+    getline(noise_file_input, line);
+    boost::split(tokens, line, boost::is_any_of(","));
     std::vector<double> noise_utilities(n_items);
     for (size_t i = 0; i < n_items; ++i) {
-        noise_utilities[i] = 0;
-        for (size_t j = 0; j < m_features; ++j) {
-            noise_utilities[i] +=
-                    features[index_features(i, j)] * noise_weights[j];
-        }
+        noise_utilities[i] = stod(tokens[i]);
     }
 
 
@@ -87,9 +85,9 @@ void train_with_features(std::string data_file_path,
 
     // Initialize parameters.
     std::uniform_real_distribution<double_t> udouble_dist(0, 1);
+    std::uniform_real_distribution<double_t> udouble_small_dist(0, 1e-3);
     std::vector<double> b_weights(m_features * l_dimensions);
     std::vector<double> c_weights(m_features * k_dimensions);
-    std::vector<double> a_weights(m_features);
     double n_logz = 0;
 
     auto index_b_weights = [&l_dimensions](size_t i, size_t j) -> size_t {
@@ -101,18 +99,22 @@ void train_with_features(std::string data_file_path,
     };
 
     for (size_t i = 0; i < m_features; ++i) {
-        a_weights[i] = noise_weights[i];
-    }
-    for (size_t i = 0; i < m_features; ++i) {
         for (size_t j = 0; j < l_dimensions; ++j) {
-            b_weights[index_b_weights(i, j)] = udouble_dist(random_engine);
+            b_weights[index_b_weights(i, j)] = udouble_small_dist(random_engine);
         }
         for (size_t j = 0; j < k_dimensions; ++j) {
-            c_weights[index_c_weights(i, j)] = udouble_dist(random_engine);
+            c_weights[index_c_weights(i, j)] = udouble_small_dist(random_engine);
         }
     }
+    for (size_t i = 0; i < m_features; ++i) {
+        a_weights[i] = udouble_dist(random_engine);
+    }
     for (size_t i = 0; i < n_items; ++i) {
-        n_logz -= masterthesis::log1exp(noise_utilities[i]);
+        double item_util = 0;
+        for (size_t j = 0; j < m_features; ++j) {
+            item_util += a_weights[j] * features[index_features(i, j)];
+        }
+        n_logz -= masterthesis::log1exp(item_util);
     }
 
     std::vector<double> a_gradient(m_features);
@@ -131,14 +133,13 @@ void train_with_features(std::string data_file_path,
             double p_model = n_logz;
             double p_noise = -logz_noise;
             for (size_t j = 0; j < m_features; ++j) {
-                a_gradient[j] = 0;
                 for (size_t i = start_idx + 1; i < end_idx; ++i) {
-                    a_gradient[j] += features[index_features(data[i], j)];
                     p_model += features[index_features(data[i], j)] *
                                a_weights[j];
-                    p_noise += features[index_features(data[i], j)] *
-                               noise_weights[j];
                 }
+            }
+            for (size_t i = start_idx + 1; i < end_idx; ++i) {
+                p_noise += noise_utilities[data[i]];
             }
             for (size_t j = 0; j < l_dimensions; ++j) {
                 double max_b_weight = -1;
@@ -180,6 +181,7 @@ void train_with_features(std::string data_file_path,
                 objective -= masterthesis::log1exp(p_model - log_nu - p_noise);
             }
         }
+        std::cout << objective << std::endl;
         objectives[iter] = objective;
         shuffle(begin(permutation), end(permutation), random_engine);
         for (size_t sub_iter = 0; sub_iter < n_samples; ++sub_iter) {
@@ -200,9 +202,10 @@ void train_with_features(std::string data_file_path,
                     a_gradient[j] += features[index_features(data[i], j)];
                     p_model += features[index_features(data[i], j)] *
                                a_weights[j];
-                    p_noise += features[index_features(data[i], j)] *
-                               noise_weights[j];
                 }
+            }
+            for (size_t i = start_idx + 1; i < end_idx; ++i) {
+                p_noise += noise_utilities[data[i]];
             }
 
             std::vector<double> max_b_weights(l_dimensions);
