@@ -9,7 +9,7 @@
 #include <boost/format.hpp>
 
 
-auto random_engine = std::mt19937(std::time(NULL));
+auto random_engine = std::mt19937(std::time(0));
 
 void train_with_features(std::string data_file_path,
                          std::string features_file_path,
@@ -84,8 +84,7 @@ void train_with_features(std::string data_file_path,
     }
 
     // Initialize parameters.
-    std::uniform_real_distribution<double_t> udouble_dist(0, 1);
-    std::uniform_real_distribution<double_t> udouble_small_dist(0, 1e-3);
+    std::uniform_real_distribution<double_t> udouble_dist(0, 1e-3);
     std::vector<double> b_weights(m_features * l_dimensions);
     std::vector<double> c_weights(m_features * k_dimensions);
     double n_logz = 0;
@@ -100,14 +99,11 @@ void train_with_features(std::string data_file_path,
 
     for (size_t i = 0; i < m_features; ++i) {
         for (size_t j = 0; j < l_dimensions; ++j) {
-            b_weights[index_b_weights(i, j)] = udouble_small_dist(random_engine);
+            b_weights[index_b_weights(i, j)] = udouble_dist(random_engine);
         }
         for (size_t j = 0; j < k_dimensions; ++j) {
-            c_weights[index_c_weights(i, j)] = udouble_small_dist(random_engine);
+            c_weights[index_c_weights(i, j)] = udouble_dist(random_engine);
         }
-    }
-    for (size_t i = 0; i < m_features; ++i) {
-        a_weights[i] = udouble_dist(random_engine);
     }
     for (size_t i = 0; i < n_items; ++i) {
         double item_util = 0;
@@ -116,6 +112,7 @@ void train_with_features(std::string data_file_path,
         }
         n_logz -= masterthesis::log1exp(item_util);
     }
+    std::cout << logz_noise << " " << n_logz << std::endl;
 
     std::vector<double> a_gradient(m_features);
     std::vector<double> objectives(n_steps);
@@ -208,6 +205,7 @@ void train_with_features(std::string data_file_path,
                 p_noise += noise_utilities[data[i]];
             }
 
+
             std::vector<double> max_b_weights(l_dimensions);
             std::vector<int> max_weight_b_indexes(l_dimensions);
             std::vector<double> max_c_weights(k_dimensions);
@@ -254,7 +252,6 @@ void train_with_features(std::string data_file_path,
                                    pow((iter * n_samples) + sub_iter + 1, -iter_power);
             double factor = learning_rate *
                             (label - masterthesis::expit(p_model - p_noise - log_nu));
-
             if (!isEmpty) {
                 for (size_t i = 0; i < m_features; ++i) {
                     a_weights[i] += factor * a_gradient[i];
@@ -342,7 +339,7 @@ int main(int argc, char* argv[]) {
                 (boost::format(
                         "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
                  dataset_name % feature_set % i).str(),
-                iterations, 0.005, 0.1,
+                iterations, 0.00005, 0.1,
                 static_cast<size_t>(l_dimensions),
                 static_cast<size_t>(k_dimensions),
                 (boost::format(
@@ -356,6 +353,7 @@ int main(int argc, char* argv[]) {
         double time = std::difftime(end, start);
         times[i-1] = time;
         std::cout << "Fold finished." << std::endl;
+        std::cout << "Fold took: " << times[i-1] << "s" << std::endl;
     }
     std::fstream times_output_file(
             (boost::format(

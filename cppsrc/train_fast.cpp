@@ -6,16 +6,10 @@
 
 
 #include <boost/algorithm/string.hpp>
-#include <boost/random/uniform_real.hpp>
 #include <boost/format.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random/lagged_fibonacci.hpp>
 
 
-typedef boost::lagged_fibonacci607 base_generator_type;
-
-base_generator_type generator(std::time(0));
-auto random_engine = std::default_random_engine{};
+auto random_engine = std::mt19937(std::time(0));
 
 
 void train_no_features(std::string data_file_path,
@@ -76,9 +70,7 @@ void train_no_features(std::string data_file_path,
     }
 
     // Initialize parameters.
-    // std::uniform_real_distribution<double_t> udouble_dist(0, 1e-3);
-    boost::uniform_real<> uni_dist(0, 1e-3);
-    boost::variate_generator<base_generator_type&, boost::uniform_real<>> uni(generator, uni_dist);
+    std::uniform_real_distribution<double_t> udouble_dist(0, 1e-3);
     std::vector<double> b_weights(n_items * l_dimensions);
     std::vector<double> c_weights(n_items * k_dimensions);
     std::vector<double> a_weights(n_items);
@@ -97,15 +89,16 @@ void train_no_features(std::string data_file_path,
     }
     for (size_t i = 0; i < n_items; ++i) {
         for (size_t j = 0; j < l_dimensions; ++j) {
-            b_weights[index_b_weights(i, j)] = uni();
+            b_weights[index_b_weights(i, j)] = udouble_dist(random_engine);
         }
         for (size_t j = 0; j < k_dimensions; ++j) {
-            c_weights[index_c_weights(i, j)] = uni();
+            c_weights[index_c_weights(i, j)] = udouble_dist(random_engine);
         }
     }
     for (size_t i = 0; i < n_items; ++i) {
         n_logz -= masterthesis::log1exp(noise_utilities[i]);
     }
+    std::cout << logz_noise << " " << n_logz << std::endl;
 
     std::vector<double> objectives(n_steps);
     for (size_t iter = 0; iter < n_steps; ++iter) {
@@ -157,6 +150,7 @@ void train_no_features(std::string data_file_path,
                 objective -= masterthesis::log1exp(p_model - log_nu - p_noise);
             }
         }
+        std::cout << objective << std::endl;
         objectives[iter] = objective;
         shuffle(begin(permutation), end(permutation), random_engine);
         for (size_t sub_iter = 0; sub_iter < n_samples; ++sub_iter) {
@@ -222,7 +216,7 @@ void train_no_features(std::string data_file_path,
                         if (data[i] != max_weight_b_indexes[j]) {
                             b_weights[index_b_weights(data[i], j)] -= factor;
                             if (b_weights[index_b_weights(data[i], j)] <= 0) {
-                                b_weights[index_b_weights(data[i], j)] = uni();
+                                b_weights[index_b_weights(data[i], j)] = udouble_dist(random_engine);
                             }
                         }
                     }
@@ -230,7 +224,7 @@ void train_no_features(std::string data_file_path,
                         if (data[i] != max_weight_c_indexes[j]) {
                             c_weights[index_c_weights(data[i], j)] += factor;
                             if (c_weights[index_c_weights(data[i], j)] <= 0) {
-                                c_weights[index_c_weights(data[i], j)] = uni();
+                                c_weights[index_c_weights(data[i], j)] = udouble_dist(random_engine);
                             }
                         }
                     }
