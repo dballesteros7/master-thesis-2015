@@ -92,14 +92,17 @@ def rank_results_pandas(dataset_name, model_name, eval_size):
 def main():
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
     models = ['modular_features_0',
-              'modular_features_gauss_0.15_k_10',
-              'pseudo_markov',
-              'submod_f_0_l_50_k_50',
-              'submod_f_gauss_0.15_k_10_l_0_k_2',
-              'submod_f_gauss_0.15_k_10_l_2_k_2',
-              'submod_f_gauss_0.15_k_10_l_0_k_5',
-              'submod_f_gauss_0.15_k_10_l_0_k_10',
-              'submod_f_gauss_0.15_k_10_l_0_k_20']
+              'modular_features_gauss_ext_0_k_100',
+              'modular_features_gauss_ext_0.05_k_100',
+              'modular_features_gauss_ext_0_k_10',
+              'modular_features_gauss_ext_0.05_k_10',
+              'modular_features_gauss_ext_0.1_k_10',
+              'submod_f_gauss_ext_0_k_100_l_20_k_20',
+              'submod_f_gauss_ext_0.05_k_100_l_20_k_20',
+              'submod_f_gauss_ext_0_k_10_l_20_k_20',
+              'submod_f_gauss_ext_0.05_k_10_l_20_k_20',
+              'submod_f_gauss_ext_0.1_k_10_l_20_k_20',
+              ]
     #models = ['modular_features_0', 'submod_f_0_l_2_k_2']
     # models = ['modular_features_0', 'submod_f_0_l_20_k_20']
     # sigma = 0.16

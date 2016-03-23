@@ -4,6 +4,7 @@ from itertools import combinations
 from typing import Iterable
 
 import matplotlib as mpl
+import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -15,7 +16,8 @@ from scipy import special
 
 import constants
 from models.features import BasicFeatures, IdentityFeatures, \
-    BasicFeaturesNoNormalized, BasicFeaturesExtended, GaussianFeatures
+    BasicFeaturesNoNormalized, BasicFeaturesExtended, GaussianFeatures, \
+    GaussianExtended
 from utils import file
 
 
@@ -97,13 +99,16 @@ def learn_from_single_file():
 
 
 def main():
-    n_items = 100
+    np.random.seed(constants.SEED)
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    features = GaussianFeatures(dataset_name, n_items=n_items,
-                                m_features=10, sigma=0.15)
+    n_items = 100
+    features = GaussianExtended(dataset_name, n_items=n_items,
+                                m_features=10, sigma=0.05)
     features.load_from_file()
     features_array = features.as_array()
-    set_probabilities = defaultdict(list)
+    # set_probabilities = defaultdict(list)
+    # fold_row = []
+    # error_row.append(fold_row)
     for fold in range(1, constants.N_FOLDS + 1):
         loaded_data = file.load_csv_data(
             constants.TRAIN_DATA_PATH_TPL.format(
@@ -112,10 +117,12 @@ def main():
             constants.RANKING_MODEL_PATH_TPL.format(
                 fold=fold, dataset=dataset_name,
                 model='partial'))
-
         modular_model = ModularWithFeatures(
             n_items=n_items, features=features_array)
         modular_model.train(loaded_data)
+
+        # error = np.sum(np.power(modular_model.utilities - modular_model.exact_utilities, 2)) / n_items
+        # fold_row.append(error)
         # modular_model.full_distribution()
         # for subset, prob in sorted(
         #         modular_model.distribution.items(), key=lambda x: x[1]):
@@ -131,12 +138,23 @@ def main():
                 result = modular_model.propose_set_item(subset)
                 output_file.write(','.join(str(item) for item in result))
                 output_file.write('\n')
-    means = {}
-    for subset, prob_list in set_probabilities.items():
-        means[subset] = (np.mean(prob_list), np.std(prob_list))
+    # mean_errors = []
+    # for row in errors:
+    #     mean_row_errors = []
+    #     mean_errors.append(mean_row_errors)
+    #     for cell in row:
+    #         mean_row_errors.append(np.mean(cell))
 
-    for subset, prob in sorted(means.items(), key=lambda x: x[1]):
-        print('{}:{:.2f} +- {:.2f}%'.format(list(subset), prob[0] * 100, prob[1] * 100))
+    # error_dataset = pd.DataFrame(data=mean_errors, index=sigma_vals,
+    #                              columns=m_features)
+    # error_dataset.to_csv(constants.MODULAR_MODEL_ERROR_PATH_TPL.format(
+    #     dataset=dataset_name, model='modular_features'))
+    # means = {}
+    # for subset, prob_list in set_probabilities.items():
+    #     means[subset] = (np.mean(prob_list), np.std(prob_list))
+    #
+    # for subset, prob in sorted(means.items(), key=lambda x: x[1]):
+    #     print('{}:{:.2f} +- {:.2f}%'.format(list(subset), prob[0] * 100, prob[1] * 100))
 
 if __name__ == '__main__':
     main()

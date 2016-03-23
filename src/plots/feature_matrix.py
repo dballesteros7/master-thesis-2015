@@ -6,7 +6,7 @@ import numpy as np
 import seaborn as sns
 
 import constants
-from models.features import GaussianFeatures, Features
+from models.features import GaussianFeatures, Features, GaussianExtended
 
 
 def plot_matrix(features: Features):
@@ -15,8 +15,8 @@ def plot_matrix(features: Features):
     im = ax.matshow(features.as_array(),
                 aspect=features.m_features / features.n_items, cmap=cmap)
     ax.grid(False)
-    ax.set_xticks(np.arange(100, step=10))
-    ax.set_yticks(np.arange(100, step=10))
+    ax.set_xticks(np.arange(features.m_features, step=10))
+    ax.set_yticks(np.arange(features.n_items, step=10))
     ax.set_xlabel('Feature')
     ax.set_ylabel('Item')
     ax.set_title('Gaussian features')
@@ -28,8 +28,8 @@ def plot_matrix(features: Features):
 
 
 def main():
-    features = GaussianFeatures('path_set_100_no_singles',
-                                n_items=100, m_features=100, sigma=0.15)
+    features = GaussianExtended('path_set_100_no_singles',
+                                n_items=100, m_features=10, sigma=0.1)
     features.load_from_file()
     plot_matrix(features)
 

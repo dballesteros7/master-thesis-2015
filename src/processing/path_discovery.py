@@ -140,10 +140,15 @@ def produce_top_clusters(all_photos, n_items, bandwidth='100m'):
     for idx, cluster_label in enumerate(top_clusters):
         cluster_label_to_idx[cluster_label] = idx
 
+    ordered_cluster_counts = []
+    for cluster_label in top_clusters:
+        ordered_cluster_counts.append(cluster_counts[cluster_label])
+
     with open(constants.CLUSTER_FILE.format(id='k_{}'.format(n_items)), 'w') as cluster_file:
         for cluster_label in top_clusters:
             cluster = cluster_centers[cluster_label]
-            cluster_file.write('{},{}\n'.format(*cluster))
+            count = cluster_counts[cluster_label]
+            cluster_file.write('{},{},{}\n'.format(cluster[0], cluster[1], count))
 
     with open(constants.CLUSTER_ASSIGNATION_FILE.format(id='k_{}'.format(n_items)), 'w') as cluster_assign_file:
         for photo, label in zip(all_photos, labels):
@@ -158,7 +163,8 @@ def produce_top_clusters(all_photos, n_items, bandwidth='100m'):
     for photo, label in zip(all_photos, labels):
         if label in cluster_label_to_idx:
             cluster_assignment[photo['id']] = cluster_label_to_idx[label]
-    return clusters, cluster_assignment
+
+    return clusters, cluster_assignment, ordered_cluster_counts
 
 
 def find_and_store_all_paths(dataset_name, all_photos, cluster_assignment):
@@ -253,14 +259,14 @@ def main():
     np.random.seed(constants.SEED)
     logging.basicConfig(level=logging.INFO,
                         format='%(levelname)s:%(asctime)s:%(funcName)s:%(module)s:%(message)s')
-    dataset_name = 'cluster_features_sample_10k'
     finder = PathFinder()
     all_photos = finder.photo_storage.get_photos_for_city(city_name='zurich')
-    clusters, cluster_assignment = produce_top_clusters(all_photos, 10)
+    clusters, cluster_assignment, ordered_counts = produce_top_clusters(
+        all_photos, 100)
     #items, indexed_paths = finder.unclustered_paths(all_photos, dataset_name)
     #shuffle_train_and_test(dataset_name, indexed_paths)
     #calculate_features_for_unclustered_items(dataset_name, items, clusters)
-    dataset_name = '10'
+    dataset_name = '100'
     paths, no_singleton_paths, just_pairs_path = find_and_store_all_paths(
         dataset_name, all_photos, cluster_assignment)
     shuffle_train_and_test(dataset_name, paths)

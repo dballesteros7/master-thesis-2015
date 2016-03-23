@@ -6,7 +6,8 @@ from matplotlib import pyplot as plt
 
 import constants
 from models.features import Features, IdentityFeatures, BasicFeatures, \
-    BasicFeaturesExtended, BasicFeaturesNoNormalized, GaussianFeatures
+    BasicFeaturesExtended, BasicFeaturesNoNormalized, GaussianFeatures, \
+    GaussianExtended
 from utils import file
 
 
@@ -181,10 +182,10 @@ def load_and_evaluate(dataset_name: str, n_items: int,
 def main():
     n_items = 100
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    features = GaussianFeatures(dataset_name, n_items=n_items,
-                                m_features=10, sigma=0.15)
+    features = GaussianExtended(dataset_name, n_items=n_items,
+                                m_features=10, sigma=0.05)
     features.load_from_file()
-    load_and_evaluate(dataset_name, n_items, features, 0, 2)
+    load_and_evaluate(dataset_name, n_items, features, 20, 20)
 
 if __name__ == '__main__':
     main()

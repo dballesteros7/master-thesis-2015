@@ -95,24 +95,21 @@ class BasicFeaturesExtended(Features):
 
 
 class GaussianFeatures(Features):
-    def __init__(self, dataset_name: str, n_items: int, m_features: int, sigma: float):
-        super(GaussianFeatures, self).__init__(dataset_name, n_items, m_features)
+    def __init__(self, dataset_name: str, n_items: int,
+                 m_features: int, sigma: float):
+        super(GaussianFeatures, self).__init__(dataset_name, n_items, m_features + 1)
         self.sigma = sigma
         self.index = 'gauss_{}_k_{}'.format(sigma, m_features)
 
     def load_from_file(self):
-        path = constants.ITEMS_DATA_PATH_TPL.format(
-            dataset=self.dataset_name)
+        path = constants.CLUSTER_FILE.format(
+            id='k_{}'.format(self.n_items))
         with open(path, 'r') as input_file:
-            first_line = input_file.readline()
-            tokens = first_line.strip().split(',')
-            self.keys = dict((token, index)
-                             for index, token in enumerate(tokens))
             locations = []
             for item_index, line in enumerate(input_file):
                 tokens = line.strip().split(',')
-                latitude = float(tokens[self.keys['latitude']])
-                longitude = float(tokens[self.keys['longitude']])
+                latitude = float(tokens[0])
+                longitude = float(tokens[1])
                 locations.append((latitude, longitude))
 
             locations = np.array(locations)
@@ -120,20 +117,78 @@ class GaussianFeatures(Features):
                 (np.max(locations, axis=0) - np.min(locations, axis=0))
 
             for i in range(self.n_items):
-                for j in range(self.m_features):
+                for j in range(self.m_features - 1):
                     if i == j:
                         self.features[i, j] = 1
-                    x_diff = np.power(locations[j][0] - locations[i][0], 2)
-                    y_diff = np.power(locations[j][1] - locations[i][1], 2)
-                    self.features[i, j] = np.exp(
-                        -(x_diff + y_diff) / (2 * np.power(self.sigma, 2)))
+                    elif self.sigma == 0:
+                        self.features[i, j] = 0
+                    else:
+                        x_diff = np.power(locations[j][0] - locations[i][0], 2)
+                        y_diff = np.power(locations[j][1] - locations[i][1], 2)
+                        val = np.exp(
+                            -(x_diff + y_diff) / (2 * np.power(self.sigma, 2)))
+                        if np.abs(val) < 2.22507e-308:
+                            self.features[i, j] = 0
+                        else:
+                            self.features[i, j] = val
+                self.features[i, self.m_features - 1] = 1
+
+    def as_array(self):
+        return np.copy(self.features)
+
+
+class GaussianExtended(Features):
+    def __init__(self, dataset_name: str, n_items: int,
+                 m_features: int, sigma: float):
+        super(GaussianExtended, self).__init__(dataset_name, n_items,
+                                               m_features + 4)
+        self.sigma = sigma
+        self.index = 'gauss_ext_{}_k_{}'.format(sigma, m_features)
+
+    def load_from_file(self):
+        path = constants.CLUSTER_FILE.format(
+            id='k_{}'.format(self.n_items))
+        with open(path, 'r') as input_file:
+            locations = []
+            photo_counts = []
+            for item_index, line in enumerate(input_file):
+                tokens = line.strip().split(',')
+                latitude = float(tokens[0])
+                longitude = float(tokens[1])
+                photo_counts.append(int(tokens[2]))
+                locations.append((latitude, longitude))
+
+            locations = np.array(locations)
+            locations = (locations - np.min(locations, axis=0)) /\
+                (np.max(locations, axis=0) - np.min(locations, axis=0))
+            photo_counts = np.array(photo_counts)
+            photo_counts = ((photo_counts - np.min(photo_counts)) /
+                            (np.max(photo_counts) - np.min(photo_counts)))
+            for i in range(self.n_items):
+                for j in range(self.m_features - 4):
+                    if i == j:
+                        self.features[i, j] = 1
+                    elif self.sigma == 0:
+                        self.features[i, j] = 0
+                    else:
+                        x_diff = np.power(locations[j][0] - locations[i][0], 2)
+                        y_diff = np.power(locations[j][1] - locations[i][1], 2)
+                        val = np.exp(
+                            -(x_diff + y_diff) / (2 * np.power(self.sigma, 2)))
+                        if np.abs(val) < 2.22507e-308:
+                            self.features[i, j] = 0
+                        else:
+                            self.features[i, j] = val
+                self.features[i, self.m_features - 4] = photo_counts[i]
+                self.features[i, self.m_features - 3] = np.sqrt(photo_counts[i])
+                self.features[i, self.m_features - 2] = np.power(photo_counts[i], 0.25)
+                self.features[i, self.m_features - 1] = 1
 
     def as_array(self):
         return np.copy(self.features)
 
 if __name__ == '__main__':
-    f = GaussianFeatures('path_set_100_no_singles', 100, 10, 0.15)
+    f = GaussianExtended('path_set_100_no_singles', 100, 100, 0.05)
     f.load_from_file()
-    plt.matshow(f.features)
-    plt.colorbar()
-    plt.show()
+    print(f.as_array())
+
