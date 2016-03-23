@@ -1,0 +1,103 @@
+%==============================================================================
+% 2016.03: Diego Ballesteros
+% This template is based on the ETHASL Latex template by Péter Fankhauser.
+%==============================================================================
+
+\documentclass[10pt,twoside,a4paper]{report}
+
+\usepackage[mt,fs,english]{packages/ethlas}
+
+
+% Activate for german language
+%\usepackage{german}
+%\usepackage{ae}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX preamble
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{preambles/asl_preamble}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\title{Spatial Summarization of Image Collections via Probabilistic Submodular Models}
+
+\studentA{Diego Alfonso Ballesteros Villamizar}
+
+
+\supervisionA{Prof. Dr. Andreas Krause}
+\supervisionB{Dr. Sebastian Tschiatschek}
+\supervisionC{Alkis Gotovos}
+
+\projectYear{\the\year} % This year
+%\projectYear{\advance\year by -1 \the\year\advance\year by 1} % Last year
+
+\maketitle
+\pagestyle{plain}
+\pagenumbering{roman}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Declaration of originality
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\includepdf[pages={1}, pagecommand={\pagestyle{empty}}]{chapters/declaration.pdf}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Table on contents
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Table of Contents depth (TODO change if necessary)
+\setcounter{tocdepth}{2}
+
+\tableofcontents
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapters standard
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{chapters/preface}
+\cleardoublepage
+\input{chapters/abstract}
+\cleardoublepage
+\input{chapters/symbols}
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapters custom
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{fancy}
+\pagenumbering{arabic}
+
+\input{chapters/introduction}
+\cleardoublepage
+\input{chapters/related_work}
+\cleardoublepage
+\input{chapters/background}
+\cleardoublepage
+\input{chapters/models}
+\cleardoublepage
+\input{chapters/experimental_setup}
+\cleardoublepage
+\input{chapters/results}
+\cleardoublepage
+\input{chapters/conclusion}
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{bibliography/IEEEtranN}
+\bibliography{bibliography/references}
+\addcontentsline{toc}{chapter}{Bibliography}
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\appendix
+%\input{chapters/appendix_text}
+%\cleardoublepage
+
+\end{document}
