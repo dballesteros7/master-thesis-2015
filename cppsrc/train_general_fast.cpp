@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <ctime>
+#include <random>
 
 
 #include <boost/algorithm/string.hpp>
@@ -106,7 +107,14 @@ void train_with_features(std::string data_file_path,
     std::vector<double> objectives(n_steps);
     VectorXd a_gradient(m_features);
     MatrixXd b_weights_gradient(m_features, l_dimensions);
-    MatrixXd c_weights_gradient(m_features, l_dimensions);
+    MatrixXd c_weights_gradient(m_features, k_dimensions);
+
+    // for adagrad
+    VectorXd g_a_weights = VectorXd::Constant(m_features, 1e-2);
+    MatrixXd g_b_weights = MatrixXd::Constant(m_features, l_dimensions, 1e-2);
+    MatrixXd g_c_weights = MatrixXd::Constant(m_features, k_dimensions, 1e-2);
+    double g_n_logz = 1e-2;
+    // initialize all entries of g_a_weights, g_b_weights, g_c_weights to 1e-2
     for (size_t iter = 0; iter < n_steps; ++iter) {
 #ifdef COMPUTE_OBJ
         double objective = 0;
@@ -192,14 +200,21 @@ void train_with_features(std::string data_file_path,
                     c_weights_gradient.col(i) = features.row(data[start_idx + 1 + index]).transpose();
                 }
             }
-            double learning_rate = eta_0 *
-                                   pow((iter * n_samples) + sub_iter + 1, -iter_power);
-            double factor = learning_rate *
-                            (label - masterthesis::expit(p_model - p_noise - log_nu));
+            double learning_rate = eta_0;
+            double tfactor = (label - masterthesis::expit(p_model - p_noise - log_nu));
+            double tfactor_sq = tfactor * tfactor;
+            double step = learning_rate * tfactor;
             if (set_size > 0) {
-                a_weights += factor*a_gradient;
-                b_weights += factor*(b_weights_gradient.colwise() - a_gradient);
-                c_weights -= factor*(c_weights_gradient.colwise() - a_gradient);
+                b_weights_gradient.colwise() -= a_gradient;
+                c_weights_gradient.colwise() -= a_gradient;
+                c_weights_gradient *= -1;
+                g_a_weights += tfactor_sq*(a_gradient.cwiseProduct(a_gradient));
+                g_b_weights += tfactor_sq*(b_weights_gradient.cwiseProduct(b_weights_gradient));
+                g_c_weights += tfactor_sq*(c_weights_gradient.cwiseProduct(c_weights_gradient));
+                // element-wise division
+                a_weights += step*(a_gradient.array() / g_a_weights.cwiseSqrt().array()).matrix();
+                b_weights += step*(b_weights_gradient.array() / g_b_weights.cwiseSqrt().array()).matrix();
+                c_weights += step*(c_weights_gradient.array() / g_c_weights.cwiseSqrt().array()).matrix();
                 for (size_t i = 0; i < m_features; ++i) {
                     for (size_t j = 0; j < l_dimensions; ++j) {
                         if (b_weights(i, j) < 0) {
@@ -213,7 +228,8 @@ void train_with_features(std::string data_file_path,
                     }
                 }
             }
-            n_logz += factor;
+            g_n_logz += tfactor_sq;
+            n_logz += step / std::sqrt(g_n_logz);
         }
     }
 
