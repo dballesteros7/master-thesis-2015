@@ -3,8 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <ctime>
-#include <random>
-
+#include <thread>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -21,7 +20,7 @@ void train_with_features(std::string data_file_path,
                          std::string output_file_path,
                          std::string objective_output_file_path) {
     auto random_engine = std::mt19937(std::time(0));
-    time_t start = time(0);
+    time_t start = std::time(0);
     // Data loading
     std::fstream data_file_input;
     data_file_input.open(data_file_path, std::ios::in);
@@ -270,13 +269,12 @@ void train_with_features(std::string data_file_path,
 
     objective_output_file.close();
 #endif
-    time_t end = time(0);
+    time_t end = std::time(0);
     double elapsed = std::difftime(end, start);
     std::cout << "Fold finished, took: " << elapsed << "s." << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-    std::cout << nbThreads() << std::endl;
     int fold_number = std::stoi(argv[1]);
     int l_dimensions = std::stoi(argv[2]);
     int k_dimensions = std::stoi(argv[3]);
@@ -284,30 +282,41 @@ int main(int argc, char* argv[]) {
     char* dataset_name = argv[5];
     int iterations = std::stoi(argv[6]);
     double eta_0 = std::stod(argv[7]);
-    std::vector<double> times(fold_number);
+//    std::vector<double> times(fold_number);
+    std::thread thread_pool[4];
+    int used_threads = 0;
     for (int i = 1; i <= fold_number; ++i) {
-        train_with_features(
-                (boost::format(
-                        "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_data_features_%2%_fold_%3%.csv") %
-                 dataset_name % feature_set % i).str(),
-                (boost::format(
-                        "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_features_%2%.csv") %
-                 dataset_name % feature_set).str(),
-                (boost::format(
-                        "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
-                 dataset_name % feature_set % i).str(),
-                iterations, eta_0, 0.1,
-                l_dimensions,
-                k_dimensions,
-                (boost::format(
-                        "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_out_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
-                 dataset_name % feature_set % l_dimensions % k_dimensions % i).str(),
-                (boost::format(
-                        "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_objective_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
-                 dataset_name % feature_set % l_dimensions % k_dimensions % i).str()
+        if (used_threads == 4) {
+            for(size_t j = 0; j < used_threads; ++j) {
+                thread_pool[j].join();
+            }
+            used_threads = 0;
+        }
+        thread_pool[used_threads] = std::thread(train_with_features,
+            (boost::format(
+                    "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_data_features_%2%_fold_%3%.csv") %
+             dataset_name % feature_set % i).str(),
+            (boost::format(
+                    "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_features_%2%.csv") %
+             dataset_name % feature_set).str(),
+            (boost::format(
+                    "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
+             dataset_name % feature_set % i).str(),
+            iterations, eta_0, 0.1,
+            l_dimensions,
+            k_dimensions,
+            (boost::format(
+                    "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_out_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
+             dataset_name % feature_set % l_dimensions % k_dimensions % i).str(),
+            (boost::format(
+                    "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_objective_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
+             dataset_name % feature_set % l_dimensions % k_dimensions % i).str()
         );
+        ++used_threads;
     }
-    return 0;
+    for(size_t j = 0; j < used_threads; ++j) {
+        thread_pool[j].join();
+    }
 //    std::fstream times_output_file(
 //            (boost::format(
 //                    "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_timing_features_%2%_l_dim_%3%_k_dim_%4%.csv") %
