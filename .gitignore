@@ -77,6 +77,8 @@ bower_components
 *.out
 *.bbl
 *.blg
+*.lof
+*.lot
 *eps-converted-to.pdf
 
 # Compiled C++

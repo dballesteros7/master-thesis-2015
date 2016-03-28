@@ -1,0 +1,79 @@
+\def\firstcircle{(0:-1.5cm) circle (2cm)}
+\def\secondcircle{(90:2.5cm) circle (2cm)}
+\def\thirdcircle{(0:1.5cm) circle (2cm)}
+
+\pgfplotsset{colormap={blackwhite}{[2pt] % colormap steps: 2 pt
+    % white: from 0000 to 1000
+    rgb(0000pt)=(1.0,1.0,1.0);
+    rgb(1000pt)=(1.0,1.0,1.0);
+    % gray:  from 1000 to 2000
+    rgb(1000pt)=(0.5,0.5,0.5);
+    rgb(2000pt)=(0.5,0.5,0.5);
+    % black: from 2000 to 3000
+    rgb(2000pt)=(0.0,0.0,0.0);
+    rgb(3000pt)=(0.0,0.0,0.0);
+}}
+
+% Now we can draw the sets:
+\begin{tikzpicture}
+  \definecolor{seriesA}{RGB}{222,235,247}
+  \definecolor{seriesB}{RGB}{158,202,225}
+  \definecolor{seriesC}{RGB}{49,130,189}
+  \begin{scope}
+      \begin{scope}[even odd rule]
+          \clip \secondcircle (-3.5,-3.5) rectangle (3.5,3.5);
+          \clip \thirdcircle (-3.5,-3.5) rectangle (3.5,3.5);
+          \fill[seriesB] \firstcircle;
+      \end{scope}
+      \begin{scope}[even odd rule]
+        \clip \firstcircle (-3.5,-3.5) rectangle (3.5,4.5);
+        \clip \thirdcircle (-3.5,-3.5) rectangle (3.5,4.5);
+        \fill[seriesB] \secondcircle;
+      \end{scope}
+      \begin{scope}[even odd rule]
+        \clip \firstcircle (-3.5,-3.5) rectangle (3.5,3.5);
+        \clip \secondcircle (-3.5,-3.5) rectangle (3.5,3.5);
+        \fill[seriesB] \thirdcircle;
+      \end{scope}
+      \begin{scope}
+        \clip \secondcircle;
+        \fill[seriesC] \firstcircle;
+      \end{scope}
+      \begin{scope}
+        \clip \thirdcircle;
+        \fill[seriesC] \firstcircle;
+      \end{scope}
+      \begin{scope}
+        \clip \thirdcircle;
+        \fill[seriesA] \secondcircle;
+      \end{scope}
+      \begin{scope}
+        \clip \firstcircle;
+        \clip \thirdcircle;
+        \fill[seriesA] \secondcircle;
+      \end{scope}
+      \draw \firstcircle node [below] {$A$};
+      \draw \secondcircle node [above] {$B$};
+      \draw \thirdcircle node [below] {$C$};
+  \end{scope}
+
+  \begin{axis}[
+    hide axis,
+    scale only axis,
+    width=0pt,
+    height=0pt
+    colormap/blackwhite,
+    colorbar,
+    height=6cm,
+    point meta min=0,
+    point meta max=33,
+    colorbar style={ytick={0,11.85, 32.2},at={(4.5cm,4.5cm)}}
+    ]
+    \addplot [draw=none] coordinates {(0,0)};
+  \end{axis}
+    % When using the above, you will notice that the border lines of the
+    % original circles are erased by the intersection parts. To solve this
+    % problem, either use a background layer (see the manual) or simply draw
+    % the border lines after everything else has been drawn.
+    
+\end{tikzpicture}

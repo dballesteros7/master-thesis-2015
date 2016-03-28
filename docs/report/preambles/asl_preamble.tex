@@ -1,6 +1,7 @@
 % Encoding settings
 \usepackage[utf8]{inputenc}
 \usepackage[OT1]{fontenc}
+\usepackage{libertine}
 
 % Paper size
 \usepackage{a4}
@@ -22,9 +23,7 @@
 
 % Figures
 \usepackage{graphicx}
-
-% Subfigures (obsolete)
-\usepackage{subfigure}
+\graphicspath{{../../images/}}
 
 % Bibliography
 \usepackage[numbers]{natbib}
@@ -33,6 +32,7 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{multirow}
+\renewcommand{\arraystretch}{1.2}
 
 % Colors
 \usepackage{color}
@@ -46,6 +46,15 @@
 % Additional math functionality
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsthm}
+
+\usepackage[libertine]{newtxmath}
+\usepackage[font={small, sf}]{caption}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem*{remark}{Remark}
+
 
 % Nice fractions
 \usepackage{nicefrac}
@@ -78,9 +87,17 @@
 
 % Gantt chart
 \usepackage{pgfgantt}
+% Plots
+\usepackage{pgfplots}
 
 % Links (last package)
 \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
 
 % Clever references (has to be loaded after hyperref)
 \usepackage{cleveref}
+
+% Tikz for drawing.
+\usepackage{tikz}
+\usetikzlibrary{shapes,backgrounds}
+
+
