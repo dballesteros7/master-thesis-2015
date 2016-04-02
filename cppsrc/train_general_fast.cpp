@@ -18,7 +18,8 @@ void train_with_features(std::string data_file_path,
                          int n_steps, double eta_0, double iter_power,
                          size_t l_dimensions, size_t k_dimensions,
                          std::string output_file_path,
-                         std::string objective_output_file_path) {
+                         std::string objective_output_file_path,
+                         double *elapsed_time) {
     auto random_engine = std::mt19937(std::time(0));
     time_t start = std::time(0);
     // Data loading
@@ -101,18 +102,19 @@ void train_with_features(std::string data_file_path,
     for (size_t i = 0; i < n_items; ++i) {
         n_logz -= masterthesis::log1exp(item_utilities[i]);
     }
-    std::cout << logz_noise << " " << n_logz << std::endl;
 
     std::vector<double> objectives(n_steps);
     VectorXd a_gradient(m_features);
     MatrixXd b_weights_gradient(m_features, l_dimensions);
     MatrixXd c_weights_gradient(m_features, k_dimensions);
 
+#ifdef ADAGRAD
     // for adagrad
     VectorXd g_a_weights = VectorXd::Constant(m_features, 1e-2);
     MatrixXd g_b_weights = MatrixXd::Constant(m_features, l_dimensions, 1e-2);
     MatrixXd g_c_weights = MatrixXd::Constant(m_features, k_dimensions, 1e-2);
     double g_n_logz = 1e-2;
+#endif
     // initialize all entries of g_a_weights, g_b_weights, g_c_weights to 1e-2
     for (size_t iter = 0; iter < n_steps; ++iter) {
 #ifdef COMPUTE_OBJ
@@ -154,7 +156,9 @@ void train_with_features(std::string data_file_path,
                 objective -= masterthesis::log1exp(p_model - log_nu - p_noise);
             }
         }
+#ifdef PRINT_DEBUG
         std::cout << objective << std::endl;
+#endif
         objectives[iter] = objective;
 #endif
         shuffle(begin(permutation), end(permutation), random_engine);
@@ -199,14 +203,20 @@ void train_with_features(std::string data_file_path,
                     c_weights_gradient.col(i) = features.row(data[start_idx + 1 + index]).transpose();
                 }
             }
+#ifdef ADAGRAD
             double learning_rate = eta_0;
             double tfactor = (label - masterthesis::expit(p_model - p_noise - log_nu));
             double tfactor_sq = tfactor * tfactor;
             double step = learning_rate * tfactor;
+#else
+            double learning_rate = eta_0 * pow((iter * n_samples) + sub_iter + 1, -iter_power);
+            double step = learning_rate * (label - masterthesis::expit(p_model - p_noise - log_nu));
+#endif
             if (set_size > 0) {
                 b_weights_gradient.colwise() -= a_gradient;
                 c_weights_gradient.colwise() -= a_gradient;
                 c_weights_gradient *= -1;
+#ifdef ADAGRAD
                 g_a_weights += tfactor_sq*(a_gradient.cwiseProduct(a_gradient));
                 g_b_weights += tfactor_sq*(b_weights_gradient.cwiseProduct(b_weights_gradient));
                 g_c_weights += tfactor_sq*(c_weights_gradient.cwiseProduct(c_weights_gradient));
@@ -214,6 +224,11 @@ void train_with_features(std::string data_file_path,
                 a_weights += step*(a_gradient.array() / g_a_weights.cwiseSqrt().array()).matrix();
                 b_weights += step*(b_weights_gradient.array() / g_b_weights.cwiseSqrt().array()).matrix();
                 c_weights += step*(c_weights_gradient.array() / g_c_weights.cwiseSqrt().array()).matrix();
+#else
+                a_weights += step*a_gradient;
+                b_weights += step*(b_weights_gradient.colwise() - a_gradient);
+                c_weights -= step*(c_weights_gradient.colwise() - a_gradient);
+#endif
                 for (size_t i = 0; i < m_features; ++i) {
                     for (size_t j = 0; j < l_dimensions; ++j) {
                         if (b_weights(i, j) < 0) {
@@ -227,8 +242,12 @@ void train_with_features(std::string data_file_path,
                     }
                 }
             }
+#ifdef ADAGRAD
             g_n_logz += tfactor_sq;
             n_logz += step / std::sqrt(g_n_logz);
+#else
+            n_logz += step;
+#endif
         }
     }
 
@@ -271,8 +290,13 @@ void train_with_features(std::string data_file_path,
 #endif
     time_t end = std::time(0);
     double elapsed = std::difftime(end, start);
+    *elapsed_time = elapsed;
+#ifdef PRINT_DEBUG
     std::cout << "Fold finished, took: " << elapsed << "s." << std::endl;
+#endif
 }
+
+static const int total_threads = 4;
 
 int main(int argc, char* argv[]) {
     int fold_number = std::stoi(argv[1]);
@@ -282,11 +306,12 @@ int main(int argc, char* argv[]) {
     char* dataset_name = argv[5];
     int iterations = std::stoi(argv[6]);
     double eta_0 = std::stod(argv[7]);
-//    std::vector<double> times(fold_number);
-    std::thread thread_pool[4];
+    std::vector<double> times(fold_number);
+    std::thread thread_pool[total_threads];
     int used_threads = 0;
+    time_t start = std::time(0);
     for (int i = 1; i <= fold_number; ++i) {
-        if (used_threads == 4) {
+        if (used_threads == total_threads) {
             for(size_t j = 0; j < used_threads; ++j) {
                 thread_pool[j].join();
             }
@@ -310,21 +335,24 @@ int main(int argc, char* argv[]) {
              dataset_name % feature_set % l_dimensions % k_dimensions % i).str(),
             (boost::format(
                     "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_objective_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
-             dataset_name % feature_set % l_dimensions % k_dimensions % i).str()
+             dataset_name % feature_set % l_dimensions % k_dimensions % i).str(),
+            &times[i-1]
         );
         ++used_threads;
     }
     for(size_t j = 0; j < used_threads; ++j) {
         thread_pool[j].join();
     }
-//    std::fstream times_output_file(
-//            (boost::format(
-//                    "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_timing_features_%2%_l_dim_%3%_k_dim_%4%.csv") %
-//             dataset_name % feature_set % l_dimensions % k_dimensions).str(),
-//            std::ios::out);
-//
-//    for (size_t i = 0; i < fold_number; ++i) {
-//        times_output_file << times[i] << std::endl;
-//    }
-//    times_output_file.close();
+    time_t end = std::time(0);
+    double total_time = std::difftime(end, start);
+    std::fstream times_output_file(
+            (boost::format(
+                    "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_timing_features_%2%_l_dim_%3%_k_dim_%4%.csv") %
+             dataset_name % feature_set % l_dimensions % k_dimensions).str(),
+            std::ios::out);
+    times_output_file << total_time << std::endl;
+    for (size_t i = 0; i < fold_number; ++i) {
+        times_output_file << times[i] << std::endl;
+    }
+    times_output_file.close();
 }

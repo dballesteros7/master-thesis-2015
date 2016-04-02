@@ -279,7 +279,8 @@ int main(int argc, char* argv[]) {
     char* feature_set = argv[4];
     char* dataset_name = argv[5];
     int iterations = std::stoi(argv[6]);
-    int items = std::stoi(argv[7]);
+    double eta_0 = std::stod(argv[7]);
+    int items = std::stoi(argv[8]);
     std::vector<double> times(fold_number);
     random_engine.seed(std::time(NULL));
     for (int i = 1; i <= fold_number; ++i) {
@@ -292,7 +293,7 @@ int main(int argc, char* argv[]) {
                         "/home/diegob/workspace/master-thesis-2015/data/path_set_%1%_nce_noise_features_%2%_fold_%3%.csv") %
                  dataset_name % feature_set % i).str(),
                 items,
-                iterations, 0.005, 0.1,
+                iterations, eta_0, 0.1,
                 static_cast<size_t>(l_dimensions),
                 static_cast<size_t>(k_dimensions),
                 (boost::format(
