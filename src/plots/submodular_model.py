@@ -3,6 +3,7 @@ import os
 from matplotlib import cm
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 import constants
 from models.diversity_features import DiversityFeatures
@@ -10,7 +11,6 @@ from models.features import IdentityFeatures, BasicFeatures, \
     BasicFeaturesExtended, Features
 from models.general_features import GeneralFeatures
 from processing import ranking
-
 
 def plot_weights(div_model: GeneralFeatures, features: Features):
     fig = plt.figure()
@@ -42,7 +42,7 @@ def plot_weights(div_model: GeneralFeatures, features: Features):
             ax = fig.add_subplot(111)
         weights = (div_model.coherence_weights - np.min(div_model.coherence_weights)) / (np.max(div_model.coherence_weights) - np.min(div_model.coherence_weights))
         color_set = ax.matshow(weights, cmap=cm.GnBu, interpolation='none',
-                               aspect='auto')
+                               aspect=0.5, extent=[0,3,0,3])
         plt.colorbar(color_set)
         ax.set_title('Coherence')
         ax.set_xticks(np.arange(div_model.k_dims))
@@ -117,4 +117,4 @@ def main():
     plot_weights(model, features)
 
 if __name__ == '__main__':
-    main()
+    plot_weights_synthetic()

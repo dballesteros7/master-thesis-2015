@@ -1,7 +1,7 @@
 import os
 import time
 
-N_FOLDS = 1
+N_FOLDS = 10
 N_ITEMS = 10
 N_PHOTOS = 168607
 DATA_PATH = os.path.join(os.path.dirname(__file__), os.path.pardir, 'data')
@@ -33,9 +33,9 @@ PARTIAL_DATA_MARKOV_PATH_TPL = os.path.join(
     RANKING_PATH, '{dataset}_partial_markov_fold_{fold}.csv')
 RANKING_MODEL_PATH_TPL = os.path.join(
     RANKING_PATH, '{dataset}_{model}_fold_{fold}.csv')
-NCE_NOISE_FACTOR = 10
+NCE_NOISE_FACTOR = 5
 NCE_DATA_PATH_TPL = os.path.join(
-        DATA_PATH, '{dataset}_nce_data_features_{index}_fold_{fold}.csv')
+        DATA_PATH, '{dataset}_nce_data_features_{index}_fold_{fold}_noise_{noise_factor}.csv')
 NCE_NOISE_PATH_TPL = os.path.join(
         DATA_PATH, '{dataset}_nce_noise_features_{index}_fold_{fold}.csv')
 NCE_FEATURES_PATH_TPL = os.path.join(DATA_PATH, '{dataset}_nce_features_{index}.csv')

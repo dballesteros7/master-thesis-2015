@@ -9,24 +9,23 @@ from sampling.gibbs_sampler import GibbsSampler
 
 
 def generate_three_elements():
-    model = GeneralFeatures(n_items=3, features=np.identity(3),
-                            l_dims=1, k_dims=0)
-
-    model.a_weights = np.array([2, 1, 1])
-    model.b_weights = np.array([0, 100, 100]).reshape((3, 1))
-
-    model.update_composite_parameters()
-    model.full_distribution()
-    for subset, prob in model.distribution.items():
-        print('{}:{:.2f}%'.format(list(subset), prob * 100))
-    return
-    keys = []
-    probs = []
-    for key, prob in model.distribution.items():
-        keys.append([str(x) for x in key])
-        probs.append(prob)
-
-    all_data = np.random.choice(keys, 10000, True, probs)
+    # model = GeneralFeatures(n_items=3, features=np.identity(3),
+    #                         l_dims=1, k_dims=0)
+    #
+    # model.a_weights = np.array([2, 2, 2])
+    # model.b_weights = np.array([0, 20, 20]).reshape((3, 1))
+    #
+    # model.update_composite_parameters()
+    # model.full_distribution()
+    # for subset, prob in model.distribution.items():
+    #     print('{}:{:.2f}%'.format(list(subset), prob * 100))
+    keys = [['0', '1'], ['0', '2']]
+    probs = [0.5, 0.5]
+    # for key, prob in model.distribution.items():
+    #     keys.append([str(x) for x in key])
+    #     probs.append(prob)
+    #
+    all_data = [keys[0]]*500 + [keys[1]]*500
 
     with open(os.path.join(
             constants.DATA_PATH, 'path_set_synthetic_1.csv'), 'w') as out_file:
@@ -37,25 +36,25 @@ def generate_three_elements():
 
 
 def generate_four_elements():
-    model = GeneralFeatures(n_items=4, features=np.identity(4),
-                            l_dims=4, k_dims=0)
+    # model = GeneralFeatures(n_items=4, features=np.identity(4),
+    #                         l_dims=2, k_dims=2)
+    #
+    # model.a_weights = np.array([0, 0, 0, 0])
+    # model.b_weights = np.array([[10, 0], [0, 10], [10, 0], [0, 7]])
+    # model.c_weights = np.array([[10, 0], [10, 0], [0, 10], [0, 10]])
+    #
+    # model.update_composite_parameters()
+    # model.full_distribution()
+    # for subset, prob in sorted(model.distribution.items(), key=lambda x: x[1]):
+    #     print('{}:{:.2f}%'.format(list(subset), prob * 100))
+    # return
+    keys = [['0', '1'], ['2', '3']]
+    # probs = []
+    # for key, prob in model.distribution.items():
+    #     keys.append([str(x) for x in key])
+    #     probs.append(prob)
 
-    model.a_weights = np.array([1, 1, 1, 1])
-    model.b_weights = np.array([[100, 100, 0, 0], [0, 0, 100, 100], [100, 0, 100, 0], [0, 100, 0, 100]])
-    model.c_weights = np.array([[5, 0], [5, 0], [0, 5], [0, 5]])
-
-    model.update_composite_parameters()
-    model.full_distribution()
-    for subset, prob in model.distribution.items():
-        print('{}:{:.2f}%'.format(list(subset), prob * 100))
-    return
-    keys = []
-    probs = []
-    for key, prob in model.distribution.items():
-        keys.append([str(x) for x in key])
-        probs.append(prob)
-
-    all_data = np.random.choice(keys, 10000, True, probs)
+    all_data = [keys[0]]*500 + [keys[1]]*500
 
     with open(os.path.join(
             constants.DATA_PATH, 'path_set_synthetic_2.csv'), 'w') as out_file:
@@ -109,35 +108,30 @@ def generate_features():
 
 
 def generate_features_2():
-    n_items = 7
     features = np.array([
-        [5., 0., 1.],
         [4., 1., 0.],
         [4., 1., 1.],
         [3., 0., 1.],
         [3., 1., 0.],
         [2., 1., 1.],
-        [2., 1., 0.]
+        [2., 1., 0.],
+        # [5., 0., 1.],
     ])
+    n_items = features.shape[0]
 
-    model = GeneralFeatures(n_items=n_items, features=features,
-                            l_dims=2, k_dims=1)
-    model.a_weights = np.array([0, 0, 0])
-    model.b_weights = np.array([[0, 0], [10, 0], [0, 10]])
-    model.c_weights = np.array([[1], [0], [0]])
-    model.update_composite_parameters()
-    model.full_distribution()
-    for subset, prob in sorted(model.distribution.items(), key=lambda x: x[1]):
-        print('{}:{:.2f}%'.format(list(subset), prob * 100))
-    print(model.diversity_weights)
-    print(model.coherence_weights)
-    keys = []
-    probs = []
-    for key, prob in model.distribution.items():
-        keys.append([str(x) for x in key])
-        probs.append(prob)
+    # model = GeneralFeatures(n_items=n_items, features=features,
+    #                         l_dims=2, k_dims=1)
+    # model.a_weights = np.array([0.1, 0, 0])
+    # model.b_weights = np.array([[0, 0], [10, 0], [0, 10]])
+    # model.c_weights = np.array([[0.5], [0], [0]])
+    # model.update_composite_parameters()
+    # model.full_distribution()
+    # for subset, prob in sorted(model.distribution.items(), key=lambda x: x[1]):
+    #     print('{}:{:.2f}%'.format(list(subset), prob * 100))
+    keys = [['0', '2'], ['2', '3'], ['2', '5'], ['1'], ['0'], ['2'], ['3'], ['4'], ['5']]
+    probs = [0.30, 0.25, 0.15, 0.10, 0.06, 0.04, 0.04, 0.03, 0.03]
 
-    all_data = np.random.choice(keys, 10000, True, probs)
+    all_data = np.random.choice(keys, 1000, True, probs)
 
     with open(os.path.join(
             constants.DATA_PATH, 'path_set_synthetic_4.csv'), 'w') as out_file:

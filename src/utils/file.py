@@ -19,7 +19,10 @@ def load_set_data(filename: str) -> np.ndarray:
     with open(filename, 'r') as input_file:
         loaded_set = []
         for line in input_file:
-            tokens = line.strip().split(',')
-            set_items = np.array(list(map(int, tokens)))
+            if line.strip() != '':
+                tokens = line.strip().split(',')
+                set_items = np.array(list(map(int, tokens)))
+            else:
+                set_items = []
             loaded_set.append(set_items)
         return np.array(loaded_set)

@@ -177,12 +177,17 @@ def plot_score_2():
     plt.show()
 
 def plot_scores_total():
-    sns.set_palette(sns.color_palette('Set2', 4))
     accuracy_data = {}
-    models = ['modular_features_0', 'modular_features_gauss_ext_0.05_k_100',
-              'modular_features_gauss_ext_0.05_k_10',
-              'submod_f_0_l_20_k_20', 'submod_f_gauss_ext_0.05_k_100_l_20_k_20',
-              'submod_f_gauss_ext_0.05_k_10_l_20_k_20']
+    models = [#'modular_features_0',  'modular_features_gauss_ext_0_k_100',
+              #'modular_features_gauss_ext_0.05_k_100',
+              #'modular_features_gauss_ext_0.05_k_20',
+              'markov',
+                'pseudo_markov',
+        'submod_f_gauss_ext_0_k_100_l_20_k_20',
+              #'submod_f_gauss_ext_0.05_k_100_l_20_k_20',
+              #'submod_f_gauss_ext_0.05_k_20_l_20_k_20'
+    ]
+    sns.set_palette(sns.color_palette('Set2', len(models)))
     for model in models:
         accuracy_data[model] = 100*rank_results_pandas('path_set_100_no_singles', model, 0)
     dataset = pd.DataFrame(accuracy_data)

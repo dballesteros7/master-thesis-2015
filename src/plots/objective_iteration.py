@@ -26,7 +26,7 @@ def plot_objective_progress(dataset_name, features_name, l_dim, k_dim):
     #     fold_objectives = []
     #     objectives.append(fold_objectives)
     #     with open(constants.NCE_OUT_OBJECTIVE_PATH_TPL.format(
-    #             dataset=dataset_name, index='1',
+    #             dataset=dataset_name, index='0',
     #             l_dim=l_dim, k_dim=k_dim,
     #             fold=fold)) as input_data:
     #         for objective in input_data:
@@ -38,22 +38,24 @@ def plot_objective_progress(dataset_name, features_name, l_dim, k_dim):
     fig, ax = plt.subplots()
     line_1 = plt.errorbar(np.arange(len(avg_objectives_1)), avg_objectives_1, marker='o',
                           yerr=std_objectives_1)
-    # line_2 = plt.errorbar(np.arange(100), avg_objectives_2, color='#3E9651',
+    # line_2 = plt.errorbar(np.arange(len(avg_objectives_2)), avg_objectives_2, color='#3E9651',
     #              linestyle='-', marker='^', alpha=0.8,
     #              yerr=std_objectives_2, ecolor='#922428')
     ax.set_xlabel(r'$i$')
     ax.set_ylabel(r'$g(\theta)$')
     ax.set_title('NCE objective')
+    ax.set_ylim([-11000, -5000])
     # ax.set_xlim([0, 49])
+    # ax.legend((line_1, line_2), ('Extended features', 'Identity'), loc='upper left')
     # plt.savefig(os.path.join(
-    #    constants.IMAGE_PATH, '100_no_singles_features_objective.eps'),
+    #    constants.IMAGE_PATH, 'scores_comparison.png'),
     #    bbox_inches='tight')
     plt.show()
 
 
 def main():
     dataset_name = 'path_set_100_no_singles'
-    features_name = 'gauss_ext_0.1_k_10'
+    features_name = 'gauss_ext_0_k_100'
     l_dim = 20
     k_dim = 20
     plot_objective_progress(dataset_name, features_name, l_dim, k_dim)

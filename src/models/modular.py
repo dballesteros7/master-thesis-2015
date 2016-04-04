@@ -43,10 +43,12 @@ class ModularWithFeatures:
         for sample in set_samples:
             for element in sample:
                 self.item_probs[element] += 1
-        self.item_probs /= len(set_samples)
+        self.item_probs /= (len(set_samples) + self.n_items)
 
         np.log(1 / self.item_probs - 1, out=self.exact_utilities)
         self.exact_utilities *= -1
+        print(self.item_probs)
+        print(self.exact_utilities)
         regularized = linear_model.Ridge(alpha=0.001, fit_intercept=False,
                                          normalize=False, copy_X=True)
         regularized.fit(self.features, self.exact_utilities)
@@ -103,7 +105,7 @@ def main():
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
     n_items = 100
     features = GaussianExtended(dataset_name, n_items=n_items,
-                                m_features=10, sigma=0.05)
+                                m_features=100, sigma=0)
     features.load_from_file()
     features_array = features.as_array()
     # set_probabilities = defaultdict(list)

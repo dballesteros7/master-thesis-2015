@@ -73,7 +73,7 @@ class GeneralFeatures:
 
     def full_distribution(self):
         sum = 0
-        for length in range(1, self.n_items + 1):
+        for length in range(0, self.n_items + 1):
             for subset in combinations(range(self.n_items), length):
                 prob = np.exp(self(list(subset)))
                 sum += prob
@@ -160,32 +160,45 @@ class GeneralFeatures:
 def load_and_evaluate(dataset_name: str, n_items: int,
                       features: Features, l_dim: int, k_dim: int):
     for fold in range(1, constants.N_FOLDS + 1):
-        model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
+        f_array = np.array([
+            [4., 1., 0.],
+            [4., 1., 1.],
+            [3., 0., 1.],
+            [3., 1., 0.],
+            [2., 1., 1.],
+            [2., 1., 0.],
+            [5., 0., 1.],
+        ])
+        model = GeneralFeatures(n_items + 1, f_array, l_dim, k_dim)
         model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
             dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
             index=features.index))
-        loaded_test_data = file.load_csv_test_data(
-            constants.PARTIAL_DATA_PATH_TPL.format(
-                fold=fold, dataset=dataset_name))
-        target_path = constants.RANKING_MODEL_PATH_TPL.format(
-            dataset=dataset_name, fold=fold,
-            model='submod_f_{}_l_{}_k_{}'.format(features.index, l_dim, k_dim))
-        with open(target_path, 'w') as output_file:
-            for subset in loaded_test_data:
-                subset.remove('?')
-                subset = np.array([int(item) for item in subset])
-                result = model.propose_set_item(subset)
-                output_file.write(','.join(str(item) for item in result))
-                output_file.write('\n')
+        model.full_distribution()
+        for key, prob in sorted(model.distribution.items(), key=lambda x:x[1]):
+            print('{}: {}'.format(key, prob))
+
+        # loaded_test_data = file.load_csv_test_data(
+        #     constants.PARTIAL_DATA_PATH_TPL.format(
+        #         fold=fold, dataset=dataset_name))
+        # target_path = constants.RANKING_MODEL_PATH_TPL.format(
+        #     dataset=dataset_name, fold=fold,
+        #     model='submod_f_{}_l_{}_k_{}'.format(features.index, l_dim, k_dim))
+        # with open(target_path, 'w') as output_file:
+        #     for subset in loaded_test_data:
+        #         subset.remove('?')
+        #         subset = np.array([int(item) for item in subset])
+        #         result = model.propose_set_item(subset)
+        #         output_file.write(','.join(str(item) for item in result))
+        #         output_file.write('\n')
 
 
 def main():
-    n_items = 100
-    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    features = GaussianExtended(dataset_name, n_items=n_items,
-                                m_features=10, sigma=0.05)
+    n_items = 6
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_4')
+    features = BasicFeaturesNoNormalized(dataset_name, n_items=n_items,
+                                         m_features=3)
     features.load_from_file()
-    load_and_evaluate(dataset_name, n_items, features, 20, 20)
+    load_and_evaluate(dataset_name, n_items, features, 2, 1)
 
 if __name__ == '__main__':
     main()

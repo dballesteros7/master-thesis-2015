@@ -297,11 +297,11 @@ int main(int argc, char* argv[]) {
                 static_cast<size_t>(l_dimensions),
                 static_cast<size_t>(k_dimensions),
                 (boost::format(
-                        "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_out_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
-                 dataset_name % feature_set % l_dimensions % k_dimensions % i).str(),
+                        "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_out_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%_i_%6%_e_%7%.csv") %
+                 dataset_name % feature_set % l_dimensions % k_dimensions % i % iterations % eta_0).str(),
                 (boost::format(
-                        "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_objective_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%.csv") %
-                 dataset_name % feature_set % l_dimensions % k_dimensions % i).str()
+                        "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_objective_features_%2%_l_dim_%3%_k_dim_%4%_fold_%5%_i_%6%_e_%7%.csv") %
+                 dataset_name % feature_set % l_dimensions % k_dimensions % i % iterations % eta_0).str()
         );
         time_t end = time(0);
         double time = std::difftime(end, start);
@@ -310,8 +310,8 @@ int main(int argc, char* argv[]) {
     }
     std::fstream times_output_file(
             (boost::format(
-                    "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_timing_features_%2%_l_dim_%3%_k_dim_%4%.csv") %
-             dataset_name % feature_set % l_dimensions % k_dimensions).str(),
+                    "/home/diegob/workspace/master-thesis-2015/data/models/path_set_%1%_nce_timing_features_%2%_l_dim_%3%_k_dim_%4%_i_%5%_e_%6%.csv") %
+             dataset_name % feature_set % l_dimensions % k_dimensions % iterations % eta_0).str(),
             std::ios::out);
 
     for (size_t i = 0; i < fold_number; ++i) {

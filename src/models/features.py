@@ -141,7 +141,8 @@ class GaussianExtended(Features):
     def __init__(self, dataset_name: str, n_items: int,
                  m_features: int, sigma: float):
         super(GaussianExtended, self).__init__(dataset_name, n_items,
-                                               m_features + 4)
+                                               m_features + 5)
+        self.extra_features = 5
         self.sigma = sigma
         self.index = 'gauss_ext_{}_k_{}'.format(sigma, m_features)
 
@@ -151,21 +152,24 @@ class GaussianExtended(Features):
         with open(path, 'r') as input_file:
             locations = []
             photo_counts = []
+            user_counts = []
             for item_index, line in enumerate(input_file):
                 tokens = line.strip().split(',')
                 latitude = float(tokens[0])
                 longitude = float(tokens[1])
                 photo_counts.append(int(tokens[2]))
+                user_counts.append(int(tokens[3]))
                 locations.append((latitude, longitude))
 
             locations = np.array(locations)
             locations = (locations - np.min(locations, axis=0)) /\
                 (np.max(locations, axis=0) - np.min(locations, axis=0))
             photo_counts = np.array(photo_counts)
-            photo_counts = ((photo_counts - np.min(photo_counts)) /
+            normalized_photo_counts = ((photo_counts - np.min(photo_counts)) /
                             (np.max(photo_counts) - np.min(photo_counts)))
+
             for i in range(self.n_items):
-                for j in range(self.m_features - 4):
+                for j in range(self.m_features - self.extra_features):
                     if i == j:
                         self.features[i, j] = 1
                     elif self.sigma == 0:
@@ -179,9 +183,10 @@ class GaussianExtended(Features):
                             self.features[i, j] = 0
                         else:
                             self.features[i, j] = val
-                self.features[i, self.m_features - 4] = photo_counts[i]
-                self.features[i, self.m_features - 3] = np.sqrt(photo_counts[i])
-                self.features[i, self.m_features - 2] = np.power(photo_counts[i], 0.25)
+                self.features[i, self.m_features - 5] = user_counts[i] / photo_counts[i]
+                self.features[i, self.m_features - 4] = normalized_photo_counts[i]
+                self.features[i, self.m_features - 3] = np.sqrt(normalized_photo_counts[i])
+                self.features[i, self.m_features - 2] = np.power(normalized_photo_counts[i], 0.25)
                 self.features[i, self.m_features - 1] = 1
 
     def as_array(self):
@@ -190,5 +195,5 @@ class GaussianExtended(Features):
 if __name__ == '__main__':
     f = GaussianExtended('path_set_100_no_singles', 100, 100, 0.05)
     f.load_from_file()
-    print(f.as_array())
+    print(f.as_array()[:,-5])
 

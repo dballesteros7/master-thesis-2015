@@ -123,11 +123,13 @@ class PathFinder:
 def produce_top_clusters(all_photos, n_items, bandwidth='100m'):
     cluster_centers, labels = cluster_photos(all_photos, bandwidth)
     cluster_counts = defaultdict(int)
+    cluster_users = defaultdict(set)
     photo_count = 0
     for photo, label in zip(all_photos, labels):
         if label < 0:
             continue
         cluster_counts[label] += 1
+        cluster_users[label].add(photo['owner'])
         photo_count += 1
 
     top_clusters = sorted(
@@ -148,7 +150,8 @@ def produce_top_clusters(all_photos, n_items, bandwidth='100m'):
         for cluster_label in top_clusters:
             cluster = cluster_centers[cluster_label]
             count = cluster_counts[cluster_label]
-            cluster_file.write('{},{},{}\n'.format(cluster[0], cluster[1], count))
+            user_count = len(cluster_users[cluster_label])
+            cluster_file.write('{},{},{},{}\n'.format(cluster[0], cluster[1], count, user_count))
 
     with open(constants.CLUSTER_ASSIGNATION_FILE.format(id='k_{}'.format(n_items)), 'w') as cluster_assign_file:
         for photo, label in zip(all_photos, labels):

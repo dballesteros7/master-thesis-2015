@@ -23,8 +23,11 @@ def store_to_file(n_items: int, features: np.ndarray,
             total += len(sample) + 1
         output_file.write('{},{}\n'.format(total, n_data))
         for sample in data_samples:
-            output_file.write('1,')
-            output_file.write(','.join([str(x) for x in sample]))
+            if len(sample):
+                output_file.write('1,')
+                output_file.write(','.join([str(x) for x in sample]))
+            else:
+                output_file.write('1')
             output_file.write('\n')
         for sample in noise_samples:
             if len(sample):
@@ -44,26 +47,27 @@ def store_to_file(n_items: int, features: np.ndarray,
 
 def process_data_and_store(dataset_name: str, features: Features, n_items: int):
     print('Storing noise and data for C++ processing.')
-    for fold in range(1, constants.N_FOLDS + 1):
-        print('Fold {}'.format(fold))
-        loaded_data = file.load_set_data(
-            constants.TRAIN_DATA_PATH_TPL.format(
-                fold=fold, dataset=dataset_name))
-        store_to_file(n_items, features.as_array(),
-                      loaded_data, noise_factor=constants.NCE_NOISE_FACTOR,
-                      output_file_path=constants.NCE_DATA_PATH_TPL.format(
-                          dataset=dataset_name, index=features.index,
-                          fold=fold),
-                      output_noise_path=constants.NCE_NOISE_PATH_TPL.format(
-                          dataset=dataset_name, index=features.index,
-                          fold=fold))
+    for noise_factor in range(20, 22, 2):
+        for fold in range(1, constants.N_FOLDS + 1):
+            print('Fold {}'.format(fold))
+            loaded_data = file.load_set_data(
+                constants.TRAIN_DATA_PATH_TPL.format(
+                    fold=fold, dataset=dataset_name))
+            store_to_file(n_items, features.as_array(),
+                          loaded_data, noise_factor=noise_factor,
+                          output_file_path=constants.NCE_DATA_PATH_TPL.format(
+                              dataset=dataset_name, index=features.index,
+                              fold=fold, noise_factor=noise_factor),
+                          output_noise_path=constants.NCE_NOISE_PATH_TPL.format(
+                              dataset=dataset_name, index=features.index,
+                              fold=fold))
 
 
 def main():
-    n_items = 100
-    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    features = IdentityFeatures(dataset_name, n_items=n_items,
-                                m_features=100)
+    n_items = 6
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_4')
+    features = BasicFeaturesNoNormalized(dataset_name, n_items=n_items,
+                                         m_features=3)
     features.load_from_file()
     process_data_and_store(dataset_name, features, n_items)
     features.store_for_training()
