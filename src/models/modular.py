@@ -47,8 +47,6 @@ class ModularWithFeatures:
 
         np.log(1 / self.item_probs - 1, out=self.exact_utilities)
         self.exact_utilities *= -1
-        print(self.item_probs)
-        print(self.exact_utilities)
         regularized = linear_model.Ridge(alpha=0.001, fit_intercept=False,
                                          normalize=False, copy_X=True)
         regularized.fit(self.features, self.exact_utilities)

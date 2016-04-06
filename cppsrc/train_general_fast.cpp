@@ -85,7 +85,7 @@ void train_with_features(std::string data_file_path,
     }
 
     // Initialize parameters.
-    std::uniform_real_distribution<double_t> udouble_dist(0, 1e-1);
+    std::uniform_real_distribution<double_t> udouble_dist(0, 1e-3);
     MatrixXd b_weights(m_features, l_dimensions);
     MatrixXd c_weights(m_features, k_dimensions);
     double n_logz = 0;
@@ -285,7 +285,7 @@ void train_with_features(std::string data_file_path,
     for (size_t i = 0; i < n_steps; ++i) {
         objective_output_file << objectives[i] << std::endl;
     }
-
+    std::cout << "Fold final objective: " << objectives[n_steps - 1] << std::endl;
     objective_output_file.close();
 #endif
     time_t end = std::time(0);
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
     int k_dimensions = std::stoi(argv[3]);
     char* feature_set = argv[4];
     char* dataset_name = argv[5];
-    int noise_factor = std::stoi(argv[6]);
+    double noise_factor = std::stod(argv[6]);
     int iterations = std::stoi(argv[7]);
     double eta_0 = std::stod(argv[8]);
     std::vector<double> times(fold_number);

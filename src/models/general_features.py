@@ -160,15 +160,6 @@ class GeneralFeatures:
 def load_and_evaluate(dataset_name: str, n_items: int,
                       features: Features, l_dim: int, k_dim: int):
     for fold in range(1, constants.N_FOLDS + 1):
-        f_array = np.array([
-            [4., 1., 0.],
-            [4., 1., 1.],
-            [3., 0., 1.],
-            [3., 1., 0.],
-            [2., 1., 1.],
-            [2., 1., 0.],
-            [5., 0., 1.],
-        ])
         model = GeneralFeatures(n_items + 1, f_array, l_dim, k_dim)
         model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
             dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,

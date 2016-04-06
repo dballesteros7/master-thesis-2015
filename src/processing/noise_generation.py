@@ -16,7 +16,7 @@ def store_to_file(n_items: int, features: np.ndarray,
     noise.train(data_samples)
     with open(output_file_path, 'w') as output_file:
         n_data = data_samples.shape[0]
-        noise_samples = noise.sample(noise_factor * n_data, use_real_probs=True)
+        noise_samples = noise.sample(int(noise_factor * n_data), use_real_probs=True)
         n_data += noise_samples.shape[0]
         total = 0
         for sample in chain(data_samples, noise_samples):
@@ -47,7 +47,7 @@ def store_to_file(n_items: int, features: np.ndarray,
 
 def process_data_and_store(dataset_name: str, features: Features, n_items: int):
     print('Storing noise and data for C++ processing.')
-    for noise_factor in range(20, 22, 2):
+    for noise_factor in [2]:
         for fold in range(1, constants.N_FOLDS + 1):
             print('Fold {}'.format(fold))
             loaded_data = file.load_set_data(

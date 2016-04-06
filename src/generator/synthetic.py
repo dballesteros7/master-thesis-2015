@@ -131,7 +131,7 @@ def generate_features_2():
     keys = [['0', '2'], ['2', '3'], ['2', '5'], ['1'], ['0'], ['2'], ['3'], ['4'], ['5']]
     probs = [0.30, 0.25, 0.15, 0.10, 0.06, 0.04, 0.04, 0.03, 0.03]
 
-    all_data = np.random.choice(keys, 1000, True, probs)
+    all_data = np.random.choice(keys, 1111, True, probs)
 
     with open(os.path.join(
             constants.DATA_PATH, 'path_set_synthetic_4.csv'), 'w') as out_file:
