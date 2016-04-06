@@ -1,7 +1,7 @@
 \chapter{Models}
 \label{sec:models}
 
-This chapter explores different probabilistic models for the problem, explains how they can be efficiently learned from data and presents the learning algorithm performance on synthetic data.
+This chapter explores different probabilistic models for the problem, explains how they can be efficiently learned from data and presents the learning algorithm's performance on synthetic data.
 
 \section{Submodular model: FLID}
 
@@ -327,7 +327,7 @@ For FFLDC, the sub-gradients in equations \ref{eq:sub-b},\ref{eq:sub-e} require 
 
 \subsection{Example datasets}
 
-This section presents the results obtained after learning the datasets introduced in the examples for each model. In every instance 1000 samples were generated from the specific distribution, along with 2000 noise samples ($\nu = 2$). This shows the ability of the learning method, i.e. NCE, to learn models that incorporate diversity and coherence between items and features.
+This section presents the results obtained after learning the datasets introduced in the examples for each model. In every instance 1000 samples were generated from the specific distribution, along with 2000 noise samples ($\nu = 2$). This shows the ability of NCE to learn models that incorporate diversity and coherence between items and features.
 
 \subsubsection{FLID: Two landmarks}
 
@@ -404,14 +404,16 @@ Firstly, recall the following characteristics about the dataset in the example:
 
 Figure \ref{fig:ffldc-toy-learned-weights} shows the resulting model after learning. Unfortunately, this model can be not as easily interpreted as the one proposed in figure \ref{fig:ffldc-toy-all-weights}, nevertheless it accurately models the distribution from the example. This result demonstrates the ability of the learning algorithm to represent a distribution using features.
 
+It is important to note that the presented results for these experiments correspond to the best of multiple runs. It was observed that the learning algorithm does not always arrive to a good solution. This is explained by the fact that $g(\theta)$ is not a convex function which means that there exists the risk of reaching a local minima in some cases. Due to this, most of the experiments in the following sections are executed over several data folds to account for the randomness.
+
 \subsection{Adagrad}
 \label{sec:adagrad}
 
-It is worth noting that during the experiments on the example datasets, the discussion about the hyperparameters of the algorithm, i.e. learning rate and number of passes over the data and noise samples, was ommitted. However, the next section shows and discusses the effect of these hyperparameters in the learning performance and resulting models, but first this section will introduce a modification to the SGD method which was found to be useful when dealing with real data and featurized models.
+This section will introduce a modification to the SGD method which was found to be useful when dealing with real data and featurized models.
 
-A commonly used learning rate function for SGD is $\eta(t) = \eta_{0}t^{-p}$ and it sometimes works well in practice, however it can also lead to poor performance due to a slow rate of convergence to the solution \citep{darken1992towards}. On the other hand choosing a larger $\eta_{0}$ may not lead to better results due to the instability in the parameters for small $t$ \citep{Darken1990}.
+A commonly used learning rate function for SGD is $\eta(t) = \eta_{0}t^{-p}$, which offers the best convergence speed in theory and also does it often in practice \citep{bottou2012stochastic}, however it can also lead to poor performance due to slow rates of convergence to the solution \citep{darken1992towards}. On the other hand choosing a larger $\eta_{0}$ may not lead to better results due to the instability in the parameters for small $t$ \citep{Darken1990}. 
 
-This behavior was observed during the experiments with real data to be presented in later sections, therefore an adaptive learning rate was sought for this problem. In particular, Adaptive Gradient (AdaGrad) was implemented.
+This behavior was observed during the experiments with real data to be presented in later sections, therefore an alternative for the learning rate was sought. In particular, Adaptive Gradient (AdaGrad) was implemented.
 
 AdaGrad was proposed by \citet{Duchi2011adagrad}, the idea of this method is to adapt the learning rate for each parameter in $\theta$ individually in a way that frequently updated parameters have slower learning rates while infrequent parameters have larger ones. The intuition is that an update to a rare parameter is more informative than one to a parameter that is frequently updated.
 
@@ -432,72 +434,63 @@ In equation \ref{eq:adagrad-g} $\nabla g(\theta)^{t}_{j}$ denotes the $j$-th ent
 
 It is worth noting that AdaGrad does not incur in an significant increase in running time or memory requirements for the training which makes it inexpensive to include in the implementation of NCE.
 
-\subsection{Hyper-parameter sensitivity}
+\subsection{Learning rate sensitivity}
 
-This section explores the effect of different hyperparameters on the performance of NCE training. Concretely, the hyperaparameters to consider are:
+This section expands on the discussion about the learning rate and explores its effect on the learning of the synthetic data from the FFLDC example in section \ref{sec:ffldc-toy}, as well as the effect of implementing AdaGrad.
+
+The first experiment considers the stability of the optimization without AdaGrad. In the experiments presented in this section the following configuration of the learning algorithm is used:
 
 \begin{itemize}
-  \item The noise-to-data ratio, $\nu$.
-  \item The initial learning rate $\eta_{0}$. Note that this is relevant even when AdaGrad is used.
+  \item 1000 data samples from the distribution in table \ref{tab:ffldc-toy-probs} are used, along with 2000 noise samples, i.e. $\nu = 2$.
+  \item Each run does 100 passes over the data and noise samples.
+  \item The algorithm is executed 8 times to obtain statistics about the results.
 \end{itemize}
 
-In order to perform the experiments to explore the hyperparameters' effect the synthetic dataset from the FFDLC example in section \ref{sec:ffldc-toy} will be used. Given the size of the ground set and the knowledge of the exact data distribution $P_{d}$, from table \ref{tab:ffldc-toy-probs}, it is possible to compute the exact distribution for each learned model and its error.
+Figure \ref{fig:effects_eta_0} shows the behavior of $g(\theta)$ during learning, each point corresponds to the average value of $g(\theta)$ after each pass over the data and noise samples with its corresponding 95\% confidence interval.
 
-\subsubsection{Noise-to-data ratio}
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{effects_eta_0_ffldc}
+  \caption{Objective function during learning for various values of $\eta_0$ without AdaGrad.}
+  \label{fig:effects_eta_0}
+\end{figure}
 
-\citet{Gutmann12NCE} suggest the following when choosing the noise distribution:
+The results in figure \ref{fig:effects_eta_0} display what was mentioned in section \ref{sec:adagrad}, they show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to instability. Concretely,  the first row displays slow but stable learning rates while the last row displays learning rates that are too high, the middle row displays the ideal learning rates. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges however, as it will be seen on real data, this is not always the case. An interesting characteristic shown in this figure is the behavior of the confidence intervals for $\eta_0 = 0.005$, even though the learning is considerably slow there is also a large variation, in this instance the initialization has a larger influence because the learned model doesn't change much from it.
+
+In contrast, figure \ref{fig:effects_adagrad} shows the objective function for various values of $\eta_{0}$ after incorporating AdaGrad to the implementations. These results show that training with AdaGrad is stable for a larger range of $eta_0$, although slower for small values of $\eta_{0}$ which were good for the learning without AdaGrad. For large enough $\eta_0$ values, it can be clearly seen from the figure that SGD with AdaGrad reaches convergence significantly faster, often in the first few iterations.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{effects_eta_0_ffldc_adagrad}
+  \caption{Objective function during learning for various values of $\eta_0$ with AdaGrad.}
+  \label{fig:effects_adagrad}
+\end{figure}
+
+Finally, figure \ref{fig:comparison_adagrad_ffldc_toy} shows a direct comparison between training with and without AdaGrad using the best values of $\eta_0$ for each configuration. In this figure both algorithms converge to an optimal value, however it also shows that training with AdaGrad converges significantly faster and its average appears slightly more stable.
+
+These combined results indicate that using AdaGrad is the best strategy for learning the models.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{ffldc_adagrad_comparison}
+  \caption{Comparison of learning performance with and without AdaGrad. Initial learning rates are $\eta_0 = 0.05$ with AdaGrad and $\eta_0 = 0.005$ without AdaGrad.}
+  \label{fig:comparison_adagrad_ffldc_toy}
+\end{figure}
+
+\subsection{Noise-to-data ratio}
+
+One final consideration about NCE is how to choose the noise, \citet{Gutmann12NCE} suggest the following about the noise distribution:
 
 \begin{itemize}
   \item A distribution that can be sampled easily.
-  \item Noise that is similar to the data, otherwise the classification problem could be too easy.
+  \item Noise that is as similar as possible to the data, otherwise the classification problem could be too easy.
   \item A noise sample as large as possible.
 \end{itemize}
 
-Following the first two suggestions, the noise distribution is sampled from a modular model as the one from equation \ref{eq:modular}. This distribution is learned from estimated marginals from the data, i.e. $\hat{P}(i \in S)$, which are computed using the maximum likelihood estimator, i.e. $\hat{P}(i \in S) = \nicefrac{\#N(i \in S)}{|\mathcal{D}|}$. Then the utilities for the modular model are given by:
+Following the first two suggestions, the noise distribution is sampled from a modular model as the one from equation \ref{eq:modular}. This distribution is constructed from estimated marginals, i.e. $\hat{P}(i \in S)$, which are computed using the maximum likelihood estimator, i.e. $\hat{P}(i \in S) = \nicefrac{\#N(i \in S)}{|\mathcal{D}|}$. Then the utilities for the modular model are given by:
 
 \begin{equation}
   u_{i} = \log{\left(\frac{1}{\hat{P}(i \in S)} - 1\right)}
 \end{equation}
 
-This model is easy to sample from, hence allowing an efficient generation of large noise samples. This section will now explore the effect of the noise sample's size in the resulting model's quality.
-
-In order to score and compare the learned models, the root mean square and maximum error will be used. These are formally defined in equations \ref{eq:rmse} and \ref{eq:maxerror}.
-
-\begin{align}
-  e_{rms}(\hat{P}_{d}) = \sqrt{\frac{\sum_{S \subseteq V} (P_{d}(S) - \hat{P}_{d}(S))^2}{2^{|V|}}} \label{eq:rmse} \\
-  e_{\max}(\hat{P}_{d}) = \max_{S \subseteq V}{|P_{d}(S) - \hat{P}_{d}(S)|} \label{eq:maxerror}
-\end{align}
-
-The expectation is that the errors will decrease for small values of $\nu$ but for large enough $\nu$ its effect will become negligible.
-
-The experiment was executed without AdaGrad using an initial learning rate of $\eta_{0} = 0.01$ and power factor $p = 0.1$, 100 passes over the data and noise were performed. The data was split in 8 random folds with 900 samples each in order to account for the effect of different initialization values.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{effects_noise_ffldc}
-  \caption{Effect of different values of $\nu$ in the quality of the learned FFLDC models, the data points show the average error over 8 folds and the errobars represent the 95\% confidence intervals.}
-  \label{fig:effects_noise_ffldc}
-\end{figure}
-
-Figure \ref{fig:effects_noise_ffldc} shows the results of this experiment. It suggests that the hypothesis was correct, because as the number of noise samples increases so does the quality of the model. However a after certain point its improvement is not significant. It is interesting that only the maximum error decreases significantly which would suggest that the RMSE is not a good metric for comparing the distributions.
-
-\subsubsection{AdaGrad and $\eta_0$}
-
-As described before, AdaGrad aims to improve the convergence rate and stability of SGD using an adaptive learning rate. In the following experiments, the effects of AdaGrad and $\eta_{0}$ on the objective function $g(\theta)$ will be explored.
-
-The first experiment considers the stability of the optimization without AdaGrad. In this case the noise-to-data factor is fixed at 10, because it is large enough to ensure the good quality of the resulting model according to the results in figure \ref{fig:effects_noise_ffldc}. The number of iterations over the data and noise is set to 100 and the training is executed for 8 random folds.
-
-Figure \ref{fig:effects_eta_0} shows the behavior of $g(\theta)$ during learning, each point corresponds to the average value of $g(\theta)$ after each full pass over the data and noise samples with its corresponding 95\% confidence interval in the error bars.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{effects_eta_0_ffldc}
-  \caption{Objective function during learning for various values of the initial learning rate $\eta_0$ without AdaGrad.}
-  \label{fig:effects_eta_0}
-\end{figure}
-
-The results in figure \ref{fig:effects_eta_0} display what was mentioned in section \ref{sec:adagrad}, they show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to instability. Concretely,  the first row displays slow but stable learning rates while the last row displays learning rates that are too high, the middle row displays the ideal learning rates. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges however, as it will be seen on real data, this is not always the case. An interesting characteristic shown in this figure is the behavior of the confidence intervals for $\eta_0 = 0.005$, even though the learning is considerably slow there is also a large variation, this is because the initialization has a larger influence because the learned model doesn't change much from it hence why the variation between folds is larger than with larger learning rates where the parameter vector moves away significantly from the initial values.
-
-In contrast, figure \ref{fig:effects_adagrad} shows the objective function for various values of $\eta_{0}$ after incorporating AdaGrad to the implementations. These results from show that training with AdaGrad is stable for a larger range of $eta_0$, although slower for small values of $\eta_{0}$ which were good for the learning without AdaGrad.
-
-Finally, figure \ref{fig:comparison_adagrad_ffldc_toy} shows a comparison between training with and without AdaGrad. In this case both algorithms can converge to an optimal value given the correct value for $\eta_{0}$, however the figure suggests that training with AdaGrad may allow the training to reach this value faster because it allow greater learning rates without risking instability.
+This model is easy to sample from, hence allowing an efficient generation of large noise samples.
