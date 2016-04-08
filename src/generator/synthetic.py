@@ -115,19 +115,20 @@ def generate_features_2():
         [3., 1., 0.],
         [2., 1., 1.],
         [2., 1., 0.],
-        # [5., 0., 1.],
+        [5., 1., 0.],
     ])
     n_items = features.shape[0]
 
-    # model = GeneralFeatures(n_items=n_items, features=features,
-    #                         l_dims=2, k_dims=1)
-    # model.a_weights = np.array([0.1, 0, 0])
-    # model.b_weights = np.array([[0, 0], [10, 0], [0, 10]])
-    # model.c_weights = np.array([[0.5], [0], [0]])
-    # model.update_composite_parameters()
-    # model.full_distribution()
-    # for subset, prob in sorted(model.distribution.items(), key=lambda x: x[1]):
-    #     print('{}:{:.2f}%'.format(list(subset), prob * 100))
+    model = GeneralFeatures(n_items=n_items, features=features,
+                            l_dims=2, k_dims=1)
+    model.a_weights = np.array([0.1, 0, 0])
+    model.b_weights = np.array([[0, 0], [10, 0], [0, 10]])
+    model.c_weights = np.array([[0.5], [0], [0]])
+    model.update_composite_parameters()
+    model.full_distribution()
+    for subset, prob in sorted(model.distribution.items(), key=lambda x: x[1]):
+        print('{}:{:.2f}%'.format(list(subset), prob * 100))
+    return
     keys = [['0', '2'], ['2', '3'], ['2', '5'], ['1'], ['0'], ['2'], ['3'], ['4'], ['5']]
     probs = [0.30, 0.25, 0.15, 0.10, 0.06, 0.04, 0.04, 0.03, 0.03]
 

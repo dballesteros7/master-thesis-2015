@@ -77,7 +77,7 @@ void train_with_features(std::string data_file_path,
 
 
     // Calculate constant quantities.
-    double nu = n_noise / n_data;
+    double nu = ((float)n_noise) / ((float)n_data);
     double log_nu = log(nu);
     double logz_noise = 0;
     for (size_t i = 0; i < n_items; ++i) {

@@ -67,13 +67,13 @@ def distribution_error(other_distribution):
 
 
 def noise_factor_plot():
-    n_items = 4
-    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_2')
-    features = IdentityFeatures(dataset_name, n_items=n_items,
-                                m_features=n_items)
+    n_items = 6
+    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_4')
+    features = BasicFeaturesNoNormalized(dataset_name, n_items=n_items,
+                                         m_features=3)
     features.load_from_file()
 
-    noise_range = list(range(1, 11))
+    noise_range = [0.05, 0.1, 0.5, 1, 1.5, 2, 2.5, 3]
     mean_errs = []
     std_errs = []
     max_errs = []
@@ -82,18 +82,17 @@ def noise_factor_plot():
     for noise in noise_range:
         errors = []
         max_errors = []
+        eta_0 = 0.05
         for fold in range(1, constants.N_FOLDS + 1):
-            model = GeneralFeatures(n_items, features.as_array(), 2, 2)
+            model = GeneralFeatures(n_items, features.as_array(), 2, 1)
             model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
-                dataset=dataset_name, fold=fold, l_dim=2, k_dim=2,
-                index=features.index, iter=10,
-                eta_0=0.05, adagrad=1, noise=noise))
-            print(model.diversity_weights)
-            print(model.coherence_weights)
+                dataset=dataset_name, fold=fold, l_dim=2, k_dim=1,
+                index=features.index, iter=100,
+                eta_0=eta_0, adagrad=1, noise=noise))
             model.full_distribution()
             # for key, prob in sorted(model.distribution.items(), key=lambda x:x[1]):
             #     print('{}: {}'.format(key, prob))
-            scores = distribution_error_1(model.distribution)
+            scores = distribution_error(model.distribution)
             errors.append(scores[0])
             max_errors.append(scores[1])
 
@@ -177,17 +176,14 @@ def iterations_plot():
 
 
 def eta_0_no_adagrad():
-    eta_0_range = [5e-4, 1e-3, 5e-3, 1e-2, 2e-2, 3e-2]
+    eta_0_range = [5e-4, 1e-3, 5e-3, 1e-2, 2e-2]
     iterations = 100
-    eta_0_column = np.repeat(eta_0_range, iterations / 5)
-    iterations_column = np.tile(range(0, iterations, 5), len(eta_0_range))
+    eta_0_column = np.repeat(eta_0_range, constants.N_FOLDS * iterations / 5)
+    iterations_column = np.tile(range(0, iterations, 5), constants.N_FOLDS * len(eta_0_range))
     all_objectives = []
-    std_objectives = []
     for eta_0 in eta_0_range:
         objectives = []
         for fold in range(1, constants.N_FOLDS + 1):
-            fold_objectives = []
-            objectives.append(fold_objectives)
             with open(constants.NCE_OUT_OBJECTIVE_PATH_TPL.format(
                     dataset='path_set_synthetic_4', index='1',
                     l_dim=2, k_dim=1,
@@ -195,18 +191,18 @@ def eta_0_no_adagrad():
                     eta_0=eta_0, adagrad=0)) as input_data:
                 for idx, objective in enumerate(input_data):
                     if idx % 5 == 0:
-                        fold_objectives.append(float(objective.strip()))
-        all_objectives.extend(np.mean(objectives, axis=0))
-        std_objectives.extend(2 * np.std(objectives, axis=0))
+                        all_objectives.append(float(objective.strip()))
 
-    dataset = pd.DataFrame(np.c_[eta_0_column, iterations_column, all_objectives, std_objectives],
-                           columns=['eta0', 'iterations', 'objective', 'std_objective'])
-    grid = sns.FacetGrid(dataset, col='eta0', hue='eta0', col_wrap=2)
-    grid.map(plt.errorbar, 'iterations', 'objective', 'std_objective', marker='o')
-    #grid.set(ylim=(-3500, -2000))
-    grid.set_titles(r'$\eta_0 = {col_name}$')
-    grid.set_xlabels('Iterations')
-    grid.set_ylabels(r'$g(\theta)$')
+    dataset = pd.DataFrame(np.c_[eta_0_column, iterations_column, all_objectives],
+                           columns=['eta0', 'iterations', 'objective'])
+    dataset['iterations'] = dataset['iterations'].astype(np.int32)
+    ax = sns.pointplot(x='iterations', data=dataset, y='objective', hue='eta0',
+                       ci=95, palette='Set1', markers=['o', 's', 'x', '^', '+'])
+    ax.set_title(r'Learning performance without AdaGrad')
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel(r'$g(\theta)$')
+    legend = ax.get_legend()
+    legend.set_title(r'$\eta_{0}$')
     plt.savefig(os.path.join(
         constants.IMAGE_PATH, 'effects_eta_0_ffldc.eps'),
         bbox_inches='tight')
@@ -214,17 +210,13 @@ def eta_0_no_adagrad():
 
 
 def eta_0():
-    eta_0_range = [5e-3, 1e-2, 2e-2, 3e-2, 5e-2, 1e-1]
+    eta_0_range = [5e-3, 1e-2, 2e-2, 3e-2, 5e-2]
     iterations = 100
-    eta_0_column = np.repeat(eta_0_range, iterations/5)
-    iterations_column = np.tile(range(0, iterations, 5), len(eta_0_range))
+    eta_0_column = np.repeat(eta_0_range, constants.N_FOLDS * iterations/5)
+    iterations_column = np.tile(range(0, iterations, 5), constants.N_FOLDS * len(eta_0_range))
     all_objectives = []
-    std_objectives = []
     for eta_0 in eta_0_range:
-        objectives = []
         for fold in range(1, constants.N_FOLDS + 1):
-            fold_objectives = []
-            objectives.append(fold_objectives)
             with open(constants.NCE_OUT_OBJECTIVE_PATH_TPL.format(
                     dataset='path_set_synthetic_4', index='1',
                     l_dim=2, k_dim=1,
@@ -232,17 +224,19 @@ def eta_0():
                     eta_0=eta_0, adagrad=1)) as input_data:
                 for idx, objective in enumerate(input_data):
                     if idx % 5 == 0:
-                        fold_objectives.append(float(objective.strip()))
-        all_objectives.extend(np.mean(objectives, axis=0))
-        std_objectives.extend(2 * np.std(objectives, axis=0))
-    dataset = pd.DataFrame(np.c_[eta_0_column, iterations_column, all_objectives, std_objectives],
-                           columns=['eta0', 'iterations', 'objective', 'std_objective'])
-    grid = sns.FacetGrid(dataset, col='eta0', hue='eta0', col_wrap=2)
-    grid.map(plt.errorbar, 'iterations', 'objective', 'std_objective', marker='o')
+                        all_objectives.append(float(objective.strip()))
+    dataset = pd.DataFrame(np.c_[eta_0_column, iterations_column, all_objectives],
+                           columns=['eta0', 'iterations', 'objective'])
+    dataset['iterations'] = dataset['iterations'].astype(np.int32)
+    ax = sns.pointplot(x='iterations', y='objective', hue='eta0', ci=95,
+                       data=dataset, palette='Set1',
+                       markers=['o', 's', 'x', '^', '+'])
     #grid.set(ylim=(-3500, -2000))
-    grid.set_titles(r'$\eta_0 = {col_name}$')
-    grid.set_xlabels('Iterations')
-    grid.set_ylabels(r'$g(\theta)$')
+    ax.set_title(r'Learning performance with AdaGrad')
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel(r'$g(\theta)$')
+    legend = ax.get_legend()
+    legend.set_title(r'$\eta_{0}$')
     plt.savefig(os.path.join(
         constants.IMAGE_PATH, 'effects_eta_0_ffldc_adagrad.eps'),
         bbox_inches='tight')
@@ -254,58 +248,60 @@ def adagrad_comparison():
     features_name = '1'
     l_dim = 2
     k_dim = 1
-    objectives = []
+    objective_column = []
+    iterations_column = []
+    type_column = np.repeat([r'No $\eta_{0} = 0.005$', r'Yes $\eta_{0} = 0.1$'],
+                            constants.N_FOLDS * 20)
     for fold in range(1, constants.N_FOLDS + 1):
-        fold_objectives = []
-        objectives.append(fold_objectives)
         with open(constants.NCE_OUT_OBJECTIVE_PATH_TPL.format(
                 dataset=dataset_name, index=features_name,
                 l_dim=l_dim, k_dim=k_dim,
                 fold=fold, iter=100, noise=2,
                 eta_0=0.005, adagrad=0)) as input_data:
             for idx, objective in enumerate(input_data):
-                if idx % 2 == 0:
-                    fold_objectives.append(float(objective.strip()))
-    objectives = np.array(objectives)
-    avg_objectives_1 = np.mean(objectives, axis=0)
-    std_objectives_1 = np.std(objectives, axis=0)
-    objectives = []
+                if idx % 5 == 0:
+                    iterations_column.append(idx)
+                    objective_column.append(float(objective.strip()))
     for fold in range(1, constants.N_FOLDS + 1):
-        fold_objectives = []
-        objectives.append(fold_objectives)
         with open(constants.NCE_OUT_OBJECTIVE_PATH_TPL.format(
                 dataset=dataset_name, index=features_name,
                 l_dim=l_dim, k_dim=k_dim,
                 fold=fold, iter=100, noise=2,
-                eta_0=0.05, adagrad=1)) as input_data:
+                eta_0=0.1, adagrad=1)) as input_data:
             for idx, objective in enumerate(input_data):
-                if idx % 2 == 0:
-                    fold_objectives.append(float(objective.strip()))
-    objectives = np.array(objectives)
-    avg_objectives_2 = np.mean(objectives, axis=0)
-    std_objectives_2 = np.std(objectives, axis=0)
+                if idx % 5 == 0:
+                    iterations_column.append(idx)
+                    objective_column.append(float(objective.strip()))
 
-    fig, ax = plt.subplots()
-    line_1 = plt.errorbar(np.arange(len(avg_objectives_1)), avg_objectives_1, marker='o',
-                          yerr=std_objectives_1)
-    line_2 = plt.errorbar(np.arange(len(avg_objectives_2)), avg_objectives_2, marker='^',
-                          alpha=0.8, yerr=std_objectives_2)
-    ax.set_xlabel(r'Iterations')
+    dataset = pd.DataFrame(data={
+        'AdaGrad': type_column,
+        'Epoch': iterations_column,
+        'objective': objective_column})
+    ax = sns.pointplot(x='Epoch', y='objective', hue='AdaGrad', ci=95,
+                       data=dataset, palette='Set1',
+                       markers=['o', 's'])
+
+    # fig, ax = plt.subplots()
+    # line_1 = plt.errorbar(np.arange(len(avg_objectives_1)), avg_objectives_1, marker='o',
+    #                       yerr=std_objectives_1)
+    # line_2 = plt.errorbar(np.arange(len(avg_objectives_2)), avg_objectives_2, marker='^',
+    #                       alpha=0.8, yerr=std_objectives_2)
+    # ax.set_xlabel(r'Iterations')
     ax.set_ylabel(r'$g(\theta)$')
-    #ax.set_title('AdaGrad\'s effect on NCE learning')
-    #ax.set_ylim([-3500, -2000])
-    #ax.set_ylim([-11000, -5000])
-    # ax.set_xlim([0, 49])
-    ax.legend((line_1, line_2), ('Without AdaGrad', 'With AdaGrad'), loc='lower right')
+    ax.set_title('Learning performance with/without AdaGrad')
+    # #ax.set_ylim([-3500, -2000])
+    # #ax.set_ylim([-11000, -5000])
+    # # ax.set_xlim([0, 49])
+    # ax.legend((line_1, line_2), ('Without AdaGrad', 'With AdaGrad'), loc='lower right')
     plt.savefig(os.path.join(
        constants.IMAGE_PATH, 'ffldc_adagrad_comparison.eps'),
        bbox_inches='tight')
     plt.show()
 
 if __name__ == '__main__':
-    plots.setup()
+    #plots.setup()
     sns.set_palette(sns.color_palette('Set1', 2))
-    #noise_factor_plot()
+    noise_factor_plot()
     #eta_0_no_adagrad()
     #eta_0()
-    adagrad_comparison()
+    #adagrad_comparison()
