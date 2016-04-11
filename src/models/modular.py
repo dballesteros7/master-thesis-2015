@@ -70,7 +70,7 @@ class ModularWithFeatures:
 
     def full_distribution(self):
         prob_sum = 0
-        for length in range(1, self.n_items + 1):
+        for length in range(0, self.n_items + 1):
             for subset in combinations(range(self.n_items), length):
                 prob = np.exp(self(list(subset)))
                 prob_sum += prob

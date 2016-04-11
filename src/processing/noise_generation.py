@@ -14,7 +14,6 @@ def store_to_file(n_items: int, features: np.ndarray,
                   output_file_path: str, output_noise_path: str):
     noise = ModularWithFeatures(n_items, features)
     noise.train(data_samples)
-    return
     with open(output_file_path, 'w') as output_file:
         n_data = data_samples.shape[0]
         noise_samples = noise.sample(int(noise_factor * n_data), use_real_probs=True)

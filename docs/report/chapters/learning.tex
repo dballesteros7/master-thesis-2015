@@ -18,6 +18,7 @@ The parameters of a log-modular distribution can be estimated efficiently from d
 The log-modular model also provides a sensible initialization for vector $\mathbf{u}$ in the FLID and FLDC models. For FFLDC, the initialization for $\mathbf{a}$ is done by solving the linear system derived from the factorization in Equation \eqref{eq:ffldc-factorization-1}, this linear system is given by:
 
 \begin{equation}
+  \label{eq:modular_features}
   \mathbf{a} = \mathbf{X}^{-1}\mathbf{u}
 \end{equation}
 
@@ -27,7 +28,7 @@ The weight matrices, e.g. $\mathbf{W}^{e}, \mathbf{B}$, are initialized with ran
 
 In the cases where AdaGrad is used, the accumulated gradient $\mathbf{G}$ is initialized with a constant value for each parameter $\gamma$, namely $G^{0}_{\gamma} = 0.01$.
 
-\subsection{Learning rate}
+\subsection{Learning Rate}
 
 When not using AdaGrad, the learning rate used in the experiments follows the power law mentioned in section \ref{sec:adagrad}, i.e.
 
@@ -140,7 +141,7 @@ Recall the following characteristics about the dataset in Example \ref{sec:ffldc
 
 Figure \ref{fig:ffldc-toy-learned-weights} shows the resulting model after learning. Unfortunately, this model can be not as easily interpreted as the one proposed in figure \ref{fig:ffldc-toy-all-weights}, nevertheless it accurately models the distribution from the example thus showing the learning algorithm's ability to estimate a distribution using features.
 
-\section{Learning rate sensitivity}
+\section{Learning Rate Sensitivity}
 
 This section explores the learning rate's effect on the learning performance for the synthetic dataset from Example \ref{sec:ffldc-toy}.
 
@@ -179,3 +180,26 @@ Finally, figure \ref{fig:comparison_adagrad_ffldc_toy} shows a direct comparison
   \caption{Comparison of learning performance with and without AdaGrad.}
   \label{fig:comparison_adagrad_ffldc_toy}
 \end{figure}
+
+\section{Noise-to-data Ratio}
+
+The noise-to-data ratio $\nu$ is another hyperparameter for NCE learning, the recommendation is to have as many noise samples as computationally possible \citep{Gutmann12NCE}. In order to better understand the effect of $\nu$, an experiment was performed where different models for the dataset from Example \ref{sec:ffldc-toy} are learned with different values of $\nu$.
+
+In order to compare the models, the root mean squared error between the target distribution $P_{d}$, from Table \ref{tab:ffldc-toy-probs}, and the learned distribution $\hat{P}_{d}$ will be used. This is defined as:
+
+\begin{equation}
+  \label{eq:rmse}
+  e_{rms} = \sqrt{\frac{\sum_{S \subseteq V}\left(P_{d}(S) - \hat{P}_{d}(S)\right)^{2}}{2^{|V|}}}
+\end{equation}
+
+The setting is the same as for the learning rate experiments, but with $\eta_{0} = 0.05$ and always using AdaGrad. The noise parameter $\nu$ was varied between $0.05$ and $3$.
+
+The results for this experiment are shown in Figure \ref{fig:effects_noise_ffldc}. It shows that increasing the number of noise samples reduces the approximation error of the resulting model as expected, interestingly the results suggest that there is a threshold after which adding more noise does not have a significant effect on the results. Additionally, it can be seen that adding more noise samples reduces the error variability even though the mean remains the same.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{effects_noise_ffldc}
+  \caption{Approximation error for different values of $\nu$.}
+  \label{fig:effects_noise_ffldc}
+\end{figure}
+

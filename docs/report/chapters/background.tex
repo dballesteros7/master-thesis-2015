@@ -113,6 +113,7 @@ Concretely, let $V = \{h, s, f\}$ and $\mathbf{u} = \left(2, 2, 2\right)^{\inter
 Much of the interest in log-submodular models is concentrated on performing inference for known functions \citep{tschiatschek16learning}. However, \citet{tschiatschek16learning} explore how to learn such models from data, i.e. estimate the model parameters from observations with an unknown distribution.
 
 \subsection{Learning Log-modular Models}
+\label{sec:learning_modular}
 
 A special case of log-submodular models where the parameters can be estimated efficiently using Maximum Likelihood Estimation (MLE) is the log-modular model presented in Equation \eqref{eq:modular}. For this basic model, it is possible to estimate the utilities $\mathbf{u}$ through the maximum likelihood estimator for the marginals $\hat{P}(i \in S)$. These marginals are given by\footnote{Refer to the appendix for the derivation of these equations.}:
 
@@ -243,3 +244,7 @@ G^{\tau}_{\gamma} = \sum_{t=1}^{\tau} \left(\nabla g(\theta)^{t}_{\gamma}\right)
 Where $\nabla g(\theta)^{t}_{\gamma}$ denotes the gradient of the $\gamma$ parameter at time step $t$.
 
 It is worth noting that AdaGrad does not incur in an significant increase in running time or memory requirements for the training which makes it inexpensive to include in the implementation of NCE.
+
+\section{Mean-shift Clustering}
+
+TODO

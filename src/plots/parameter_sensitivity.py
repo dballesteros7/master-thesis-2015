@@ -12,6 +12,8 @@ import constants
 import plots
 from models.features import BasicFeaturesNoNormalized, IdentityFeatures
 from models.general_features import GeneralFeatures
+from models.modular import ModularWithFeatures
+from utils import file
 
 
 def distribution_error_1(other_distribution):
@@ -74,14 +76,20 @@ def noise_factor_plot():
     features.load_from_file()
 
     noise_range = [0.05, 0.1, 0.5, 1, 1.5, 2, 2.5, 3]
-    mean_errs = []
-    std_errs = []
-    max_errs = []
-    std_max_errs = []
+    noise_column = np.repeat(noise_range, constants.N_FOLDS)
+    errors = []
+    max_errors = []
 
+    modular_errors = []
+    for fold in range(1, constants.N_FOLDS + 1):
+        modular = ModularWithFeatures(n_items, features.as_array())
+        loaded_data = file.load_set_data(
+                    constants.TRAIN_DATA_PATH_TPL.format(
+                        fold=fold, dataset=dataset_name))
+        modular.train(loaded_data)
+        modular.full_distribution()
+        modular_errors.append(distribution_error(modular.distribution)[0])
     for noise in noise_range:
-        errors = []
-        max_errors = []
         eta_0 = 0.05
         for fold in range(1, constants.N_FOLDS + 1):
             model = GeneralFeatures(n_items, features.as_array(), 2, 1)
@@ -90,30 +98,22 @@ def noise_factor_plot():
                 index=features.index, iter=100,
                 eta_0=eta_0, adagrad=1, noise=noise))
             model.full_distribution()
-            # for key, prob in sorted(model.distribution.items(), key=lambda x:x[1]):
-            #     print('{}: {}'.format(key, prob))
             scores = distribution_error(model.distribution)
             errors.append(scores[0])
             max_errors.append(scores[1])
 
-        mean_err = np.mean(errors)
-        std_err = np.std(errors)
-        mean_errs.append(mean_err)
-        std_errs.append(std_err)
-        max_errs.append(np.mean(max_errors))
-        std_max_errs.append(2*np.std(max_errors))
-
-    fig, ax = plt.subplots()
-
-    line1 = ax.errorbar(noise_range, mean_errs, yerr=std_errs)
-    #line2 = ax.errorbar(noise_range, max_errs, yerr=std_max_errs)
-
-
+    dataset = pd.DataFrame({
+        'noise': noise_column,
+        'error': errors,
+        'max_error': max_errors
+    })
+    ax = sns.pointplot(x='noise', y='error', data=dataset, ci=95)
     ax.set_xlabel(r'$\nu$')
-    ax.set_ylabel(r'$e$(\%)')
+    ax.set_ylabel(r'$e_{rms} (\%)$')
     ax.set_title(r'Effect of noise-to-data ratio $(\nu)$')
 
-    #ax.legend([line1, line2], [r'$e_{rms}$', r'$e_{\max}$'])
+    #ax.plot(ax.get_xlim(), [np.mean(modular_errors), np.mean(modular_errors)],
+    #        linestyle='dashed')
 
     plt.savefig(os.path.join(
         constants.IMAGE_PATH, 'effects_noise_ffldc.eps'),
@@ -299,7 +299,7 @@ def adagrad_comparison():
     plt.show()
 
 if __name__ == '__main__':
-    #plots.setup()
+    plots.setup()
     sns.set_palette(sns.color_palette('Set1', 2))
     noise_factor_plot()
     #eta_0_no_adagrad()

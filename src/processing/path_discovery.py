@@ -173,13 +173,17 @@ def produce_top_clusters(all_photos, n_items, bandwidth='100m'):
 def find_and_store_all_paths(dataset_name, all_photos, cluster_assignment):
     all_paths = defaultdict(OrderedDict)
 
+    photo_count = 0
     for photo in all_photos:
         if photo['id'] in cluster_assignment:
             all_paths[(parse_datetaken(photo), photo['owner'])][
                 cluster_assignment[photo['id']]] = True
+            photo_count += 1
 
+    print('Photo count: {}'.format(photo_count))
     path_sets = list([str(item) for item in path]
                      for path in all_paths.values())
+    print('Paths: {}'.format(len(path_sets)))
 
     with open(constants.ALL_DATA_PATH_TPL.format(
             dataset=constants.DATASET_NAME_TPL.format(dataset_name)),
@@ -265,11 +269,11 @@ def main():
     finder = PathFinder()
     all_photos = finder.photo_storage.get_photos_for_city(city_name='zurich')
     clusters, cluster_assignment, ordered_counts = produce_top_clusters(
-        all_photos, 100)
+        all_photos, 10)
     #items, indexed_paths = finder.unclustered_paths(all_photos, dataset_name)
     #shuffle_train_and_test(dataset_name, indexed_paths)
     #calculate_features_for_unclustered_items(dataset_name, items, clusters)
-    dataset_name = '100'
+    dataset_name = '10'
     paths, no_singleton_paths, just_pairs_path = find_and_store_all_paths(
         dataset_name, all_photos, cluster_assignment)
     shuffle_train_and_test(dataset_name, paths)
