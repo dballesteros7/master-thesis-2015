@@ -12,6 +12,39 @@
 
 using namespace Eigen;
 
+struct Pair {
+    size_t i;
+    size_t j;
+};
+
+void reset_columns(MatrixXd& weights,
+                   std::uniform_real_distribution<double_t>& udouble_dist,
+                   std::mt19937& random_engine) {
+    if (weights.rows() == 0) return;
+
+    double max_sim = -1;
+    Pair max_indexes;
+    for (size_t i = 0; i < weights.cols() - 1; ++i) {
+        for(size_t j = i + 1; j < weights.cols(); ++j) {
+            VectorXd normalized_column_i = weights.col(i).normalized();
+            VectorXd normalized_column_j = weights.col(j).normalized();
+            double sim = normalized_column_i.dot(normalized_column_j);
+            if (sim > max_sim) {
+                max_indexes.i = i;
+                max_indexes.j = j;
+                max_sim = sim;
+            }
+        }
+    }
+
+    if (max_sim > 0.9 && weights.col(max_indexes.i).norm() > 1e-1) {
+        weights.col(max_indexes.j) += weights.col(max_indexes.i);
+        for(int i = 0; i < weights.rows(); ++i) {
+            weights(i, max_indexes.i) = udouble_dist(random_engine);
+        }
+    }
+}
+
 void train_with_features(std::string data_file_path,
                          std::string features_file_path,
                          std::string noise_file_path,
@@ -161,8 +194,12 @@ void train_with_features(std::string data_file_path,
 #endif
         objectives[iter] = objective;
 #endif
-        shuffle(begin(permutation), end(permutation), random_engine);
+        shuffle(std::begin(permutation), std::end(permutation), random_engine);
         for (size_t sub_iter = 0; sub_iter < n_samples; ++sub_iter) {
+            if (sub_iter % 500 == 0) {
+                reset_columns(b_weights, udouble_dist, random_engine);
+                reset_columns(c_weights, udouble_dist, random_engine);
+            }
             size_t start_idx = start_indexes[permutation[sub_iter]];
             size_t end_idx;
             if (permutation[sub_iter] == n_samples - 1) {
