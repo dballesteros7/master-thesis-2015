@@ -27,16 +27,17 @@ def distribution_error_1(other_distribution):
 
     acc_err = 0.0
     max_err = -1
+    max_sum = 0.0
     for subset in probabilities:
         other_prob = other_distribution[subset]
         abs_err = abs(other_prob - probabilities[subset])
+        max_sum += abs_err
         if abs_err > max_err:
             max_err = abs_err
         error = math.pow(other_prob - probabilities[subset], 2)
         acc_err += error
-    print(sorted(other_distribution.items(), key=lambda x: -x[1]))
     rmse = 100 * math.sqrt(acc_err / len(probabilities))
-    return rmse, 100 * max_err
+    return rmse, max_sum/2
 
 
 def distribution_error(other_distribution):
@@ -57,15 +58,17 @@ def distribution_error(other_distribution):
 
     acc_err = 0.0
     max_err = -1
+    max_sum = 0
     for subset in probabilities:
         other_prob = other_distribution[subset]
         abs_err = abs(other_prob - probabilities[subset])
         if abs_err > max_err:
             max_err = abs_err
+        max_sum += abs_err
         error = math.pow(other_prob - probabilities[subset], 2)
         acc_err += error
     rmse = 100 * math.sqrt(acc_err / len(probabilities))
-    return rmse, 100 * max_err
+    return rmse, max_sum/2
 
 
 def noise_factor_plot():
@@ -75,7 +78,8 @@ def noise_factor_plot():
                                          m_features=3)
     features.load_from_file()
 
-    noise_range = [0.05, 0.1, 0.5, 1, 1.5, 2, 2.5, 3]
+    noise_range = np.arange(0.5, 10.5, .5)
+    #noise_range = [10]
     noise_column = np.repeat(noise_range, constants.N_FOLDS)
     errors = []
     max_errors = []
@@ -90,6 +94,8 @@ def noise_factor_plot():
         modular.full_distribution()
         modular_errors.append(distribution_error(modular.distribution)[0])
     for noise in noise_range:
+        if noise == int(noise):
+            noise = int(noise)
         eta_0 = 0.05
         for fold in range(1, constants.N_FOLDS + 1):
             model = GeneralFeatures(n_items, features.as_array(), 2, 1)
@@ -105,12 +111,14 @@ def noise_factor_plot():
     dataset = pd.DataFrame({
         'noise': noise_column,
         'error': errors,
-        'max_error': max_errors
+        'maxerror': max_errors
     })
-    ax = sns.pointplot(x='noise', y='error', data=dataset, ci=95)
+    ax = sns.pointplot(x='noise', y='maxerror', data=dataset, ci=95)
     ax.set_xlabel(r'$\nu$')
-    ax.set_ylabel(r'$e_{rms} (\%)$')
+    ax.set_ylabel(r'$\|P_{d} - \hat{P}_{d}\|$')
     ax.set_title(r'Effect of noise-to-data ratio $(\nu)$')
+    ax.set_ylim([0, 0.25])
+
 
     #ax.plot(ax.get_xlim(), [np.mean(modular_errors), np.mean(modular_errors)],
     #        linestyle='dashed')
@@ -128,50 +136,50 @@ def iterations_plot():
                                          m_features=3)
     features.load_from_file()
 
-    iteration_range = list(range(10, 110, 10))
-    mean_errs = []
-    std_errs = []
-    max_errs = []
-    std_max_errs = []
+    iter_range = np.arange(100, 1600, 100)
+    iter_column = np.repeat(iter_range, constants.N_FOLDS)
+    errors = []
+    max_errors = []
 
-    for iteration in iteration_range:
-        errors = []
-        max_errors = []
+    modular_errors = []
+    for fold in range(1, constants.N_FOLDS + 1):
+        modular = ModularWithFeatures(n_items, features.as_array())
+        loaded_data = file.load_set_data(
+                    constants.TRAIN_DATA_PATH_TPL.format(
+                        fold=fold, dataset=dataset_name))
+        modular.train(loaded_data)
+        modular.full_distribution()
+        modular_errors.append(distribution_error(modular.distribution)[0])
+    for iter in iter_range:
+        eta_0 = 0.05
         for fold in range(1, constants.N_FOLDS + 1):
             model = GeneralFeatures(n_items, features.as_array(), 2, 1)
             model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
                 dataset=dataset_name, fold=fold, l_dim=2, k_dim=1,
-                index=features.index, iter=iteration,
-                eta_0=0.01, adagrad=0, noise=10))
+                index=features.index, iter=iter,
+                eta_0=eta_0, adagrad=1, noise=10))
             model.full_distribution()
-            # for key, prob in sorted(model.distribution.items(), key=lambda x:x[1]):
-            #     print('{}: {}'.format(key, prob))
             scores = distribution_error(model.distribution)
             errors.append(scores[0])
             max_errors.append(scores[1])
 
-        mean_err = np.mean(errors)
-        std_err = np.std(errors)
-        mean_errs.append(mean_err)
-        std_errs.append(std_err)
-        max_errs.append(np.mean(max_errors))
-        std_max_errs.append(np.std(max_errors))
+    dataset = pd.DataFrame({
+        'iter': iter_column,
+        'error': errors,
+        'maxerror': max_errors
+    })
+    ax = sns.pointplot(x='iter', y='maxerror', data=dataset, ci=95)
+    ax.set_xlabel(r'$Epochs$')
+    ax.set_ylabel(r'$\|P_{d} - \hat{P}_{d}\|$')
+    ax.set_title(r'Effect of number of epochs')
+    ax.set_ylim([0, 0.25])
 
-    fig, ax = plt.subplots()
+    #ax.plot(ax.get_xlim(), [np.mean(modular_errors), np.mean(modular_errors)],
+    #        linestyle='dashed')
 
-    line1 = ax.errorbar(iteration_range, mean_errs, yerr=std_errs)
-    line2 = ax.errorbar(iteration_range, max_errs, yerr=std_max_errs)
-
-
-    ax.set_xlabel(r'$\nu$')
-    ax.set_ylabel(r'$e$(\%)')
-    ax.set_title(r'Effect of noise-to-data ratio $(\nu)$')
-
-    ax.legend([line1, line2], [r'$e_{rms}$', r'$e_{\max}$'])
-
-    # plt.savefig(os.path.join(
-    #     constants.IMAGE_PATH, 'effects_noise_ffldc.eps'),
-    #     bbox_inches='tight')
+    plt.savefig(os.path.join(
+        constants.IMAGE_PATH, 'effects_epochs_ffldc.eps'),
+        bbox_inches='tight')
     plt.show()
 
 
@@ -201,6 +209,7 @@ def eta_0_no_adagrad():
     ax.set_title(r'Learning performance without AdaGrad')
     ax.set_xlabel('Epoch')
     ax.set_ylabel(r'$g(\theta)$')
+    ax.set_ylim([-2000, -1300])
     legend = ax.get_legend()
     legend.set_title(r'$\eta_{0}$')
     plt.savefig(os.path.join(
@@ -210,7 +219,7 @@ def eta_0_no_adagrad():
 
 
 def eta_0():
-    eta_0_range = [5e-3, 1e-2, 2e-2, 3e-2, 5e-2]
+    eta_0_range = [5e-3, 1e-2, 2e-2, 5e-2, 1e-1]
     iterations = 100
     eta_0_column = np.repeat(eta_0_range, constants.N_FOLDS * iterations/5)
     iterations_column = np.tile(range(0, iterations, 5), constants.N_FOLDS * len(eta_0_range))
@@ -235,6 +244,7 @@ def eta_0():
     ax.set_title(r'Learning performance with AdaGrad')
     ax.set_xlabel('Epoch')
     ax.set_ylabel(r'$g(\theta)$')
+    ax.set_ylim([-2000, -1300])
     legend = ax.get_legend()
     legend.set_title(r'$\eta_{0}$')
     plt.savefig(os.path.join(
@@ -301,7 +311,8 @@ def adagrad_comparison():
 if __name__ == '__main__':
     plots.setup()
     sns.set_palette(sns.color_palette('Set1', 2))
-    noise_factor_plot()
+    #noise_factor_plot()
     #eta_0_no_adagrad()
     #eta_0()
     #adagrad_comparison()
+    iterations_plot()

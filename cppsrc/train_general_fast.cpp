@@ -20,7 +20,10 @@ struct Pair {
 void reset_columns(MatrixXd& weights,
                    std::uniform_real_distribution<double_t>& udouble_dist,
                    std::mt19937& random_engine) {
-    if (weights.rows() == 0) return;
+#ifdef NO_RESET
+    return;
+#endif
+    if (weights.cols() < 2) return;
 
     double max_sim = -1;
     Pair max_indexes;
@@ -37,7 +40,7 @@ void reset_columns(MatrixXd& weights,
         }
     }
 
-    if (max_sim > 0.9 && weights.col(max_indexes.i).norm() > 1e-1) {
+    if (max_sim > 0.9 && weights.col(max_indexes.i).norm() > 1) {
         weights.col(max_indexes.j) += weights.col(max_indexes.i);
         for(int i = 0; i < weights.rows(); ++i) {
             weights(i, max_indexes.i) = udouble_dist(random_engine);
@@ -196,7 +199,7 @@ void train_with_features(std::string data_file_path,
 #endif
         shuffle(std::begin(permutation), std::end(permutation), random_engine);
         for (size_t sub_iter = 0; sub_iter < n_samples; ++sub_iter) {
-            if (sub_iter % 500 == 0) {
+            if (sub_iter % 1000 == 0) {
                 reset_columns(b_weights, udouble_dist, random_engine);
                 reset_columns(c_weights, udouble_dist, random_engine);
             }
