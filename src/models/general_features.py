@@ -158,38 +158,50 @@ class GeneralFeatures:
 
 
 def load_and_evaluate(dataset_name: str, n_items: int,
-                      features: Features, l_dim: int, k_dim: int):
+                      features: Features, l_dim: int, k_dim: int,
+                      iters: int, noise: float, eta_0: float, adagrad: int):
     for fold in range(1, constants.N_FOLDS + 1):
-        model = GeneralFeatures(n_items + 1, f_array, l_dim, k_dim)
+        model = GeneralFeatures(n_items, features.as_array(), l_dim, k_dim)
         model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
             dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
-            index=features.index))
-        model.full_distribution()
-        for key, prob in sorted(model.distribution.items(), key=lambda x:x[1]):
-            print('{}: {}'.format(key, prob))
+            index=features.index, iter=iters,
+            noise=noise, eta_0=eta_0, adagrad=adagrad))
+        # model.full_distribution()
+        # for key, prob in sorted(model.distribution.items(), key=lambda x:x[1]):
+        #     print('{}: {}'.format(key, prob))
 
-        # loaded_test_data = file.load_csv_test_data(
-        #     constants.PARTIAL_DATA_PATH_TPL.format(
-        #         fold=fold, dataset=dataset_name))
-        # target_path = constants.RANKING_MODEL_PATH_TPL.format(
-        #     dataset=dataset_name, fold=fold,
-        #     model='submod_f_{}_l_{}_k_{}'.format(features.index, l_dim, k_dim))
-        # with open(target_path, 'w') as output_file:
-        #     for subset in loaded_test_data:
-        #         subset.remove('?')
-        #         subset = np.array([int(item) for item in subset])
-        #         result = model.propose_set_item(subset)
-        #         output_file.write(','.join(str(item) for item in result))
-        #         output_file.write('\n')
+        loaded_test_data = file.load_csv_test_data(
+            constants.PARTIAL_DATA_PATH_TPL.format(
+                fold=fold, dataset=dataset_name))
+        target_path = constants.RANKING_MODEL_PATH_TPL.format(
+            dataset=dataset_name, fold=fold,
+            model='submod_f_{}_l_{}_k_{}_iter_{}_noise_{}_eta_{}_adagrad_{}'.format(
+                features.index, l_dim, k_dim, iters, noise, eta_0, adagrad))
+        with open(target_path, 'w') as output_file:
+            for subset in loaded_test_data:
+                subset.remove('?')
+                #if subset.index('?') > 0:
+                #    short_subset = subset[:subset.index('?')]
+                subset = [int(item) for item in subset]
+                result = model.propose_set_item(np.array(subset))
+                output_file.write(','.join(str(item) for item in result))
+                output_file.write('\n')
+                # else:
+                #     output_file.write('-\n')
 
 
 def main():
-    n_items = 6
-    dataset_name = constants.DATASET_NAME_TPL.format('synthetic_4')
-    features = BasicFeaturesNoNormalized(dataset_name, n_items=n_items,
-                                         m_features=3)
+    n_items = 10
+    dataset_name = constants.DATASET_NAME_TPL.format('10_no_singles')
+    features = IdentityFeatures(dataset_name, n_items=n_items,
+                                m_features=n_items)
     features.load_from_file()
-    load_and_evaluate(dataset_name, n_items, features, 2, 1)
+    for l_dim in np.arange(0, 11, 1):
+    #     for k_dim in np.arange(0, 11, 1):
+    #l_dim = 10
+        k_dim = 00
+        load_and_evaluate(dataset_name, n_items, features, l_dim,
+                          k_dim, 1000, 5, 1, 1)
 
 if __name__ == '__main__':
     main()

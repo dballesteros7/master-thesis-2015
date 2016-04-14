@@ -27,10 +27,12 @@ class Proximity:
         to_complete = [int(item) if item != '?' else item for item in to_complete]
         missing_index = to_complete.index('?')
         if missing_index == 0:
-            return ['-']
-        else:
+            min_distances = np.copy(self.distances[to_complete[missing_index + 1], :])
+        elif missing_index == len(to_complete) - 1:
             min_distances = np.copy(self.distances[to_complete[missing_index - 1], :])
-        to_complete = to_complete[:missing_index]
+        else:
+            min_distances = np.copy(self.distances[to_complete[missing_index + 1], :]) + np.copy(self.distances[to_complete[missing_index - 1], :])
+        to_complete.remove('?')
         if self.use_rejection:
             min_distances[to_complete] = np.inf
         sorted_indexes = np.argsort(min_distances)
@@ -68,6 +70,6 @@ def train_and_evaluate(dataset_name: str, n_items: int):
 
 
 if __name__ == '__main__':
-    train_and_evaluate(constants.DATASET_NAME_TPL.format('50'), 50)
-    train_and_evaluate(constants.DATASET_NAME_TPL.format('50_no_singles'), 50)
+    #train_and_evaluate(constants.DATASET_NAME_TPL.format('10'), 10)
+    train_and_evaluate(constants.DATASET_NAME_TPL.format('100_no_singles'), 100)
     #train_and_evaluate(constants.DATASET_NAME_TPL.format('cluster_features_sample_10k'), 9141)

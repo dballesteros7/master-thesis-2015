@@ -86,21 +86,15 @@ def rank_results_pandas(dataset_name, model_name, eval_size):
     cross_accuracies, cross_ranks = _rank_results(
         dataset_name, model_name, eval_size)
 
-    return pd.Series(np.array(cross_accuracies[0]), dtype=np.float64)
+    return np.array(cross_accuracies[0])
 
 
 def main():
-    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    models = [#'modular_features_0',
-              #'modular_features_gauss_ext_0_k_100',
-              #'modular_features_gauss_ext_0.05_k_100',
-              #'modular_features_gauss_ext_0.05_k_20',
-              #'submod_f_0_l_10_k_10',
-              'submod_f_gauss_ext_0_k_100_l_20_k_20',
-              'markov',
-              'pseudo_markov',
-              #'submod_f_gauss_ext_0.05_k_100_l_20_k_20',
-              #'submod_f_gauss_ext_0_k_100_l_10_k_10',
+    dataset_name = constants.DATASET_NAME_TPL.format('10_no_singles')
+    models = ['modular_features_0', 'markov', 'pseudo_markov', 'proximity_r',
+              #'submod_f_0_l_10_k_10_iter_100_noise_5_eta_1_adagrad_1',
+              #'submod_f_0_l_10_k_10_iter_500_noise_5_eta_1_adagrad_1',
+              #'submod_f_0_l_20_k_20_iter_100_noise_5_eta_1_adagrad_1',
               ]
     #models = ['modular_features_0', 'submod_f_0_l_2_k_2']
     # models = ['modular_features_0', 'submod_f_0_l_20_k_20']

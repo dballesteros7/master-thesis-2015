@@ -102,8 +102,8 @@ def main():
     np.random.seed(constants.SEED)
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
     n_items = 100
-    features = GaussianExtended(dataset_name, n_items=n_items,
-                                m_features=100, sigma=0)
+    features = IdentityFeatures(dataset_name, n_items=n_items,
+                                m_features=n_items)
     features.load_from_file()
     features_array = features.as_array()
     # set_probabilities = defaultdict(list)
@@ -134,10 +134,18 @@ def main():
         with open(target_path, 'w') as output_file:
             for subset in loaded_test_data:
                 subset.remove('?')
-                subset = [int(item) for item in subset]
-                result = modular_model.propose_set_item(subset)
+                subset = [int(x) for x in subset]
+                result = modular_model.propose_set_item(np.array(subset))
                 output_file.write(','.join(str(item) for item in result))
                 output_file.write('\n')
+                # if subset.index('?') > 0:
+                #     short_subset = subset[:subset.index('?')]
+                #     short_subset = [int(item) for item in short_subset]
+                #     result = modular_model.propose_set_item(np.array(short_subset))
+                #     output_file.write(','.join(str(item) for item in result))
+                #     output_file.write('\n')
+                # else:
+                #     output_file.write('-\n')
     # mean_errors = []
     # for row in errors:
     #     mean_row_errors = []

@@ -212,7 +212,7 @@ def find_and_store_all_paths(dataset_name, all_photos, cluster_assignment):
 
 def shuffle_train_and_test(dataset_name, total_set):
     data = np.array(total_set)
-    kf = KFold(len(total_set), n_folds=10, shuffle=True)
+    kf = KFold(len(total_set), n_folds=8, shuffle=True)
     for idx, (train_index, test_index) in enumerate(kf):
         with open(constants.DATA_PATH_TPL.format(
                 dataset=constants.DATASET_NAME_TPL.format(dataset_name),
@@ -269,11 +269,11 @@ def main():
     finder = PathFinder()
     all_photos = finder.photo_storage.get_photos_for_city(city_name='zurich')
     clusters, cluster_assignment, ordered_counts = produce_top_clusters(
-        all_photos, 10)
+        all_photos, 100)
     #items, indexed_paths = finder.unclustered_paths(all_photos, dataset_name)
     #shuffle_train_and_test(dataset_name, indexed_paths)
     #calculate_features_for_unclustered_items(dataset_name, items, clusters)
-    dataset_name = '10'
+    dataset_name = '100'
     paths, no_singleton_paths, just_pairs_path = find_and_store_all_paths(
         dataset_name, all_photos, cluster_assignment)
     shuffle_train_and_test(dataset_name, paths)
