@@ -49,6 +49,20 @@ The weight matrices, e.g. $\mathbf{W}^{e}, \mathbf{B}$, are defined only for pos
 
 Where $\theta'_{h}$ is the unnormalized parameter after the gradient update and $\mathcal{U} \sim [0, 0.001]$ means that the value is drawn from an uniform distribution between $[0, 0.001]$ as in the initialization.
 
+\subsection{Column Restarts}
+
+One common problem observed during the experiments is when two columns in the weight matrices are very similar and therefore redundant. This can happen for some initialization settings, e.g. when $i^{d}$ and $i^{c}$ in Equations \eqref{eq:sub-b} and \eqref{eq:sub-e} are the same initially and increase at the same rate, hence leading to a local maximum.
+
+In order to address this problem, a heuristic was added to the implementation that resets one of the columns when it is too similar to another one. This similarity is measured as:
+
+\begin{equation}
+  \mathrm{sim}_{\mathbf{W}}(a,b) = \hat{\mathbf{W}}_{*,a}^{\intercal} \cdot \hat{\mathbf{W}}_{*,b}
+\end{equation}
+
+Where $a$ and $b$ are column indexes for a weight matrix $\mathbf{W}$, e.g. $\mathbf{W}^{b}$, and $\hat{\mathbf{W}}_{*,a}$ and $\hat{\mathbf{W}}_{*,b}$ are the normalized $a$-th and $b$-th columns of $\mathbf{W}$, respectively.
+
+The column pair with maximum similarity is identified every $N_{r}$ iterations and if the similarity is larger than a threshold $\delta$ then the first column is added to the second one, and the first one is restarted to random values as done in the initialization step. The expectation is that the reset column will learn different information with the new initialization values. Usually $N_{r} = 500$ and $\delta = 0.9$ was used.
+
 \subsection{Termination Criteria}
 
 The termination criteria for learning was the number of epochs, i.e. full passes over the data and noise samples.
@@ -64,7 +78,7 @@ This section presents the results obtained after learning the datasets from the 
   \item $\eta_{0}$ is 0.005 and $p = 0.1$ for the learning rate, without AdaGrad.
 \end{itemize}
 
-It is worth noting that the presented results for these experiments correspond to the best of multiple runs. It was observed that the learning algorithm does not always arrive to a good solution. This is because $g(\boldsymbol{\theta})$ is not a concave function and some initializations may lead to local maxima.
+It is worth noting that the presented results for these experiments correspond to the best of multiple runs. It was observed that the learning algorithm does not always arrive to a good solution. This is because $g(\boldsymbol{\theta})$ is not a concave function and some initializations lead to local maxima.
 
 \subsection{FLID: Two Landmarks}
 
@@ -150,6 +164,7 @@ The first experiment considers the stability of the optimization without AdaGrad
 \begin{itemize}
   \item $\eta_{0}$ is increased between $0.0005$ and $0.02$
   \item The learning is performed independently 8 times to obtain statistics on the results.
+  \item For these experiments the reset heuristic for columns was disabled to prevent sudden changes in the objective function due to the resets.
 \end{itemize}
 
 Figure \ref{fig:effects_eta_0} shows $g(\boldsymbol{\theta})$ during the optimization, each point corresponds to the mean value calculated after a given number of epochs and the error bars show the corresponding 95\% confidence interval for the mean.
@@ -161,9 +176,9 @@ Figure \ref{fig:effects_eta_0} shows $g(\boldsymbol{\theta})$ during the optimiz
   \label{fig:effects_eta_0}
 \end{figure}
 
-The results in figure \ref{fig:effects_eta_0} show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to instability, as discussed in section \ref{sec:adagrad}. Concretely, for $\eta_{0} \leq 0.01$ the learning is slow but stable, while for $\eta_{0} \geq 0.01$ the objective value converges quickly but oscillates significantly. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges and is stable, i.e. $\eta_{0} = 0.005$ however this is not always the case for real data.
+The results in figure \ref{fig:effects_eta_0} show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to instability, as discussed in section \ref{sec:adagrad}. Concretely, for $\eta_{0} \leq 0.01$ the learning is slow but stable, while for $\eta_{0} \geq 0.01$ the objective value converges quickly but oscillates across epochs. This oscillation is problematic because it breaks the guarantee that the objective value is better as the number of epochs increase. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges and is stable, i.e. $\eta_{0} = 0.005$ however this may not be always the case for real data.
 
-By contrast, figure \ref{fig:effects_adagrad} shows the objective function for $\eta_{0}$ between $0.005$ and $0.05$ after incorporating AdaGrad to the implementation. These results show that training with AdaGrad is stable for a larger range of $eta_0$.
+By contrast, figure \ref{fig:effects_adagrad} shows the objective function for $\eta_{0}$ between $0.005$ and $0.05$ after incorporating AdaGrad to the implementation. These results show that training with AdaGrad is stable for a larger range of $eta_0$ without sacrificing convergence speed.
 
 \begin{figure}
   \centering
@@ -172,7 +187,7 @@ By contrast, figure \ref{fig:effects_adagrad} shows the objective function for $
   \label{fig:effects_adagrad}
 \end{figure}
 
-Finally, figure \ref{fig:comparison_adagrad_ffldc_toy} shows a direct comparison between training with and without AdaGrad using the best values of $\eta_0$ for each configuration. In this figure both algorithms converge to an optimal value, however it also shows that training with AdaGrad converges significantly faster while mantaining a stable mean. These combined results indicate that using AdaGrad is the best strategy for learning the FFLDC model.
+Finally, figure \ref{fig:comparison_adagrad_ffldc_toy} shows a direct comparison between training with and without AdaGrad using the best values of $\eta_0$ for each configuration. In this figure both algorithms converge to an optimal value, however it also shows that training with AdaGrad converges significantly faster while mantaining a more stable mean. These combined results indicate that using AdaGrad is the best strategy for learning the FFLDC model.
 
 \begin{figure}
   \centering
@@ -185,21 +200,29 @@ Finally, figure \ref{fig:comparison_adagrad_ffldc_toy} shows a direct comparison
 
 The noise-to-data ratio $\nu$ is another hyperparameter for NCE learning, the recommendation is to have as many noise samples as computationally possible \citep{Gutmann12NCE}. In order to better understand the effect of $\nu$, an experiment was performed where different models for the dataset from Example \ref{sec:ffldc-toy} are learned with different values of $\nu$.
 
-In order to compare the models, the root mean squared error between the target distribution $P_{d}$, from Table \ref{tab:ffldc-toy-probs}, and the learned distribution $\hat{P}_{d}$ will be used. This is defined as:
+In order to compare the models, the Total Variation Distance (TVD) between the target distribution $P_{d}$, from Table \ref{tab:ffldc-toy-probs}, and the learned distribution $\hat{P}_{d}$ was used, intuitively this measures how good is the approximation of the learned model to the real distribution. This is defined as \citep[chap. 4]{levin2009markov}:
 
 \begin{equation}
-  \label{eq:rmse}
-  e_{rms} = \sqrt{\frac{\sum_{S \subseteq V}\left(P_{d}(S) - \hat{P}_{d}(S)\right)^{2}}{2^{|V|}}}
+  \label{eq:total_var}
+  \|P_{d} - \hat{P}_{d}\|_{TV}= \frac{1}{2}\sum_{S \subseteq V}|P_{d}(S) - \hat{P}_{d}(S)|
 \end{equation}
 
-The setting is the same as for the learning rate experiments, but with $\eta_{0} = 0.05$ and always using AdaGrad. The noise parameter $\nu$ was varied between $0.05$ and $3$.
+The setting is the same as for the learning rate experiments, but with $\eta_{0} = 0.05$ and always using AdaGrad. The noise parameter $\nu$ was varied between $0.5$ and $10$.
 
-The results for this experiment are shown in Figure \ref{fig:effects_noise_ffldc}. It shows that increasing the number of noise samples reduces the approximation error of the resulting model as expected, interestingly the results suggest that there is a threshold after which adding more noise does not have a significant effect on the results. Additionally, it can be seen that adding more noise samples reduces the error variability even though the mean remains the same.
+The results for this experiment are shown in Figure \ref{fig:effects_noise_ffldc}. It shows that increasing the number of noise samples reduces the variation distance of the resulting model as expected. However, it only decreases signficantly for small values of $\nu$, this may be because the number of epochs is not sufficient for larger $\nu$. This last assumption was tested by running another experiment with fixed $\nu = 10$ but increasing the number of epochs from 100 to 1500, the results are presented in Figure \ref{fig:effects_epochs_ffld}.
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{effects_noise_ffldc}
-  \caption{Approximation error for different values of $\nu$.}
+  \caption{Total variation distance for different values of $\nu$.}
   \label{fig:effects_noise_ffldc}
 \end{figure}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{effects_epochs_ffldc}
+  \caption{Total variation distance for different number of epochs.}
+  \label{fig:effects_epochs_ffld}
+\end{figure}
+
+Figure \ref{fig:effects_epochs_ffld} show that increasing the number of epochs can significantly improve the quality of the learned model. The decreasing distance indicates that it is possible for the NCE learning procedure to converge to the true distribution given sufficient noise samples and epochs.

@@ -197,53 +197,59 @@ Additionally, Figures \ref{fig:histogram_path_length_10} and \ref{fig:histogram_
 
 \section{Models}
 
-For the experiments, the FLID, FLDC and FFLDC models were used. The settings for these experiments will be presented in the next chapter along with the results. However, for all experiments the following implementation details were fixed:
+For the experiments, the FLID, FLDC and FFLDC models were used. For most of the experiments the following implementation details were fixed:
 
 \begin{itemize}
-  \item The data was split in 8 random folds, with 90\% of the data used for training and 10\% for testing in each.
+  \item The data was split in 8 random folds, with 87.5\% of the data used for training and 12.5\% for testing in each.
   \item The noise was generated using the log-modular model as described for the synthetic experiments.
+  \item AdaGrad was used and the $\eta_{0}$ was 1.
+  \item The number of epochs was 1000.
+  \item The noise-to-data ratio $\nu$ was 5.
 \end{itemize}
+
+If any experiment uses a different setting, it will be stated along with the results.
 
 \section{Baselines}
 \label{sec:baselines}
 
 This section describes the baseline models that were used as a comparison for the proposed models.
 
-\subsection{Markov Chain}
+\subsection{Markov}
 
-A Markov chain can be used to model the behavior of Flickr users, assuming that each user selects the next location to visit and photograph only based on the current location, i.e. the Markov property. This model depends on the transition probabilities between the different landmarks in the dataset, concretely $P(l_{t+1} = i \mid l_{t} = j)$ where $l_{t+1}$ represents the next location and $l_{t}$ the current one. These probabilities can be estimated by counting all the occurrence of the transitions in the dataset, i.e.
+A Markov chain can be used to model the behavior of Flickr users, assuming that each user selects the next location to visit and photograph only based on the current location, i.e. the Markov property. This model depends on the transition probabilities between the different landmarks in the dataset, concretely $P(l_{t+1} = i \mid l_{t} = j)$ where $l_{t+1}$ represents the next location and $l_{t}$ the current one. These probabilities can be estimated by counting all transitions in the dataset, i.e.
 
 \begin{equation}
-  \hat{P}(l_{t+1} = i \mid l_{t} = j) = \frac{N(i,j)}{N(j)}
+  \hat{P}(l_{t+1} = i \mid l_{t} = j) = \frac{N(i,j)}{N(*,j)}
 \end{equation}
 
-Where $N(i,j)$ is the number of times that the location $i$ was photographed immediately after location $j$, and $N(j)$ is the number of times that location $N(j)$ was photographed. This model was used successfully by \citet{Kurashima2010} with good results for recommending tourists routes for a city based on Flickr data, therefore it is a natural choice for comparison against the newly proposed models. A full path can be constructed by selecting a starting location and choosing the next one according to the highest transition probability, then repeating the procedure until a desired length is reached.
+Where $N(i,j)$ is the number of times that the location $i$ was photographed immediately after location $j$, and $N(*, j)$ is the number of times that any location was photographed after $j$. This model was used successfully by \citet{Kurashima2010} with good results for recommending tourists routes for a city based on Flickr data, therefore it is a natural choice for comparison against the newly proposed models. A full path can be constructed by selecting a starting location and choosing the next one according to the highest transition probability, then repeating the procedure until a desired length is reached.
 
 Note that this model can be estimated efficiently from data, its running time is $\mathcal{O}(|\mathcal{D}|)$.
 
-\subsection{Proximity Model}
+\subsection{Heuristic Markov}
 
-Another, possibly naive, model is to assume that users photograph the next closest location to their current one. This can be useful to model paths that are concentrated in certain areas, for example in the Zürich dataset many of the paths only visit locations in the center and users seldom take photographs at the Zoo and a landmark in the center on the same day.
+A strict Markov model can only consider one transition to make decisions, however a natural heuristic that can improve the quality of the model is to consider the complete path to avoid recommending locations that were already visited. This will be known as the Heuristic Markov model.
 
-Formally, this model defines a series of transition probabilities $P(l_{t+1} = i \mid l_{1 \dots t})$ which are inversely proportional to the distance of the last visited location, i.e.
-
-\begin{equation}
-  P(l_{t+1} = i \mid l_{1 \dots t}) \propto \frac{1}{d(i, l_{t})}
-\end{equation}
-
-Where $d(i, j)$ is the distance between locations $i$ and $j$. Contrary to the Markov chain model, the proximity model takes into account the complete history of locations, this information is used to avoid going back to a previously visited location. The complete model is then defined by:
+The transition probabilities are then defined as:
 
 \begin{equation}
-  \label{eq:proximity}
-  P(l_{t+1} = i \mid l_{1 \dots t}) \propto \begin{cases}
-    0 & \text{if}\ i \in l_{1 \dots t} \\
-    \frac{1}{d(i, l_{t})} & \text{otherwise}
+  P(l_{t+1} = i \mid l_{1 \dots t}) = \begin{cases}
+  0 & \text{if}\ i \in l_{1 \dots t} \\
+  \frac{N(i,j)}{N(*,j)} & \text{otherwise}
   \end{cases}
 \end{equation}
 
-This is a natural choice for a baseline model because it provides a very quick model that is not completely random, the probabilities in this model can be computed in $\mathcal{O}(|V|^{2})$ time, which is less than $|\mathcal{D}|$ for both datasets. To construct a path, the same procedure as for the Markov chain can be used.
+This heuristic is included to provide a more fair comparison to the set models, e.g. FLID, which consider all the other elements in the set when recommending an element to include.
 
-\subsection{Log-modular Distribution}
+\subsection{Proximity}
+
+Another, possibly naive, model is to assume that users photograph the next closest location to their current one. This can be useful to model paths that are concentrated in certain areas, for example in the Zürich dataset many of the paths only visit locations in the center and users seldom take photographs at the Zoo and a landmark in the center on the same day.
+
+Formally, this model defines a series of distance $d(i,j)$ calculated from the coordinates of elements $i$ and $j$. This can be used to predict paths that minimize the distance between elements. For example to predict the next element $s_{t+1}$ in a sequence $S_{t}$, the element closest to $s_{t}$ is selected, i.e. $s_{t+1} = \argmax_{i \notin S_{t}}(d(s_{t}, i))$.
+
+This is a natural choice for a baseline model because it provides a very quick model that is not completely random, the distances in this model can be computed in $\mathcal{O}(|V|^{2})$ time, which is less than $|\mathcal{D}|$ for both datasets. To construct a path, the same procedure as for the Markov chain can be used.
+
+\subsection{Log-modular}
 
 As described before, a log-modular model is the simplest log-submodular model which makes it a natural comparison for the FLID and FLDC models. The log-modular model can also be used with features by solving the linear system in Equation \eqref{eq:modular_features} to make it comparable to the FFLDC model.
 
@@ -254,24 +260,26 @@ This model is significantly different from the two previous baselines because it
 \section{Evaluation}
 \label{sec:evaluation}
 
-The evaluation of the models aims to assess their quality for the task of recommending additional locations to visit based on an initial set of locations that the user wants to visit. This recommendation can be structured as a path either directly from the output of the model, e.g. for the Markov chain case, or as a post-processing step, i.e. for the set based models.
+The evaluation of the models aims to assess their quality for the task of recommending additional locations to visit based on an initial set of locations that the user wants to visit. This recommendation can be structured as a path either directly from the output of the model, e.g. for the Markov chain case, or as a post-processing step, i.e. for the set based models. The evaluation procedure focuses on one-step recommendations which can be used both to construct a full path greedily or for an interactive system where the user requests a single location at each step.
 
-The evaluation task is to predict the next location in a sequence given its first $n$ elements, this can be constructed by creating partial paths of increasing size from the paths in the test dataset and withholding the last element in the partial sequence. Thus each path of length $k$ generates $k-1$ partial paths for testing. For example the path $1,5,6$, generates 2 partial paths, namely $1$ and $1,5$, and the elements  to predict are $5$ and $6$, respectively. Note that only paths of at least size 2 are used in the task.
+The evaluation task is to predict the missing location in a sequence given the other elements, both before and after. This can be constructed by removing one element at a time from the paths in the test dataset. Thus each path of length $k$ generates $k$ partial paths for testing with a missing element. For example the path $1,5,6$, generates 3 partial paths, namely $?,5,6$, $1,?,6$ and $1,5,?$. Note that only paths of at least size 2 are used in the task.
 
-After each model is trained with the corresponding training dataset, the predictions for each partial path $S_{t} = [s_{1}, \dots, s_{t}]$ are made as follows:
+After each model is trained with the corresponding training dataset, the predictions for each path $S_{t} = [s_{1}, \dots, s_{j-1}, s_{j+1}, \dots, s_{t}]$ where $S_{j}$ is missing, are made as follows:
 
 \begin{description}
-  \item[FLID, FLDC, FFLDC, Log-modular] The element with maximum probability, that is not already in the partial path is predicted, i.e. $\argmax_{i \notin S} P(S \cup \{i\})$ where $S$ is the set of the elements in the partial path $S_{t}$.
-  \item[Markov Chain] The element with the highest transition probability with respect to the last element in the partial path is predicted, i.e. $\argmax_{i} P(i \mid s_{t})$.
-  \item[Proximity] The element with the highest transition probability, i.e. minimum distance, with respect to the last element in the partial path is predicted, ignoring elements already in the sequence as defined in Equation \eqref{eq:proximity}.
+  \item[FLID, FLDC, FFLDC, Log-modular] The element with maximum probability, that is not already in the path is predicted, i.e. $\argmax_{i \notin S} P(S \cup \{i\})$ where $S$ is the set of the elements in the path $S_{t}$.
+  \item[Markov, Heuristic Markov] The element with the highest probability given $s_{j-1}$ and $s_{j+1}$ is predicted, i.e. $\argmax_{i} P(s_{j+1} \mid i)P(i \mid s_{j-1})$. When using the heuristic the prediction becomes, $\argmax_{i \notin S_{t}} P(s_{j+1} \mid i)P(i \mid s_{j-1})$
+  \item[Proximity] The element closest to $j-1$ and $j+1$ that is not already in the path is predicted, i.e. $\argmin_{i \notin S_{t}}d(j-1, i) + d(i, j+1)$.
 \end{description}
 
 The metric used for the quality of the predictions is overall accuraccy, i.e. the percentage of correct predictions. Formally, 
 
 \begin{equation}
-  Acc_{model} = \frac{1}{|\mathcal{T}|}\sum_{S_{t} \in \mathcal{T}}(\mathbb{I}_{\hat{s}_{t+1}, s_{t+1}})
+  Acc_{model} = \frac{1}{|\mathcal{T}|}\sum_{S_{t} \in \mathcal{T}}(\mathbb{I}_{s_{j}(i)})
 \end{equation}
 
-Where $\mathcal{T}$ is the set of all partial paths available for testing and $\mathbb{I}_{\hat{s}_{t+1}}$ is an indicator function that evaluates to 1 when the predicted element $\hat{s}_{t+1}$ is equal to the next element in the sequence $s_{t+1}$ and 0 otherwise.
+Where $\mathcal{T}$ is the set of all partial paths available for testing and $\mathbb{I}_{s_{j}}$ is an indicator function that evaluates to 1 when the predicted element $i$ is equal to the missing element in the sequence $s_{j}$ and 0 otherwise.
 
-Accuracy is the most used metric for recommender systems \citep{Herlocker2004} and it was the metric used by \citet{Kurashima2010} for evaluating single step recommendations in tourist routes. This accuracy metric also is similar to the leave-one-out procedured used by \citet{tschiatschek16learning} to evaluate the FLID model for product recommendation. Therefore, it is expected to provide a good assesment on the quality of the proposed models.
+Accuracy is the most used metric for recommender systems \citep{Herlocker2004} and it was the metric used by \citet{Kurashima2010} for evaluating single step recommendations in tourist routes, although they only perform forward evaluation because its dealing only with sequence models such as the Markov Chain. This accuracy metric also is similar to the leave-one-out procedured used by \citet{tschiatschek16learning} to evaluate the FLID model for product recommendation. Therefore, it is expected to provide a good assesment on the quality of the proposed models for this particular task while balancing the fact that some models work on paths and others deal with sets. However, the results present some cases where a different metric is required, namely the total variation distance.
+
+The accuracy results will be presented as the average of the various data folds with 95\% confidence intervals, unless stated otherwise.

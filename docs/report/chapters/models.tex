@@ -19,8 +19,6 @@ Adding the coherence term to FLID results in the extended model, which I refer t
   \label{eq:fldc}
 \end{equation}
 
-\subsection{Partition Function}
-
 For the FLDC model, the partition function can be computed in $\mathcal{O}(|V|^{L+K+1})$ time. This complexity can be derived using a similar algorithm as the one presented by \citet{tschiatschek16learning} for FLID, the key observation is that the algorithm they present only requires the ordering of weights to determine elegible element for a set given a set of maximum weights per dimension, therefore this can be easily extented to include the the ordering for the coherence weights as well. This requires evaluating $K$ more dimensions which results in the added term to the exponent of the complexity expression, which makes the computation of the partition function more impractical than in the FLID case.
 
 \subsection{Learning FLDC Models}
@@ -101,8 +99,6 @@ Where $a_{i}$ is the $i$-th entry of $\mathbf{a}$, $b_{k,d}$ is the $(k,d)$-th e
 \end{remark}
 
 The use of features also allows the application of the model to previously unseen elements, hence solving the aforementioned problem of generalization. This is possible because the model is defined on the space of features and not items, and for a previously unseen element $j$ only its representation $\mathbf{x}_{j}$ is required in order to evaluate the probability of sets containing this element.
-
-\subsection{Partition Function}
 
 The computation of the partition function for this model can be done using the fact that any FFLDC model can be transformed into an equivalent FLDC model through the factorizations in equations \eqref{eq:ffldc-factorization-1}-\eqref{eq:ffldc-factorization-3}. This transformation requires $\mathcal{O}(|V|M(L+K))$ time for the matrix multiplications, therefore the overall complexity of calculating the partition function for an FFLDC model is $\mathcal{O}(|V|M(L+K) + |V|^{L+K+1})$. This expression can be simplified to $\mathcal{O}(|V|^{L+K+1})$ because the exponential term is significantly larger assuming sensible values for $M$. Given that the complexity of computing the partition function for FFLDC is equivalent to the FLDC model, it is also intractable in practice.
 

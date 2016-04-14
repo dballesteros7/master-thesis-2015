@@ -3,13 +3,11 @@
 
 This chapter presents the supporting concepts and methods that will be used throughout this work.
 
-\section{Submodular Probability Set Functions}
+\section{Submodular Set Functions}
 
-As described before, probability models over sets are of great interest and can be applied to diverse settings. In particular, submodular probability set functions have been utilized in multiple domains, such as document summarization and information gathering \citep{krause14submodular}.
+Functions over sets are of great interest and can be applied to diverse settings. In particular, submodular set functions have been utilized in multiple domains, such as document summarization and information gathering \citep{krause14submodular}.
 
-Probability set functions are a class of distributions $P$ over subsets $S$ of a ground set $V$, i.e.  functions that satisfy $\forall S \subseteq V, P: 2^V \rightarrow \mathbb{R} \mid 0 \leq P(S) \leq 1$ and $\sum_{S \subseteq V} P(S) = 1$. These distributions can also be understood as probabilities over binary sequences $[a_{1}, \dots,a_{n}]$ of fixed size $n = |V|$ \citep{bruno99sets}. Hereby, w.l.o.g., let $V = \{1,\dots, n\}$.
-
-A set function $F:2^V \rightarrow \mathbb{R}$ is submodular if it exhibits a "diminishing returns" property \citep{krause14submodular}, namely if it satisfies:
+A set function is defined on the powerset $2^{V}$ of a ground set $V$, i.e. $F:2^{V} \rightarrow \mathbb{R}$ and it is submodular if it exhibits a "diminishing returns" property \citep{krause14submodular}, namely if it satisfies:
 
 \begin{equation}
   \label{eq:submod-condition}
@@ -17,9 +15,6 @@ A set function $F:2^V \rightarrow \mathbb{R}$ is submodular if it exhibits a "di
 \end{equation}
 
 Intuitively this indicates that adding an element to a smaller set yields a larger effect, i.e. in terms of the set function $F$ value, than adding it to a larger one. This is a natural property in the context of summarization where adding more information to a large summary can be less effective than adding it to a smaller one. This property also makes them good candidates for modeling the concept of diversity \citep{tschiatschek16learning}.
-
-\section{Supermodularity and Modularity}
-\label{sec:modular}
 
 Analogous to the use of submodular functions to model diversity, supermodular functions can be used to model complementarity or coherence between elements.
 
@@ -29,20 +24,19 @@ Finally, if a function $F$ is both submodular and supermodular, i.e. it satisfie
 
 \section{Probabilistic Log-sub/supermodular Models}
 
+Set functions may also express probability distributions, in which case they are known as Probability Set Functions. Formally, a set function $F$ is a probability set function if it satisfies that  $\forall S \subseteq V, P: 2^V \rightarrow \mathbb{R} \mid 0 \leq P(S) \leq 1$ and $\sum_{S \subseteq V} P(S) = 1$ \citep{bruno99sets}.
+
 This work is interested in a particular class of probability set functions, namely probabilistic log-submodular and log-supermodular models, which are probabilities $P(S)$ of the form \citep{djolonga14variational}:
 
 \begin{equation}
-  P(S) \propto \exp(F(S))
+  P(S) = \frac{1}{Z}\exp(F(S))
 \end{equation}
 
-Where $F(S)$ is a submodular or supermodular function, respectively. These models encompass many practical probabilistic models such as repulsive Ising models, Deterministic Point Processes (DPPs) and binary pairwise Markov Random Fields (MRFs) \citep{djolonga14variational, djolonga15scalable}.
+Where $F(S)$ is a submodular or supermodular function, respectively. \citet{djolonga14variational, djolonga15scalable} show that these models encompass many practical probabilistic models such as repulsive Ising models, Deterministic Point Processes (DPPs) and binary pairwise Markov Random Fields (MRFs).
 
 This model class is of interest because the contributions of this work focus on extensions to a novel probabilistic log-submodular model proposed by \citet{tschiatschek16learning} which will be described in the next section.
 
-\subsection{Partition Function}
-\label{sec:general-z}
-
-In log-submodular models the normalization constant $Z$ is known as the \textit{partition function} \citep{djolonga14variational}. $Z$ is necessary to fully determine the normalized model and compute quantities such as marginal probabilities, however its exact computation is known to be \#P-complete \citep{jerrum1990}. This makes it impossible in practice to perform such computations except for special cases of the model.
+The normalization constant $Z$ is also known as the \textit{partition function} and it is necessary to fully determine the normalized model and compute quantities such as marginal probabilities, however its exact computation is known to be \#P-complete in general\citep{jerrum1990}. This makes it impossible in practice to perform such computations except for special cases of the model.
 
 \section{Facility Location Diversity Model (FLID)}
 
@@ -79,9 +73,6 @@ Finally, the complete FLID model proposed by \citet{tschiatschek16learning} comb
   P(S) = \frac{1}{Z}\exp{\left(\sum_{i \in S}u_{i} + \sum_{d=1}^{L}\left(\max_{i \in S}{w^{b}_{i, d}} - \sum_{i \in S}{w^{b}_{i,d}}\right)\right)}
   \label{eq:flid}
 \end{equation}
-
-\subsection{Partition Function}
-\label{sec:flid-z}
 
 As mentioned before, the computation of the partition function is generally intractable for log-submodular models. However, for FLID this can be computed in time $\mathcal{O}(|V|^{L+1})$ which is polynomial on the size of the ground set and significantly better than the cost of enumerating the powerset of $V$, i.e. $\mathcal{O}(2^{|V|})$ \citep{tschiatschek16learning}. Nevertheless, it is worth noting that this complexity is exponential in $L$ which means that the partition function computation is only pratical for a limited range of FLID models, namely those with $L \ll |V|$.
 
@@ -171,15 +162,18 @@ g(\boldsymbol{\theta}) = \sum_{S \in \mathcal{D}}{\log{P(Y_{s} = 1 \mid S;\bolds
 
 This maximization can be performed using a gradient-based optimization method such as Stochastic Gradient Descent (SGD).
 
-\subsubsection{Practical Considerations}
-\label{sec:nce-practical}
+\subsubsection{Theoretical Considerations}
+\label{sec:nce-theoretical}
 
-A couple of considerations are necessary for obtaining good estimates with NCE \citep{Gutmann12NCE}:
+A couple of theoretical conditions are necessary for obtaining good estimates with NCE \citep{Gutmann12NCE}:
 
 \begin{enumerate}
   \item The parameterized probability function $\hat{P}_{d}(S;\theta)$ must be of the same family as the real distribution $P_{d}$, i.e. $\exists \boldsymbol{\theta}^{*} \mid \hat{P}_{d}(S;\boldsymbol{\theta}^{*}) = P_{d}$.
   \item The noise distribution $P_{n}$ is nonzero whenever $P_{d}$ is nonzero.
 \end{enumerate}
+
+\subsubsection{Practical Considerations}
+\label{sec:nce-practical}
 
 Additionally, the following statements must be considered when choosing the noise distribution $P_{n}$ \citep{Gutmann12NCE}:
 
