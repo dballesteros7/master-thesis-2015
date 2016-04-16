@@ -106,7 +106,7 @@ Much of the interest in log-submodular models is concentrated on performing infe
 \subsection{Learning Log-modular Models}
 \label{sec:learning_modular}
 
-A special case of log-submodular models where the parameters can be estimated efficiently using Maximum Likelihood Estimation (MLE) is the log-modular model presented in Equation \eqref{eq:modular}. For this basic model, it is possible to estimate the utilities $\mathbf{u}$ through the maximum likelihood estimator for the marginals $\hat{P}(i \in S)$. These marginals are given by\footnote{Refer to the appendix for the derivation of these equations.}:
+A special case of log-submodular models where the parameters can be estimated efficiently using Maximum Likelihood Estimation (MLE) is the log-modular model presented in Equation \eqref{eq:modular}. For this basic model, it is possible to estimate the utilities $\mathbf{u}$ through the maximum likelihood estimator for the marginals $\hat{P}(i \in S)$. These marginals are given by:
 
 \begin{equation}
 P(i \in S) = \frac{1}{1 + \exp(-u_{i})}
@@ -241,4 +241,10 @@ It is worth noting that AdaGrad does not incur in an significant increase in run
 
 \section{Mean-shift Clustering}
 
-TODO
+Mean-shift clustering is a technique proposed by \citet{cheng1995mean}, it is commonly used for image segmentation tasks \citep{comaniciu2002mean}. However, as proposed by \citet{Kleinberg2009}, it can also be used for the task of identifying highly photographed locations in an image collection.
+
+It is a non-parametric technique for locating the modes of a probability distribution over a feature space, this works by using Kernel Density Estimation (KDE) to estimate the gradient of the underlying distribution from the data and then performing a mean-shift procedure to identify the local maxima or modes, this is also known as hill-climbing. This can be naturally applied to a collection of geotagged photos by considering the feature space of latitude and longitude coordinates.
+
+This approach assumes that there is an underlying distribution where the modes are locations of interest or landmarks where many of the photos were taken. Mean-shift has an advantage over other clustering techniques such as k-means for this problem, because the bandwidth used for the kernel has a physical meaning, namely it defines the radius of the area around each landmark.
+
+

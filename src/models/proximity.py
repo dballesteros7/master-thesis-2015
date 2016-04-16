@@ -7,11 +7,10 @@ from utils import file
 
 
 class Proximity:
-    def __init__(self, n_items: int, use_rejection: bool):
+    def __init__(self, n_items: int):
         self.n_items = n_items
         self.distances = np.zeros(shape=(n_items, n_items))
         self.distance_calculator = great_circle()
-        self.use_rejection = use_rejection
 
     def train(self, items: Iterable[Dict]):
         for index, item in enumerate(items):
@@ -33,15 +32,22 @@ class Proximity:
         else:
             min_distances = np.copy(self.distances[to_complete[missing_index + 1], :]) + np.copy(self.distances[to_complete[missing_index - 1], :])
         to_complete.remove('?')
-        if self.use_rejection:
-            min_distances[to_complete] = np.inf
+        min_distances[to_complete] = np.inf
+        sorted_indexes = np.argsort(min_distances)
+        return sorted_indexes
+
+    def propose_set_item_unordered(self, to_complete):
+        to_complete.remove('?')
+        to_complete = [int(item) for item in to_complete]
+
+        min_distances = np.sum(self.distances[to_complete, :], axis=0)
         sorted_indexes = np.argsort(min_distances)
         return sorted_indexes
 
 
 def train_and_evaluate(dataset_name: str, n_items: int):
-    for rejection in [False, True]:
-        model = Proximity(n_items, use_rejection=rejection)
+    for ordered in [False, True]:
+        model = Proximity(n_items)
         items = []
         with open(constants.ITEMS_DATA_PATH_TPL.format(
                 dataset=dataset_name), 'r') as items_file:
@@ -58,13 +64,16 @@ def train_and_evaluate(dataset_name: str, n_items: int):
             loaded_test_data = file.load_csv_test_data(
                     constants.PARTIAL_DATA_PATH_TPL.format(
                         fold=fold, dataset=dataset_name))
-            model_name = 'proximity_r' if rejection else 'proximity'
+            model_name = 'proximity_ordered' if ordered else 'proximity'
             target_path = constants.RANKING_MODEL_PATH_TPL.format(
                 dataset=dataset_name, fold=fold,
                 model=model_name)
             with open(target_path, 'w') as output_file:
                 for subset in loaded_test_data:
-                    result = model.propose_set_item(subset)
+                    if ordered:
+                        result = model.propose_set_item(subset)
+                    else:
+                        result = model.propose_set_item_unordered(subset)
                     output_file.write(','.join(str(item) for item in result))
                     output_file.write('\n')
 

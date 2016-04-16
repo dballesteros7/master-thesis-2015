@@ -7,11 +7,11 @@ Diversity is an important property in the context of summarization \citep{tschia
 
 To better understand why coherence is important, consider the construction of a spatial summary for photos taken in a city. A model based on spatial diversity would create sets containing photos taking at distant locations in the city, however another possibility is to have summaries that contain photos that were taken close to some starting point, in this case the desired property is not spatial diversity but rather coherence.
 
-Therefore, a natural extension to the FLID model is to add the capacity of modeling coherence along with diversity. I propose the addition of a log-supermodular term analogous to the log-submodular term \eqref{eq:diversity} in order to model the complementarity between elements.
+Therefore, a natural extension to the FLID model is to add the capacity of modeling coherence along with diversity. We propose the addition of a log-supermodular term analogous to the log-submodular term \eqref{eq:diversity} in order to model the complementarity between elements.
 
 This supermodular term introduces a representation of the elements using $K$-dimensional vectors $\mathbf{w}^{K} \in \mathbb{R}^{K}_{\geq 0}$, where each dimension $1 \leq c \leq K$ captures a concept that relates to set coherence and $w_{i,c}$ quantifies the contribution of each element $i$ to each coherence concept $c$. The coherence of a set $S$ with respect to each concept $c$ is quantified as $\sum_{i \in S}{w^{e}_{i,c}} - \max_{i \in S}{w^{e}_{i,c}}$ which is a supermodular term mirroring the submodular term in FLID. Summing over all the concepts results in the proposed coherence term. Hereby, define $\mathbf{W}^{e} \in \mathbb{R}^{|V| \times K}_{\geq 0}$ as the matrix where the $i$-th row is the representation $\mathbf{w}^{e}$ of element $i$.
 
-Adding the coherence term to FLID results in the extended model, which I refer to as the Facility Location Diversity and Coherence (FLDC) model. Its probability distribution is defined as:
+Adding the coherence term to FLID results in the extended model, which we refer to as the Facility Location Diversity and Coherence (FLDC) model. Its probability distribution is defined as:
 
 \begin{equation}
   \tag{FLDC}
@@ -70,7 +70,7 @@ Concretely, the weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ in Figure \ref{
 
 An important characteristic of the FLID model, and by extension the FLDC one, is that it is agnostic to the type of elements in the ground set, this allows its application to a wide range of problems without prior knowledge. However the downside is that the model has no capability to make use of information about the elements, if available, to improve the modeling of the data. Moreover, if a new element is added to the set there is no way to generalize the existing knowledge about similar elements.
 
-In order to solve these problems, I propose a further extension to the model. Firstly, an element ($i \in V$) is represented as a vector $\mathbf{x}_{i} \in \mathbb{R}^{M}$ where each entry is a feature, e.g. for venues one feature could be its aggregated rating while another indicates whether it is indoors or outdoors. The representations of all elements is collected by matrix $\mathbf{X} \in \mathbb{R}^{|V| \times M}$ where each row $i$ corresponds to the repreesntation $\mathbf{x}_{i}$ of element $i$.
+In order to solve these problems, we propose a further extension to the model. Firstly, an element ($i \in V$) is represented as a vector $\mathbf{x}_{i} \in \mathbb{R}^{M}$ where each entry is a feature, e.g. for venues one feature could be its aggregated rating while another indicates whether it is indoors or outdoors. The representations of all elements is collected by matrix $\mathbf{X} \in \mathbb{R}^{|V| \times M}$ where each row $i$ corresponds to the repreesntation $\mathbf{x}_{i}$ of element $i$.
 
 Then, the utility vector $\mathbf{u}$ and weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ are factorized to include this feature matrix $\mathbf{X}$ as follows:
 
@@ -83,7 +83,7 @@ Then, the utility vector $\mathbf{u}$ and weight matrices $\mathbf{W}^{b}, \math
 
 Where $\mathbf{a} \in \mathbb{R}^{M}$ represents the contribution of each feature to the total utility of an item, while $\mathbf{B} \in \mathbb{R}^{M \times L}$ and $\mathbf{E} \in \mathbb{R}^{M \times K}$ encode the contribution of each feature to each latent diversity and coherence dimension, respectively. The intuition behind this factorization is that the information about the items can enhance the latent representations, hence producing a richer model. For example if $M < |V|$ and the features are sufficient to represent the items, it is expected that learning will be easier because of the reduced number of parameters with respect to learning the equivalent FLDC model.
 
-I refer to the extended model as the Featurized Facility Location Diversity and Coherence (FFLDC) model and its probability distribution is defined as:
+We refer to the extended model as the Featurized Facility Location Diversity and Coherence (FFLDC) model and its probability distribution is defined as:
 
 \begin{align}
   \tag{FFLDC} \label{eq:ffldc}

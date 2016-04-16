@@ -83,6 +83,21 @@ class GeneralFeatures:
             self.distribution[subset] /= sum
         return self.distribution
 
+    def exact_logz(self):
+        sum = 0.0
+        for length in range(0, self.n_items + 1):
+            for subset in combinations(range(self.n_items), length):
+                sum += np.exp(self(list(subset)) - self.n_logz)
+        return np.log(sum)
+
+    def log_likelihood(self, test_dataset):
+        logz = self.exact_logz()
+        sum = 0.0
+        for subset in test_dataset:
+            subset = [int(x) for x in subset]
+            sum += self(subset) - self.n_logz - logz
+        return sum
+
     def propose_set_item(self, to_complete: np.ndarray) -> np.ndarray:
         gains = np.zeros(self.n_items)
 
@@ -191,17 +206,17 @@ def load_and_evaluate(dataset_name: str, n_items: int,
 
 
 def main():
-    n_items = 10
-    dataset_name = constants.DATASET_NAME_TPL.format('10_no_singles')
+    n_items = 100
+    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
     features = IdentityFeatures(dataset_name, n_items=n_items,
                                 m_features=n_items)
     features.load_from_file()
-    for l_dim in np.arange(0, 11, 1):
-    #     for k_dim in np.arange(0, 11, 1):
-    #l_dim = 10
-        k_dim = 00
-        load_and_evaluate(dataset_name, n_items, features, l_dim,
-                          k_dim, 1000, 5, 1, 1)
+    for l_dim in np.arange(5, 35, 5):
+        for k_dim in np.arange(5, 35, 5):
+    # l_dim = 20
+    # k_dim = 30
+            load_and_evaluate(dataset_name, n_items, features, l_dim,
+                              k_dim, 1000, 5, 0.1, 1)
 
 if __name__ == '__main__':
     main()

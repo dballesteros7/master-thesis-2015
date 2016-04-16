@@ -16,14 +16,15 @@ from utils import file
 
 
 def scores_baselines():
-    modular_results = rank_results_pandas('path_set_10_no_singles', 'modular_features_0', 0)
-    markov_results = rank_results_pandas('path_set_10_no_singles', 'markov', 0)
-    pseudo_markov_results = rank_results_pandas('path_set_10_no_singles', 'pseudo_markov', 0)
-    proximity_results = rank_results_pandas('path_set_10_no_singles', 'proximity_r', 0)
-    #flid_results = rank_results_pandas('path_set_10_no_singles', 'submod_f_0_l_10_k_10_iter_1000_noise_5_eta_1_adagrad_1', 0)
+    dataset_name = 'path_set_10_no_singles'
+    modular_results = rank_results_pandas(dataset_name, 'modular_features_0', 0)
+    markov_results = rank_results_pandas(dataset_name, 'markov', 0)
+    pseudo_markov_results = rank_results_pandas(dataset_name, 'pseudo_markov', 0)
+    proximity_results = rank_results_pandas(dataset_name, 'proximity', 0)
+    proximity_ordered_results = rank_results_pandas(dataset_name, 'proximity_ordered', 0)
 
-    results_column = np.concatenate((modular_results, pseudo_markov_results, pseudo_markov_results, proximity_results))
-    model_column = np.repeat(['Log-modular', 'Markov', 'Heuristic Markov', 'Proximity'], constants.N_FOLDS)
+    results_column = np.concatenate((modular_results, markov_results, pseudo_markov_results, proximity_results, proximity_ordered_results))
+    model_column = np.repeat(['Log-modular', 'Markov', 'Heuristic Markov', 'Proximity', 'Proximity Ordered'], constants.N_FOLDS)
 
     dataset = pd.DataFrame({
         'scores': 100 * results_column,
@@ -75,6 +76,64 @@ def score_flids_varying_l():
 
     plt.show()
 
+def log_likelihood_flid():
+    l_range = np.arange(0, 11, 5)
+    k_range = np.arange(0, 11, 5)
+
+    l_column = []
+    k_column = []
+    ll_column = []
+    dataset_name = 'path_set_10_no_singles'
+
+    features = IdentityFeatures(dataset_name, 10, 10)
+    features.load_from_file()
+    for fold in range(1, constants.N_FOLDS + 1):
+        loaded_test_data = file.load_csv_test_data(
+                    constants.TEST_DATA_PATH_TPL.format(
+                        fold=fold, dataset=dataset_name))
+        modular = ModularWithFeatures(10, features.as_array())
+        modular.train(file.load_csv_test_data(
+            constants.TRAIN_DATA_PATH_TPL.format(
+                fold=fold, dataset=dataset_name)))
+        ll_modular = modular.log_likelihood(loaded_test_data)
+        for l_dim in l_range:
+            for k_dim in k_range:
+                model = GeneralFeatures(10, features.as_array(), l_dim, k_dim)
+                model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+                    dataset=dataset_name, fold=fold, l_dim=l_dim, k_dim=k_dim,
+                    index=features.index, iter=1000,
+                    noise=5, eta_0=1, adagrad=1))
+
+                ll = model.log_likelihood(loaded_test_data)
+                l_column.append(l_dim)
+                k_column.append(k_dim)
+                llri = 100*(ll - ll_modular) / abs(ll_modular)
+                ll_column.append(llri)
+
+    dataset = pd.DataFrame({
+        'll': ll_column,
+        'l': l_column,
+        'k': k_column
+    })
+    print(dataset.groupby(['l', 'k'])['ll'].std())
+    dataset = dataset.groupby(['l', 'k'])['ll'].mean().unstack(1)
+
+    ax = sns.heatmap(dataset, vmin=-10, vmax=10, annot=True, fmt='.2f',
+                     linewidths=.5)
+    ax.set_xlabel('$K$')
+    ax.set_ylabel('$L$')
+    #ax.set_ylabel(r'Accuracy (\%)')
+    ax.set_title('LLRI')
+    #ax.set_ylim([0, 45])
+
+    # modular_mean = 100*np.mean(rank_results_pandas(dataset_name, 'modular_features_0', 0))
+    # plt.plot(ax.get_xlim(), [modular_mean, modular_mean], linestyle='dotted')
+    #
+    plt.savefig(os.path.join(
+        constants.IMAGE_PATH, 'flid_10_llri.eps'),
+        bbox_inches='tight')
+
+    plt.show()
 
 def score_flids_varying_l_k():
     l_range = np.arange(0, 11, 2)
@@ -175,17 +234,23 @@ def total_distance():
         'l': l_dim_column,
         'k': k_dim_column
     })
+    result = dataset.groupby(['l', 'k'])['scores'].mean()
+    print(dataset.groupby(['l', 'k'])['scores'].std())
+    dataset = result.unstack(1)
 
-    ax = sns.barplot(x='l', y='scores', hue='k', data=dataset, ci=95,
-                     palette=sns.color_palette('Set1'))
-    ax.set_xlabel('$L$')
-    ax.set_ylabel(r'$\|P_{d} - \hat{P}_{d}\|_{TV}$')
-    ax.set_title('Total variation distance for FLDC models.')
+    cmap = sns.cubehelix_palette(8, start=1.8, light=0.8, as_cmap=True)
+    ax = sns.heatmap(dataset, cmap=cmap, vmin=0, vmax=0.5, linewidths=.5,
+                     annot=True, fmt='.2f')
+    # ax = sns.barplot(x='l', y='scores', hue='k', data=dataset, ci=95,
+    #                  palette=sns.color_palette('Set1'))
+    ax.set_xlabel('$K$')
+    ax.set_ylabel(r'$L$')
+    ax.set_title(r'$\|P_{d} - \hat{P}_{d}\|_{TV}$')
 
-    legend = ax.get_legend()
-    legend.set_title('$K$')
-
-    plt.plot(ax.get_xlim(), [baseline, baseline], linestyle='dotted')
+    # legend = ax.get_legend()
+    # legend.set_title('$K$')
+    #
+    # plt.plot(ax.get_xlim(), [baseline, baseline], linestyle='dotted')
     plt.savefig(os.path.join(
         constants.IMAGE_PATH, 'fldc_10_l_k_dims_tv.eps'),
         bbox_inches='tight')
@@ -195,6 +260,7 @@ if __name__ == '__main__':
     plots.setup()
     sns.set_palette(sns.color_palette('Set1'))
     #scores_baselines()
-    score_flids_varying_l()
+    #score_flids_varying_l()
     #score_flids_varying_l_k()
     #total_distance()
+    log_likelihood_flid()

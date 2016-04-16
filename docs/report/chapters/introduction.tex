@@ -1,8 +1,29 @@
 \chapter{Introduction}
 \label{sec:introduction}
 
-Motivation (tourist routes and summarization), and quick idea of the methodology.
+The amount of information available on the internet is staggering, even conducting a simple search for \textit{St Peter's Basilica} can turn up millions of results. Fortunately, search engines ensure the first results are the most relevants and often times all we need to look at. However, this may not be true for all types of searches.
 
-\section{Contributions}
+Imagine a person planning their a trip to Rome for two days. Where to start? Suppose they start searching for attractions to visit or things to do. A popular site for this kind of search is \textit{tripadvisor} which shows over 2000 attractions and activities along with user reviews and recommendations, clearly it is impossible for someone to go through all these results so picking the top results and filtering for some type of activities is a good strategy. Afterwards, they must find the location of each place and organize them in a schedule considering travel times and visit times, all to fit many attractions in a short time. This certainly sounds like a complicated endeavor.
 
-Summarization of contributions.
+An alternative would be to find a curated itinerary that contains all the places to visit and in which order. There are many for Rome since it is such a touristic city, but what about smaller cities? Could it be possible to produce such itineraries in an automatic fashion, such that it can be scaled to multiple cities?
+
+This is a complex problem with various questions to answer. How to obtain data about a city that is available regardless of size or popularity? How to extract meaningful information about locations and activities from such data? How to select a subset of those locations and activities that are of interest for a particular user and present it in an organized manner?
+
+We focus on a particular use case for this problem. Consider a user that is planning a single day trip and maybe knows some attractions that they definitely want to visit, however they would like to see more than that. Therefore, a method is needed that can complete or propose a set of attractions to be visited in a city, this should be generated automatically from data so that it can be applied to different cities. This addresses all the questions presented before although it excludes the problems of scheduling based on travel and visit times, which could be done as a post-processing step given the sets of locations.
+
+Photographies of a place are usually an important factor when selecting destinations, and it can influence the perception that a visitor has of a place. When a tourist takes a photo of some location and uploads it to the internet, they are giving it an implicit value  \citep{Donaire2014}. Several authors have used internet photo collections for the task of tourist route planning and recommendation. This is why we chose photos as the starting point for identifying popular attractional, in particular geo-tagged photos are of interest because they can be directly associated with a place.
+
+One source for these photos is Flickr, a popular site where users can upload and manage their photos for free. Having over 92 million users among 63 countries makes Flickr an excellent source of photos for many locations around the world, it was reported back in 2014 that around 1 million photos were shared every day \footnote{\url{http://techcrunch.com/2014/02/10/flickr-at-10-1m-photos-shared-per-day-170-increase-since-making-1tb-free/}}. Many of the photos in Flickr are public and available through an API which allows researchers to collect and analyze this data.
+
+The next step after data collection is to translate it into information and this is related to the problem of summarization. Although more commonly addressed in the context of documents, summarization techniques aim to extract information from large scale datasets and present it in a condensed manner that can be easily understood by a user. One particular kind of model that has been used recently are submodular set functions, which are a natural fit for modeling diversity, an often desired property of summaries. This work studies a submodular model known as FLID proposed by \citet{tschiatschek16learning} which was used for image collection summarization and product recommendation from Amazon data, we extend it and show how this can be also applied for the problem of recommending routes for tourists.
+
+The contributions of this work are:
+
+\begin{itemize}
+  \item Proposing a super-modular extension to the FLID model to improve its ability for estimating probability distributions.
+  \item Proposing an extension to the FLID model able to generalize through feature representations.
+  \item Exploring the behavior of NCE learning for the FLID model and its extensions, and the effect of different parameters in the learning results.
+  \item Presenting an application of the proposed models to solve a recommendation task for touristic locations in a city.
+\end{itemize}
+
+The remainder chapters are organized as follows, Chapter \ref{sec:related_work} describes the existing literature and methods for the problems of summarization of image collections and tourist route recommendation based on geotagged photos, as well as other applications of submodular models. Chapter \ref{sec:background} explains in detail the existing models and techniques used throughout this work. Chapter \ref{sec:models} introduces the proposed models and their characteristics, then Chapter \ref{sec:synthetic} shows how they can be learned from data and the performance of the learning method. Chapter \ref{sec:experimental_setup} describes the methods used for the task of recommending tourist locations and how the proposed models were applied to real data, the results of the experiments are then presented and discussed in Chapter \ref{sec:results}. Finally, Chapter \ref{sec:conclusion} summarizes this work and presents some conclusions and future directions.

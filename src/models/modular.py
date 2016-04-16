@@ -80,6 +80,21 @@ class ModularWithFeatures:
             self.distribution[subset] /= prob_sum
         return self.distribution
 
+    def exact_logz(self):
+        sum = 0.0
+        for length in range(0, self.n_items + 1):
+            for subset in combinations(range(self.n_items), length):
+                sum += np.exp(self(list(subset)) + self.logz)
+        return np.log(sum)
+
+    def log_likelihood(self, test_dataset):
+        logz = self.exact_logz()
+        sum = 0.0
+        for subset in test_dataset:
+            subset = [int(x) for x in subset]
+            sum += self(subset) + self.logz - logz
+        return sum
+
     def propose_set_item(self, to_complete: Iterable[int]) -> Iterable[int]:
         utilities = np.copy(self.utilities)
         utilities[to_complete] = -np.inf

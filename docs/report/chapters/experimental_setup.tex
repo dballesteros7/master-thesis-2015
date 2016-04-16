@@ -7,7 +7,7 @@ These tourist paths can be discovered from a large collection of geotagged image
 
 \section{Flickr Dataset}
 
-For the experiments on real data, public geotagged photos from Flickr were used. There are close to two million geo-tagged photos available on Flickr\footnote{https://www.flickr.com/map reports 1,833,307 geotagged photos as of April 9th, 2016.}, this offers an unique and rich dataset for the problem of spatial summarization. But as described before, this work focuses on the city level. Therefore, the experiments were performed on a subset of the Flickr data, namely on public geotagged photos taken within Zürich, Switzerland.
+For the experiments on real data, public geotagged photos from Flickr were used. There are close to two million geo-tagged photos available on Flickr\footnote{https://www.flickr.com/map reports 1,833,307 geotagged photos as of April 2016.}, this offers an unique and rich dataset for the problem of spatial summarization. But as described before, this work focuses on the city level. Therefore, the experiments were performed on a subset of the Flickr data, namely on public geotagged photos taken within Zürich, Switzerland.
 
 The Flickr API\footnote{\url{https://www.flickr.com/services/api/}} provides multiple functions to explore and use the data, in particular the search endpoint allows developers to retrieve photo records according to a specific criteria. Each photo record contains the following information:
 
@@ -39,16 +39,7 @@ Most of these properties can be used to filter the search results, for collectin
   \label{fig:zurich_bb}
 \end{figure}
 
-The API sets some limitations on the search function, namely it does not allow more than 3600 requests per hour and it restricts the search results to the first 4000 records. This means that it was not possible to issue a single search request with the outlined criteria, instead the retrieval was done over the course of several hours though single month queries. This ensured that each query had less than 4000 results, hence retrieving all the available records.
-
-This search yielded 168608 photos taken by 6159 users. Figure \ref{fig:random_photos} shows a random sample of these photos.
-
-\begin{figure}
-  \centering
-  TODO: COLLAGE
-  \caption{A random sample of the photos available in the dataset for Zürich.}
-  \label{fig:random_photos}
-\end{figure}
+The API sets some limitations on the search function, namely it does not allow more than 3600 requests per hour and it restricts the search results to the first 4000 records. This means that it was not possible to issue a single search request with the outlined criteria, instead the retrieval was done over the course of several hours though single month queries. This ensured that each query had less than 4000 results, hence retrieving all the available records. This search yielded 168608 photos taken by 6159 users.
 
 Figure \ref{fig:heatmap_zurich} shows the distribution of photos taken in 2015. The majority of them is concentrated at the city center also around locations of interest outside the center like Uetliberg, Oerlikon and the Zoo. This indicates that the dataset contains good information regarding the places to visit and take photographs in Zürich. Figure \ref{fig:heatmap_zurich_zoom} shows zoomed in areas around the city showing that the data is mostly concentrated in touristic places like the historic center, where Fraumünster, Grossmünster and the city hall are.
 
@@ -100,7 +91,7 @@ The photos collected in the previous section were used to identify the important
 
 \citet{Kleinberg2009} define the problem of finding highly-photographed locationes as a clustering problem in a two-dimensional feature space, namely the space defined by the spatial coordinates of each photo. The clustering method used for this problem is mean-shift clustering, which was described in the background section.
 
-Scikit\footnote{\url{http://scikit-learn.org/stable/}} was used for the mean-shift clustering implementation. The clustering was performed on the complete photo dataset with the unnormalized latitude and longitude features using a uniform disc as the kernel. The kernel bandwidth was 0.001 degrees which approximately represents a radius of 100m without significant errors for the geographic scale of Zürich.
+Scikit\footnote{\url{http://scikit-learn.org/stable/}} was used for the mean-shift clustering implementation. The clustering was performed on the complete photo dataset with the unnormalized latitude and longitude features using a gaussian kernel. The kernel's bandwidth was 0.001 degrees which approximately represents a radius of 100m without significant errors for the geographic scale of Zürich.
 
 The clustering procedure yielded 2686 clusters covering 137019 photos, the left over photos represent outliers that are not inside any of the resulting kernels. Figure \ref{fig:photos_per_clusters} displays a histogram of photos per cluster, it shows that over half of the clusters only contain one or two photos. This indicates that many of the clusters are actually not landmarks or highly photographed places, so in order to concentrate the model around the most interesting locations only the top $N$ clusters sorted by the number of photos were used.
 
@@ -202,7 +193,7 @@ For the experiments, the FLID, FLDC and FFLDC models were used. For most of the 
 \begin{itemize}
   \item The data was split in 8 random folds, with 87.5\% of the data used for training and 12.5\% for testing in each.
   \item The noise was generated using the log-modular model as described for the synthetic experiments.
-  \item AdaGrad was used and the $\eta_{0}$ was 1.
+  \item AdaGrad was used and $\eta_{0}$ was 1 and 0.1 for the small and large datasets, respectively.
   \item The number of epochs was 1000.
   \item The noise-to-data ratio $\nu$ was 5.
 \end{itemize}
@@ -269,7 +260,8 @@ After each model is trained with the corresponding training dataset, the predict
 \begin{description}
   \item[FLID, FLDC, FFLDC, Log-modular] The element with maximum probability, that is not already in the path is predicted, i.e. $\argmax_{i \notin S} P(S \cup \{i\})$ where $S$ is the set of the elements in the path $S_{t}$.
   \item[Markov, Heuristic Markov] The element with the highest probability given $s_{j-1}$ and $s_{j+1}$ is predicted, i.e. $\argmax_{i} P(s_{j+1} \mid i)P(i \mid s_{j-1})$. When using the heuristic the prediction becomes, $\argmax_{i \notin S_{t}} P(s_{j+1} \mid i)P(i \mid s_{j-1})$
-  \item[Proximity] The element closest to $j-1$ and $j+1$ that is not already in the path is predicted, i.e. $\argmin_{i \notin S_{t}}d(j-1, i) + d(i, j+1)$.
+  \item[Proximity] Using the unordered set $S$ of the elements in $S_{t}$, predict the element closest to all elements in the set, i.e. $\argmin_{i \notin S} \sum_{j \in S}d(i, j)$.
+  \item[Proximity Ordered] Similar to the previous model, but considering the order. The element closest to $j-1$ and $j+1$ that is not already in the path is predicted, i.e. $\argmin_{i \notin S_{t}}d(j-1, i) + d(i, j+1)$.
 \end{description}
 
 The metric used for the quality of the predictions is overall accuraccy, i.e. the percentage of correct predictions. Formally, 
@@ -280,6 +272,12 @@ The metric used for the quality of the predictions is overall accuraccy, i.e. th
 
 Where $\mathcal{T}$ is the set of all partial paths available for testing and $\mathbb{I}_{s_{j}}$ is an indicator function that evaluates to 1 when the predicted element $i$ is equal to the missing element in the sequence $s_{j}$ and 0 otherwise.
 
-Accuracy is the most used metric for recommender systems \citep{Herlocker2004} and it was the metric used by \citet{Kurashima2010} for evaluating single step recommendations in tourist routes, although they only perform forward evaluation because its dealing only with sequence models such as the Markov Chain. This accuracy metric also is similar to the leave-one-out procedured used by \citet{tschiatschek16learning} to evaluate the FLID model for product recommendation. Therefore, it is expected to provide a good assesment on the quality of the proposed models for this particular task while balancing the fact that some models work on paths and others deal with sets. However, the results present some cases where a different metric is required, namely the total variation distance.
+Accuracy is the most used metric for recommender systems \citep{Herlocker2004} and it was the metric used by \citet{Kurashima2010} for evaluating single step recommendations in tourist routes, although they only perform forward evaluation because its dealing only with sequence models such as the Markov Chain. This accuracy metric also is similar to the leave-one-out procedured used by \citet{tschiatschek16learning} to evaluate the FLID model for product recommendation. Therefore, it is expected to provide a good assesment on the quality of the proposed models for this particular task while balancing the fact that some models work on paths and others deal with sets. The accuracy results will be presented as the average of the various data folds with 95\% confidence intervals, unless stated otherwise.
 
-The accuracy results will be presented as the average of the various data folds with 95\% confidence intervals, unless stated otherwise.
+An alternative metric is the log-likelihood relative improvement (LLRI) as proposed by \citet{tschiatschek16learning}. This measures the model fit on the test dataset and indicates its relative improvement over the log-likelihood of the log-modular model. Formally,
+
+\begin{equation}
+  \mathrm{LLRI} = 100\frac{\mathcal{L}_{model} - \mathcal{L}_{log-modular}}{|\mathcal{L}_{log-modular}|}
+\end{equation}
+
+Where $\mathcal{L}_{log-modular}$ is the log-likelihood of the test dataset for the log-modular model and  $\mathcal{L}_{model}$ for the evaluated model, e.g. FLID, FLDC.
