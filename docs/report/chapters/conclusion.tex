@@ -1,2 +1,12 @@
 \chapter{Conclusion}
 \label{sec:conclusion}
+
+We have proposed two new models, FLDC and FFLDC, that extend the capabilities of a novel submodular probabilistic model, namely FLID. We have shown how the FLDC model can capture coherence in addition to diversity, and how FFLDC allows generalization through the use of features. Synthetic experiments show the performance of noise constrastive estimation for learning these models from data and the practical considerations that must be addressed such as how to avoid local maxima and the effect of different hyperparameters in the result.
+
+This type of models have been commonly used for document and image summarization, but we show how it can also be applied for recommending touristic locations to visit using information extracted from online image collections, namely Flickr. A complex probabilistic model such as FLDC captures higher order information resulting in a better approximation to the underlying data distribution.
+
+Spatial features of the photographs were mainly used for the identification of landmarks and modeling the user's behavior, however more study is required to identify other features that can be used with the FFLDC model to generalize what can be learned from one city to another. Some experiments were performed in this direction but no conclusive results were obtained.
+
+Another future direction could be to incorporate structure, such as order, to the proposed models, the results showed how simpler models that incorporate order or temporal information can outperform our models in the recommendation task.
+
+We believe that the proposed models can be applied to a wide range of problems because they can model complex distributions and in some cases discover characteristics about the data, such as item similarity.
