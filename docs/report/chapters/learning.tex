@@ -22,9 +22,9 @@ The log-modular model also provides a sensible initialization for vector $\mathb
   \mathbf{a} = \mathbf{X}^{-1}\mathbf{u}
 \end{equation}
 
-Unfortunately, this system can be under/over-determined in many cases so an approximated solution must be used. The chosen method for finding this solution is Ridge regression which minimizes the squared error $\sum_{i \in S}(u_{i} - (\mathbf{X}\mathbf{a})_{i})^{2}$ with a regularization term on the $l_{2}$ norm of $\mathbf{a}$.
+Unfortunately, this system can be under/over-determined in many cases so an approximated solution must be used. The chosen method for finding this solution is ridge regression which minimizes the squared error $\sum_{i \in S}(u_{i} - (\mathbf{X}\mathbf{a})_{i})^{2}$ with a regularization term on the $l_{2}$ norm of $\mathbf{a}$.
 
-The weight matrices, e.g. $\mathbf{W}^{e}, \mathbf{B}$, are initialized with random values drawn from a uniform distribution $\mathcal{U} \sim [0, 0.001]$. These is the same initialization setting proposed by \citet{tschiatschek16learning}.
+The weight matrices, e.g. $\mathbf{W}^{e}, \mathbf{B}$, are initialized with random values drawn from a uniform distribution $\mathcal{U} \sim [0, 0.001]$. This is the same initialization setting proposed by \citet{tschiatschek16learning}.
 
 In the cases where AdaGrad is used, the accumulated gradient $\mathbf{G}$ is initialized with a constant value for each parameter $\gamma$, namely $G^{0}_{\gamma} = 0.01$.
 
@@ -178,7 +178,7 @@ Figure \ref{fig:effects_eta_0} shows $g(\boldsymbol{\theta})$ during the optimiz
 
 The results in Figure \ref{fig:effects_eta_0} show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to instability, as discussed in section \ref{sec:adagrad}. Concretely, for $\eta_{0} \leq 0.01$ the learning is slow but stable, while for $\eta_{0} \geq 0.01$ the objective value converges quickly but oscillates across epochs. This oscillation is problematic because it breaks the guarantee that the objective value is better as the number of epochs increase. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges and is stable, i.e. $\eta_{0} = 0.005$ however this may not be always the case for real data.
 
-By contrast, Figure \ref{fig:effects_adagrad} shows the objective function for $\eta_{0}$ between $0.005$ and $0.1$ after incorporating AdaGrad to the implementation. These results show that training with AdaGrad is stable for a larger range of $eta_0$ without sacrificing convergence speed.
+By contrast, Figure \ref{fig:effects_adagrad} shows the objective function for $\eta_{0}$ between $0.005$ and $0.1$ after incorporating AdaGrad to the implementation. These results show that training with AdaGrad is stable for a larger range of $\eta_0$ without sacrificing convergence speed.
 
 \begin{figure}
   \centering

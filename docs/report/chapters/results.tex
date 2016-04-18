@@ -22,7 +22,7 @@ Because of these results, the rest of the experiments were performed on the modi
 
 \section{Small Dataset}
 
-First, the results from the baseline models are presented in Figure \ref{fig:small_baselines}. These show that the log-modular model outperforms the Markov baselines in this case. This is encouraging as it serves as the base for the more complex models. The results also show that the heuristic Markov model outperforms the strict Markov, this is expected in all cases because the dataset was constructed in such a way that elements are not repeated, hence the proposed heuristic always improves the prediction by removing the already visited elements from the possible choices. The proximity model is the best for the small dataset, and the different between the Proximity model with and without ordering show that adding ordering information improves the score.
+First, the results from the baseline models are presented in Figure \ref{fig:small_baselines}. These show that the log-modular model outperforms the Markov baselines in this case. This is encouraging as it serves as the base for the more complex models. The results also show that the heuristic Markov model outperforms the strict Markov, this is expected in all cases because the dataset was constructed in such a way that elements are not repeated, hence the proposed heuristic always improves the prediction by removing the already visited elements from the possible choices. The proximity model is the best for the small dataset, and the different between the proximity model with and without ordering show that adding ordering information improves the score.
 
 \begin{figure}
   \centering
@@ -68,9 +68,9 @@ The fact that the FLID and FLDC models do not result in improved accuracy with r
   \label{tab:small_top_paths}
 \end{table}
 
-The paths in Table \ref{tab:small_top_paths} are all pairs, which are harder to predict because there is only information about one item and there is no benefit from diversity in that case. Simply ordering by frequency should give a high accuracy, as shown by the log-modular model's accuracy in Figure \ref{fig:small_baselines}.
+The paths in Table \ref{tab:small_top_paths} are all pairs, which are harder to predict because there is only information about one item. Simply ordering by frequency should give a high accuracy, as shown by the log-modular model's accuracy in Figure \ref{fig:small_baselines}.
 
-However, the lack of improvement in accuracy does not mean that the FLID and FLDC models are not learning beyond the log-modular model. This can be seen by comparing the total variation distance between the empiric distribution of the paths, after removing the ordering, and the distributions produced by the learned models. Note that in this case the number of items is small enough that the computation of the partition function is tractable even using the exhaustive method that requires $\mathcal{O}(2^{|V|})$ time. Figure \ref{fig:small_tv_comparison} shows the total variation distance for different FLID and FLDC models. It shows that combining diversity and coherence improves the approximation of the model to the empiric distributiowhen compared to the TVD for the log-modular model, which was $0.40$.
+However, the lack of improvement in accuracy does not mean that the FLID and FLDC models are not learning beyond the log-modular model. This can be seen by comparing the total variation distance between the empiric distribution of the paths, after removing the ordering, and the distributions produced by the learned models. Note that in this case the number of items is small enough that the computation of the partition function is tractable even using the exhaustive method that requires $\mathcal{O}(2^{|V|})$ time. Figure \ref{fig:small_tv_comparison} shows the total variation distance for different FLID and FLDC models. It shows that combining diversity and coherence improves the approximation of the model to the empiric distribution when compared to the TVD for the log-modular model, which was $0.40$.
 
 Finally, Figure \ref{fig:small_llri} shows the LLRI metric for the FLDC models. This shows more clearly that there is an improvement over the log-modular model, even though it is not reflected on the accuracy metric. The best choice of dimensions is $L=5,K=5$ according to both the LLRI and TVD metrics.
 
@@ -90,7 +90,7 @@ Finally, Figure \ref{fig:small_llri} shows the LLRI metric for the FLDC models. 
 
 \section{Large Dataset}
 
-The baseline models were trained on the large dataset, i.e. $|V| = 100$, and the accuracy results are presented in Figure \ref{fig:large_baselines}. In this case, there is a more significant difference between the log-modular and the other baselines. This indicates that simply choosing the most frequent element is not as good of a strategy as for the small dataset, therefore complex models like FLDC and FFLDC should yield better results. Additionally, the significant higher accuracy of the (Heuristic) Markov and Proximity Ordered models shows how adding information about the ordering, i.e. using paths, can improve the results in comparison to modeling only sets.
+The baseline models were trained on the large dataset, i.e. $|V| = 100$, and the accuracy results are presented in Figure \ref{fig:large_baselines}. In this case, there is a more significant difference between the log-modular and the other baselines. This indicates that simply choosing the most frequent element is not as good of a strategy as for the small dataset, therefore complex models like FLDC and FFLDC should yield better results. Additionally, the significantly higher accuracy of the (Heuristic) Markov and Proximity Ordered models shows how adding information about the ordering, i.e. using paths, can improve the results in comparison to modeling only sets.
 
 \begin{figure}
   \centering
@@ -108,7 +108,7 @@ Different FLDC models were trained on the large dataset, in order to find the be
   \label{fig:grid_search_large}
 \end{figure}
 
-Finally, the best FLDC model is compared to the baselines in Figure \ref{fig:all_models_100}. Even though the FLDC model is an improvement over the log-modular, it still does not reach the accuracy of the Markov or Proximity Ordered models. This can be explained by the fact that the first three models in the figure include information about the order of the elements in a set, i.e. they model probabilities other paths, while the others only model membership of the elements in a set. This extra information helps these models perform the prediction task more accurately.
+Finally, the best FLDC model is compared to the baselines in Figure \ref{fig:all_models_100}. Even though the FLDC model is an improvement over the log-modular, it still does not reach the accuracy of the Markov or Proximity Ordered models. This can be explained by the fact that the first three models in the figure include information about the order of the elements in a set, i.e. they model probabilities over paths, while the others only model membership of the elements in a set. This extra information helps these models perform the prediction task more accurately.
 
 \begin{figure}
   \centering

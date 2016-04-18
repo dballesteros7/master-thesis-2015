@@ -11,17 +11,17 @@ Therefore, a natural extension to the FLID model is to add the capacity of model
 
 This supermodular term introduces a representation of the elements using $K$-dimensional vectors $\mathbf{w}^{K} \in \mathbb{R}^{K}_{\geq 0}$, where each dimension $1 \leq c \leq K$ captures a concept that relates to set coherence and $w_{i,c}$ quantifies the contribution of each element $i$ to each coherence concept $c$. The coherence of a set $S$ with respect to each concept $c$ is quantified as $\sum_{i \in S}{w^{e}_{i,c}} - \max_{i \in S}{w^{e}_{i,c}}$ which is a supermodular term mirroring the submodular term in FLID. Summing over all the concepts results in the proposed coherence term. Hereby, define $\mathbf{W}^{e} \in \mathbb{R}^{|V| \times K}_{\geq 0}$ as the matrix where the $i$-th row is the representation $\mathbf{w}^{e}$ of element $i$.
 
-Adding the coherence term to FLID results in the extended model, which we refer to as the Facility Location Diversity and Coherence (FLDC) model. Its probability distribution is defined as:
+Adding the coherence term to FLID results in the extended model, which we refer to as the Facility Location Diversity and Coherence (FLDC) model. Its probability distribution is defined as,
 
 \begin{equation}
   \tag{FLDC}
-  P(S) = \frac{1}{Z}\exp{\left(\sum_{i \in S}{u_{i}} + \mathrm{div}(S) + \sum_{c=1}^{K}{\left(\sum_{i \in S}{w^{e}_{i,c}} - \max_{i \in S}{w^{e}_{i,c}}\right)}\right)}
+  P(S) = \frac{1}{Z}\exp{\left(\sum_{i \in S}{u_{i}} + \mathrm{div}(S) + \sum_{c=1}^{K}{\left(\sum_{i \in S}{w^{e}_{i,c}} - \max_{i \in S}{w^{e}_{i,c}}\right)}\right)},
   \label{eq:fldc}
 \end{equation}
 
-Where $\mathrm{div}(S)$ is the diversity term in Equation \eqref{eq:diversity}.
+where $\mathrm{div}(S)$ is the diversity term in Equation \eqref{eq:diversity}.
 
-For the FLDC model, the partition function can be computed in $\mathcal{O}(|V|^{L+K+1})$ time. This complexity can be derived using a similar algorithm as the one presented by \citet{tschiatschek16learning} for FLID, the key observation is that the algorithm they present only requires the ordering of weights to determine elegible elements for a set given  the maximum weights for each dimension. This can be easily extented to include the the ordering for the coherence weights as well. This requires evaluating $K$ more dimensions which results in the added term to the exponent of the complexity expression, which makes the computation of the partition function more expensive than in the FLID case.
+For the FLDC model, the partition function can be computed in $\mathcal{O}(|V|^{L+K+1})$ time. This complexity can be derived using a similar algorithm as the one presented by \citet{tschiatschek16learning} for FLID, the key observation is that the algorithm they present only requires the ordering of weights to determine eligible elements for a set given  the maximum weights for each dimension. This can be easily extended to include the ordering for the coherence weights as well. This requires evaluating $K$ more dimensions which results in the added term to the exponent of the complexity expression, which makes the computation of the partition function more expensive than in the FLID case.
 
 \subsection{Learning FLDC Models}
 
@@ -36,7 +36,7 @@ As with FLID, the parameters for an FLDC model can be estimated using NCE. For F
 
 Where $\left(\nabla_{\mathbf{W}^{e}}\cdot \right)_{i,c}$ represents the $(i,c)$-th entry in the gradient with respect to $\mathbf{W}^{e}$.
 
-This also affects the overall complexity of the learning algorithm. Computing the gradient takes $\mathcal{O}(L+K)|S|$ for FLDC at each step, therefore the running time of a full pass over the data and noise samples takes $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|\kappa(L+K))$. This is not significantly more expensive than learning FLID because the complexity is still linear on the data and noise.
+This also affects the overall complexity of the learning algorithm. Computing the gradient takes $\mathcal{O}(L+K)|S|$ for FLDC at each step, therefore the running time of a full pass over the data and noise samples takes $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|\kappa(L+K))$. This is not significantly more expensive than learning FLID because the complexity is still linear in the data and noise.
 
 
 \subsection{Example: Two Non-overlapping Clusters}
@@ -74,16 +74,16 @@ An important characteristic of the FLID model, and by extension the FLDC one, is
 
 In order to solve these problems, we propose a further extension to the model. First, an element ($i \in V$) is represented as a vector $\mathbf{x}_{i} \in \mathbb{R}^{M}$ where each entry is a feature, e.g. for venues one feature could be its aggregated rating while another indicates whether it is indoors or outdoors. The representations of all elements is collected by matrix $\mathbf{X} \in \mathbb{R}^{|V| \times M}$ where each row $i$ corresponds to the repreesntation $\mathbf{x}_{i}$ of element $i$.
 
-Then, the utility vector $\mathbf{u}$ and weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ are factorized to include this feature matrix $\mathbf{X}$ as follows:
+Then, the utility vector $\mathbf{u}$ and weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ are factorized to include this feature matrix $\mathbf{X}$ as follows,
 
 \begin{align}
   \mathbf{u} &= \mathbf{Xa}   \label{eq:ffldc-factorization-1} \\
   \mathbf{W}^{b} &= \mathbf{XB}  \label{eq:ffldc-factorization-2} \\
-  \mathbf{W}^{e} &= \mathbf{XE}
+  \mathbf{W}^{e} &= \mathbf{XE},
   \label{eq:ffldc-factorization-3}
 \end{align} 
 
-Where $\mathbf{a} \in \mathbb{R}^{M}$ represents the contribution of each feature to the total utility of an item, while $\mathbf{B} \in \mathbb{R}^{M \times L}$ and $\mathbf{E} \in \mathbb{R}^{M \times K}$ encode the contribution of each feature to each latent diversity and coherence dimension, respectively. The intuition behind this factorization is that the information about the items can enhance the latent representations, hence producing a richer model. For example if $M < |V|$ and the features are sufficient to represent the items, it is expected that learning will be easier because of the reduced number of parameters with respect to learning the equivalent FLDC model.
+where $\mathbf{a} \in \mathbb{R}^{M}$ represents the contribution of each feature to the total utility of an item, while $\mathbf{B} \in \mathbb{R}^{M \times L}$ and $\mathbf{E} \in \mathbb{R}^{M \times K}$ encode the contribution of each feature to each latent diversity and coherence dimension, respectively. The intuition behind this factorization is that the information about the items can enhance the latent representations, hence producing a richer model. For example if $M < |V|$ and the features are sufficient to represent the items, it is expected that learning will be easier because of the reduced number of parameters with respect to learning the equivalent FLDC model.
 
 We refer to the extended model as the Featurized Facility Location Diversity and Coherence (FFLDC) model and its probability distribution is defined as:
 
@@ -106,15 +106,15 @@ The computation of the partition function for this model can be done using the f
 
 \subsection{Learning FFLDC Models}
 
-For FFLDC, the parameter vector $\boldsymbol{\theta}$ is different from the previous models, it is composed by $[\mathbf{a}, \mathbf{B}, \mathbf{C}, \hat{Z}]$ and the gradient of the NCE objective $g(\boldsymbol{\theta})$ is given by:
+For FFLDC, the parameter vector $\boldsymbol{\theta}$ is different from the previous models, it is composed by $[\mathbf{a}, \mathbf{B}, \mathbf{C}, \hat{Z}]$ and the gradient of the NCE objective $g(\boldsymbol{\theta})$ is given by,
 
 \begin{align}
   \left(\nabla_{\mathbf{a}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{a}, \mathbf{B}, \mathbf{E})}\right)_{m} &= \sum_{i \in S} x_{i,m} \label{eq:sub-a}\\
   \left(\nabla_{\mathbf{B}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{a}, \mathbf{B}, \mathbf{E})}\right)_{m,d} &= x_{i^{d},m} - \sum_{i \in S} x_{i,m} \label{eq:sub-b} \\
-  \left(\nabla_{\mathbf{E}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{a}, \mathbf{B}, \mathbf{E})}\right)_{m,c} &= x_{i^{c},m} - \sum_{i \in S} x_{i,m} \label{eq:sub-e}
+  \left(\nabla_{\mathbf{E}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{a}, \mathbf{B}, \mathbf{E})}\right)_{m,c} &= x_{i^{c},m} - \sum_{i \in S} x_{i,m}, \label{eq:sub-e}
 \end{align}
 
-Where $i^{d} = \argmax_{i \in S}{\sum_{k=1}^{M}{x_{i,k}b_{k,d}}}$ and $i^{c} = \argmax_{i \in S}{\sum_{k=1}^{M}x_{i,k}e_{k,c}}$. $\left(\nabla_{\mathbf{a}}\cdot \right)_{m}$ represents the $m$-th entry of the sub-gradient with respect to $a$, $\left(\nabla_{\mathbf{B}}\cdot\right)_{m,d}$ represents the $(m,d)$-th entry of the sub-gradient with respect to $B$ and $\left(\nabla_{\mathbf{E}}\cdot\right)_{m,c}$ represents the $(m,c)$-th entry of the sub-gradient with respect to $E$.
+where $i^{d} = \argmax_{i \in S}{\sum_{k=1}^{M}{x_{i,k}b_{k,d}}}$ and $i^{c} = \argmax_{i \in S}{\sum_{k=1}^{M}x_{i,k}e_{k,c}}$. $\left(\nabla_{\mathbf{a}}\cdot \right)_{m}$ represents the $m$-th entry of the sub-gradient with respect to $a$, $\left(\nabla_{\mathbf{B}}\cdot\right)_{m,d}$ represents the $(m,d)$-th entry of the sub-gradient with respect to $B$ and $\left(\nabla_{\mathbf{E}}\cdot\right)_{m,c}$ represents the $(m,c)$-th entry of the sub-gradient with respect to $E$.
 
 \begin{remark}
   For $\mathbf{X} = \mathcal{I}$, the sub-gradients in \ref{eq:sub-a}-\ref{eq:sub-e} are equivalent to the FLDC sub-gradients. Because $x_{i,m} = 1$ only when $i = m$.
@@ -163,7 +163,7 @@ In this example there is knowledge about the items and what features are relevan
   \label{eq:ffldc-toy-feats}
 \end{equation}
 
-A possiblity is an FFLDC model that encourages diversity on the second a third feature, i.e. models the idea that visitors do not go to more than one place that serves food or is outdoor, while assigning a positive utility and coherence value to the first feature, i.e. modeling the preference for places with high ratings. One such model is presented in Figure \ref{fig:ffldc-toy-all-weights}, this approximates distribution from Table \ref{tab:ffldc-toy-probs} and illustrates the type of model that is useful in this example.
+A possiblity is an FFLDC model that encourages diversity on the second and third feature, i.e. models the idea that visitors do not go to more than one place that serves food or is outdoor, while assigning a positive utility and coherence value to the first feature, i.e. modeling the preference for places with high ratings. One such model is presented in Figure \ref{fig:ffldc-toy-all-weights}, this approximates distribution from Table \ref{tab:ffldc-toy-probs} and illustrates the type of model that is useful in this example.
 
 \begin{figure}
   \centering

@@ -1,15 +1,15 @@
 \chapter{Modeling an Image Collection - Setup}
 \label{sec:experimental_setup}
 
-This chapter describes an application of the models presented in the Chapter \ref{sec:models} to a real dataset. As mentioned in the introduction, finding and recommending paths for tourists is an interesting research topic. These paths can be understood as spatial summaries of a city, representing the most important locations to visit and photograph in a city.
+This chapter describes an application of the models presented in Chapter \ref{sec:models} to a real dataset. As mentioned in the introduction, finding and recommending paths for tourists is an interesting research topic. These paths can be understood as spatial summaries of a city, representing the most important locations to visit and photograph in a city.
 
 These tourist paths can be discovered from a large collection of geotagged images by using the accompanying timestamps as explained in section \ref{sec:path_discovery}. Even though these paths are naturally ordered, they can also be used as unordered sets of locations that represent the behavior of different visitors taking photographs in the city, which can be modeled using the FLID, FLDC and FFLDC models. The modeling quality of these proposed models was compared to other existing methods from the literature as explained in section \ref{sec:baselines}. The procedure used for evaluating the results is described in section \ref{sec:evaluation}.
 
 \section{Flickr Dataset}
 
-For the experiments on real data, public geotagged photos from Flickr were used. There are close to two million geo-tagged photos available on Flickr\footnote{https://www.flickr.com/map reports 1,833,307 geotagged photos as of April 2016.}, this offers an unique and rich dataset for the task of spatial summarization. But as described before, this work focuses on the city level. Therefore, the experiments were performed on a subset of the Flickr data, namely on public geotagged photos taken within Zürich, Switzerland.
+For the experiments on real data, public geotagged photos from Flickr were used. There are close to two million geo-tagged photos available on Flickr\footnote{\url{https://www.flickr.com/map} reports 1,833,307 geotagged photos as of April 2016.}, this offers a unique and rich dataset for the task of spatial summarization. But as described before, this work focuses on the city level. Therefore, the experiments were performed on a subset of the Flickr data, namely on public geotagged photos taken within Zürich, Switzerland.
 
-The Flickr API\footnote{\url{https://www.flickr.com/services/api/}} provides multiple functions to explore and use the data, in particular the search endpoint allows developers to retrieve photo records according to a specific criteria. Each photo record contains the following information:
+The Flickr API\footnote{See documentation at \url{https://www.flickr.com/services/api/}} provides multiple functions to explore and use the data, in particular the search endpoint allows developers to retrieve photo records according to a specific criteria. Each photo record contains the following information:
 
 \begin{description}
   \item[Owner] The ID of the user who uploaded and owns the photo.
@@ -211,7 +211,7 @@ A Markov chain can be used to model the behavior of Flickr users, assuming that 
   \hat{P}(l_{t+1} = i \mid l_{t} = j) = \frac{N(i,j)}{N(*,j)}
 \end{equation}
 
-Where $N(i,j)$ is the number of times that the location $i$ was photographed immediately after location $j$, and $N(*, j)$ is the number of times that any location was photographed after $j$. This model was used successfully by \citet{Kurashima2010} with good results for recommending tourists routes for a city based on Flickr data, therefore it is a natural choice for comparison against the newly proposed models. A full path can be constructed by selecting a starting location and choosing the next one according to the highest transition probability, then repeating the procedure until a desired length is reached. Note that this model can be estimated efficiently from data, concretely it requires $\mathcal{O}(|\mathcal{D}|)$.
+Where $N(i,j)$ is the number of times that the location $i$ was photographed immediately after location $j$, and $N(*, j)$ is the number of times that any location was photographed after $j$. This model was used successfully by \citet{Kurashima2010} with good results for recommending tourist routes for a city based on Flickr data, therefore it is a natural choice for comparison against the newly proposed models. A full path can be constructed by selecting a starting location and choosing the next one according to the highest transition probability, then repeating the procedure until a desired length is reached. Note that this model can be estimated efficiently from data, concretely it requires $\mathcal{O}(|\mathcal{D}|)$.
 
 \subsection{Heuristic Markov}
 
@@ -230,7 +230,7 @@ This heuristic is included to provide a more fair comparison to the set models, 
 
 \subsection{Proximity}
 
-Another, possibly naive, model is to assume that users photograph the next closest location to their current one. This can be useful to model paths that are concentrated in certain areas, for example in the Zürich dataset many of the paths only visit locations in the center and users seldom take photographs at the Zoo and a landmark in the center on the same day.
+Another model is to assume that users photograph the next closest location to their current one. This can be useful to model paths that are concentrated in certain areas, for example in the Zürich dataset many of the paths only visit locations in the center and users seldom take photographs at the Zoo and a landmark in the center on the same day.
 
 Formally, this model is characterized by a distance $d(i,j)$ computed from the coordinates of elements $i$ and $j$. This can be used to predict paths that minimize the distance between elements. For example to predict the next element $s_{t+1}$ in a sequence $S_{t}$, the element closest to $s_{t}$ is selected, i.e. $s_{t+1} = \argmax_{i \notin S_{t}}(d(s_{t}, i))$.
 
@@ -249,7 +249,7 @@ This model is significantly different from the two previous baselines because it
 
 The evaluation of the models aims to assess their quality for the task of recommending additional locations to visit based on an initial set of locations that the user wants to visit. This recommendation can be structured as a path either directly from the output of the model, e.g. for the Markov chain case, or as a post-processing step, i.e. for the set based models. The evaluation procedure focuses on one-step recommendations which can be used both to construct a full path greedily or for an interactive system where the user requests a single location at each step.
 
-The evaluation task is to predict the missing location in a sequence given the other elements, both before and after. This can be constructed by removing one element at a time from the paths in the test dataset. Thus each path of length $k$ generates $k$ partial paths for testing with a missing element. For example the path $1,5,6$, generates 3 partial paths, namely $?,5,6$, $1,?,6$ and $1,5,?$. Note that only paths of at least size 2 are used in the task.
+The evaluation task is to predict the missing location in a sequence given the other elements, both before and after. This can be constructed by removing one element at a time from the paths in the test dataset. Thus each path of length $k$ generates $k$ partial paths for testing with a missing element. For example the path $[1,5,6]$, generates 3 partial paths, namely $[?,5,6]$, $[1,?,6]$ and $[1,5,?]$. Note that only paths of at least size 2 are used in the task.
 
 After each model is trained, the predictions for each path $S_{t} = [s_{1}, \dots, s_{j-1}, s_{j+1}, \dots, s_{t}]$ where $S_{j}$ is missing, are made as follows:
 

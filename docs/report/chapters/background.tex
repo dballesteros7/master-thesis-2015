@@ -7,44 +7,44 @@ This chapter presents the supporting concepts and methods that will be used thro
 
 Functions over sets are of great interest and can be applied to diverse settings. In particular, submodular set functions have been utilized in multiple domains, such as document summarization and information gathering \citep{krause14submodular}.
 
-A set function is defined on the powerset $2^{V}$ of a ground set $V$, i.e. $F:2^{V} \rightarrow \mathbb{R}$ and it is submodular if it exhibits a "diminishing returns" property \citep{krause14submodular}, namely if it satisfies:
+A set function is defined on the powerset $2^{V}$ of a ground set $V$, i.e. $F:2^{V} \rightarrow \mathbb{R}$ and it is submodular if it exhibits a "diminishing returns" property , namely if it satisfies:
 
 \begin{equation}
   \label{eq:submod-condition}
   \forall S,T \subseteq V : S \subseteq T, i \notin T \mid F(S \cup i) - F(S) \geq F(T \cup i) - F(T)
 \end{equation}
 
-Intuitively this indicates that adding an element to a smaller set yields a larger effect, i.e. in terms of the set function $F$ value, than adding it to a larger one. This is a natural property in the context of summarization where adding more information to a large summary is less effective than adding it to a smaller one. This property also makes them good candidates for modeling the concept of diversity \citep{tschiatschek16learning}.
+Intuitively this indicates that adding an element to a smaller set yields a larger gain, i.e. in terms of the set function $F$ value, than adding it to a larger one. This is a natural property in the context of summarization where adding more information to a large summary is less effective than adding it to a smaller one. This property also makes them good candidates for modeling the concept of diversity \citep{tschiatschek16learning}.
 
 Analogous to the use of submodular functions to model diversity, supermodular functions can be used to model complementarity or coherence between elements.
 
 A set function is supermodular if it satisfies the condition in \eqref{eq:submod-condition} with the inequality sign reversed, i.e. a set function $F(S)$ is supermodular iff $-F(S)$ is submodular. Supermodularity is used extensively in economics to model complementarity between strategies in games \citep{amir2005supermodularity}.
 
-Finally, if a function $F$ is both submodular and supermodular, i.e. it satisfies condition \eqref{eq:submod-condition} with equality, then it is said to be a modular function. These are the simplest examples of submodular or supermodular functions and are akin to linear functions but in a discrete domain \citep{krause14submodular}.
+Finally, if a function $F$ is both submodular and supermodular, i.e. it satisfies condition \eqref{eq:submod-condition} with equality, then it is said to be a modular function. These are the simplest examples of submodular or supermodular functions and are akin to linear functions but in a discrete domain.
 
 \section{Probabilistic Log-sub/supermodular Models}
 
 Set functions may also express probability distributions, in which case they are known as Probability Set Functions. Formally, a set function $F$ is a probability set function if it satisfies that  $\forall S \subseteq V, P: 2^V \rightarrow \mathbb{R} \mid 0 \leq P(S) \leq 1$ and $\sum_{S \subseteq V} P(S) = 1$ \citep{bruno99sets}.
 
-This work is interested in a particular class of probability set functions, namely probabilistic log-submodular and log-supermodular models, which are probabilities $P(S)$ of the form \citep{djolonga14variational}:
+In this work we are interested in a particular class of probability set functions, namely probabilistic log-submodular and log-supermodular models, which are probabilities $P(S)$ of the form \citep{djolonga14variational}:
 
 \begin{equation}
-  P(S) = \frac{1}{Z}\exp(F(S))
+  P(S) = \frac{1}{Z}\exp(F(S)),
 \end{equation}
 
-Where $F(S)$ is a submodular or supermodular function, respectively. \citet{djolonga14variational, djolonga15scalable} indicate that these models encompass many practical probabilistic models such as repulsive Ising models, Deterministic Point Processes (DPPs) and binary pairwise Markov Random Fields (MRFs).
+where $F(S)$ is a submodular or supermodular function, respectively. \citet{djolonga14variational, djolonga15scalable} indicate that these models encompass many practical probabilistic models such as repulsive Ising models, Determinantal Point Processes (DPPs) and binary pairwise Markov Random Fields (MRFs).
 
-The normalization constant $Z$ is also known as the \textit{partition function} and it is necessary to fully determine the normalized model and compute quantities such as marginal probabilities, however its exact computation is known to be \#P-complete in general\citep{jerrum1990}. This makes it impossible in practice to perform such computations except for special cases of the model.
+The normalization constant $Z$ is also known as the \textit{partition function} and it is necessary to fully determine the normalized model and compute quantities such as marginal probabilities, however its exact computation is known to be \#P-complete in general \citep{jerrum1990}. This makes it impossible in practice to perform such computations except for special cases of the model.
 
 \section{Facility Location Diversity Model (FLID)}
 
-Every modular function can be written as a sum of individual weights for each element $i \in V$ assuming a normalization such that $F(\emptyset) = 0$ \citep{krause14submodular}, i.e.
+Every modular function can be written as a sum of individual weights for each element $i \in V$ assuming a normalization such that $F(\emptyset) = 0$, i.e.
 
 \begin{equation}
-  F(S) = \sum_{i \in S} u(i)
+  F(S) = \sum_{i \in S} u(i),
 \end{equation}
 
-Where $u(i)$ is some function $u: V \rightarrow \mathbb{R}$. For convenience, denote $\mathbf{u}$ as the vector of modular weights where $u_{i} = u(i)$. Therefore any log-modular function can be written as:
+where $u(i)$ is some function $u: V \rightarrow \mathbb{R}$. For convenience, denote $\mathbf{u}$ as the vector of modular weights where $u_{i} = u(i)$. Therefore any log-modular function can be written as:
 
 \begin{equation}
   \label{eq:modular}
@@ -53,18 +53,18 @@ Where $u(i)$ is some function $u: V \rightarrow \mathbb{R}$. For convenience, de
 
 This is the simplest log-submodular probability function and is the modular part for the FLID model proposed by \citet{tschiatschek16learning}. In this model, $\mathbf{u}$ can be thought of as modeling the relevance or utility of each element, for example in the context of spatial summarization this utility could be proportional to the popularity of a location or to how many times it has been photographed.
 
-However, these utilities alone can not capture interactions between the elements in a set. To address this, \citet{tschiatschek16learning} propose an additional term that models set diversity, its objective is to characterize redundant elements and assign lower probabilities to sets that contain them.
+However, these utilities alone can not capture interactions between the elements in a set. To address this, \citet{tschiatschek16learning} proposed an additional term that models set diversity, its objective is to identify redundant elements and assign lower probabilities to sets that contain them.
 
-This term is based on representing each element $i$ with an $L$-dimensional vector $\mathbf{w}^{b} \in \mathbb{R}^{L}_{\geq 0}$, where each dimension $1 \leq d \leq L$ captures a concept related to set diversity and $w^{b}_{i,d}$ quantifies the relevance of each element $i$ for each concept $d$ \citep{tschiatschek16learning}. Hereby, define $\mathbf{W}^{b} \in \mathbb{R}^{|V| \times L}_{\geq 0}$ as the matrix where the $i$-th row is the representation $\mathbf{w}^{b}$ of element $i$.
+This diversity promoting term is based on representing each element $i$ with an $L$-dimensional vector $\mathbf{w}^{b} \in \mathbb{R}^{L}_{\geq 0}$, where each dimension $d$, $1 \leq d \leq L$ captures a concept related to set diversity and $w^{b}_{i,d}$ quantifies the relevance of each element $i$ for each concept $d$. Hereby, define $\mathbf{W}^{b} \in \mathbb{R}^{|V| \times L}_{\geq 0}$ as the matrix where the $i$-th row is the representation $\mathbf{w}^{b}_{i}$ of element $i$.
 
-For each dimension $d$, the diversity of a set $S$ is quantified by $\max_{i \in S}{w^{b}_{i,d}} - \sum_{i \in S}{w^{b}_{i,d}}$. This assigns a negative value for sets that contain more than one element with nonzero weight $w^{b}_{\cdot,d}$ in that dimension \citep{tschiatschek16learning}. Equation \eqref{eq:diversity} shows the complete term, this sums over all $L$ dimensions to account the diversity in each concept.
+For each dimension $d$, the diversity of a set $S$ is quantified by $\max_{i \in S}{w^{b}_{i,d}} - \sum_{i \in S}{w^{b}_{i,d}}$. This assigns a negative value for sets that contain more than one element with nonzero weight $w^{b}_{\cdot,d}$ in that dimension \citep{tschiatschek16learning}. Equation \eqref{eq:diversity} shows the complete diversity term, this sums over all $L$ dimensions to account the diversity in each concept.
 
 \begin{equation}
   \label{eq:diversity}
   \mathrm{div}(S) = \sum_{d=1}^{L}\left(\max_{i \in S}{w^{b}_{i, d}} - \sum_{i \in S}{w^{b}_{i,d}}\right)
 \end{equation}
 
-Finally, the complete FLID model proposed by \citet{tschiatschek16learning} combines these two terms and is given by:
+Finally, the complete FLID model proposed by \citet{tschiatschek16learning} combines the modular and diversity terms and is given by:
 
 \begin{equation}
   \tag{FLID}
@@ -72,14 +72,14 @@ Finally, the complete FLID model proposed by \citet{tschiatschek16learning} comb
   \label{eq:flid}
 \end{equation}
 
-As mentioned before, the computation of the partition function is generally intractable for log-submodular models. However, for FLID this can be computed in time $\mathcal{O}(|V|^{L+1})$ which is polynomial on the size of the ground set and significantly better than the cost of enumerating the powerset of $V$, i.e. $\mathcal{O}(2^{|V|})$ \citep{tschiatschek16learning}. Nevertheless, it is worth noting that this complexity is exponential in $L$ which means that the partition function computation is only pratical for a limited range of FLID models, namely those with $L \ll |V|$.
+As mentioned before, the computation of the partition function is generally intractable for log-submodular models. However, for FLID this can be computed in time $\mathcal{O}(|V|^{L+1})$ which is polynomial in the size of the ground set and significantly better than the cost of enumerating the powerset of $V$, i.e. $\mathcal{O}(2^{|V|})$ \citep{tschiatschek16learning}. Nevertheless, it is worth noting that this complexity is exponential in $L$ which means that the partition function computation is only pratical for a limited range of FLID models, namely those with $L \ll |V|$.
 
 \subsection{Example: Two Landmarks}
 \label{sec:flid-toy}
 
 In order to better illustrate the model, consider a town with 3 popular locations: A town hall ($h$), a statue ($s$) and a fountain ($f$). Assume that historic data shows that visitors only take photos at either the town hall and the statue, or at the town hall and the fountain. This can be modeled with FLID by introducing a latent dimension representing some concept that is present in both the statue and the fountain but not in the town hall, e.g. "is not a building".
 
-Concretely, let $V = \{h, s, f\}$ and $\mathbf{u} = \left(2, 2, 2\right)^{\intercal}$, indicating that all locations are equally popular. A suitable diversity weight matrix would then be $\mathbf{W}^{b} = \left(0, 20, 20\right)^{\intercal}$. Table \ref{tab:flid-toy-probs} shows the resulting probabilities of the subsets, accurately representing the aforementioned problem. Note that the probabilities are not exactly $\nicefrac{0.5}{0.5}$ for the sets of interest but this could be easily fixed by increasing the utilities to ensure that sets of size 2 have a larger unnormalized magnitude compared to individual ones.
+Concretely, let $V = \{h, s, f\}$ and $\mathbf{u} = \left(2, 2, 2\right)^{\intercal}$, indicating that all locations are equally popular. A suitable diversity weight matrix would then be $\mathbf{W}^{b} = \left(0, 20, 20\right)^{\intercal}$. Table \ref{tab:flid-toy-probs} shows the resulting probabilities of the subsets, accurately representing the example scenario.
 
 \begin{table}
   \centering
@@ -99,7 +99,7 @@ Concretely, let $V = \{h, s, f\}$ and $\mathbf{u} = \left(2, 2, 2\right)^{\inter
 \section{Learning from Data}
 \label{sec:learning}
 
-Much of the interest in log-submodular models is concentrated on performing inference for known functions \citep{tschiatschek16learning}. However, \citet{tschiatschek16learning} explore how to learn such models from data, i.e. estimate the model parameters from observations with an unknown distribution assumed to be of the same family as the models.
+Much of the interest in log-submodular models is concentrated on performing inference for known functions. However, \citet{tschiatschek16learning} explore how to learn such models from data, i.e. estimate the model parameters from observations with an unknown distribution assumed to be of the same family as the models.
 
 \subsection{Learning Log-modular Models}
 \label{sec:learning_modular}
@@ -113,17 +113,17 @@ P(i \in S) = \frac{1}{1 + \exp(-u_{i})}
 And its maximum likelihood estimator for a dataset $\mathcal{D}$ is:
 
 \begin{equation}
-\hat{P}(i \in S) = \frac{N(\#i \in S)}{|\mathcal{D}|}
+\hat{P}(i \in S) = \frac{N(i \in S)}{|\mathcal{D}|},
 \end{equation}
 
-Therefore, the utilities can be estimated as:
+where $N(i \in S)$ is the number of sets containing element $i$. Therefore, the utilities can be estimated as:
 
 \begin{equation}
 \label{eq:modular-mle}
 u_{i} = -\log{\left(\frac{1}{\hat{P}(i \in S)} - 1\right)}
 \end{equation}
 
-This model also allows computing the partition function in closed form, this is given by:
+This model also allows computing the partition function in closed form, i.e.:
 
 \begin{equation}
 \label{eq:modular-z}
@@ -132,7 +132,7 @@ Z = \prod_{i \in S}(1 + \exp(u_{i}))
 
 Because these quantities can be computed in closed form, it is possible to efficiently estimate the parameters of a log-modular model and sample from it. This is useful for producing noise samples and constructing baselines for the experiments.
 
-Even though MLE is the commonly used method for the task of parameter estimation from data, it only works efficiently for normalized models \citep{Gutmann12NCE}. This makes it intractable for the general class of log-submodular models, and also a wide range of FLID models because the computation of $Z$ is exponential on $L$. \citet{Gutmann12NCE} propose an alternative method for parameter estimation in unnormalized models known as Noise Contrastive Estimation (NCE) and this is the method used by \citet{tschiatschek16learning} to learn the FLID model.
+Even though MLE is the commonly used method for the task of parameter estimation from data, it only works efficiently for normalized models. This makes it intractable for the general class of log-submodular models, and also a wide range of FLID models because the computation of $Z$ is exponential on $L$. \citet{Gutmann12NCE} propose an alternative method for parameter estimation in unnormalized models known as Noise Contrastive Estimation (NCE) and this is the method used by \citet{tschiatschek16learning} to learn the FLID model.
 
 \subsection{NCE Learning}
 
@@ -163,7 +163,7 @@ This maximization can be performed using a gradient-based optimization method su
 \subsubsection{Theoretical Considerations}
 \label{sec:nce-theoretical}
 
-A couple of theoretical conditions are necessary for obtaining good estimates with NCE \citep{Gutmann12NCE}:
+A couple of theoretical conditions are necessary for obtaining asymptotic convergence with NCE \citep{Gutmann12NCE}:
 
 \begin{enumerate}
   \item The parameterized probability function $\hat{P}_{d}(S;\theta)$ must be of the same family as the real distribution $P_{d}$, i.e. $\exists \boldsymbol{\theta}^{*} \mid \hat{P}_{d}(S;\boldsymbol{\theta}^{*}) = P_{d}$.
@@ -183,7 +183,7 @@ Additionally, the following statements must be considered when choosing the nois
 
 \subsection{Learning FLID via NCE and SGD}
 
-Stochastic Gradient Descent was used by \citet{tschiatschek16learning} to learn the FLID model through NCE. SGD is a gradient-based method that has proven effective in large-scale learning tasks due to its efficiency when the computation time is a limiting factor \citep{Bottou2010, Zhang2004}, hence making it appropriate for the scale of data sourced from the internet, such as public user photos in Flickr.
+Stochastic Gradient Descent was used by \citet{tschiatschek16learning} to learn the FLID model through NCE. SGD is a gradient-based method that has been proven effective in large-scale learning tasks due to its efficiency when the computation time is a limiting factor \citep{Bottou2010, Zhang2004}, hence making it appropriate for the scale of data sourced from the internet, such as public user photos in Flickr.
 
 In each iteration, the gradient $\nabla \log{P(Y_{s} = y \mid S;\boldsymbol{\theta})}$ must be computed. For FLID, the parameter vector $\boldsymbol{\theta}$ is composed by $\mathbf{u}, \mathbf{W}^{b}$ and $\hat{Z}$, and the corresponding gradients are given by:
 
@@ -205,7 +205,15 @@ In each iteration, the gradient $\nabla \log{P(Y_{s} = y \mid S;\boldsymbol{\the
   \nabla_{\hat{Z}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{u}, \mathbf{W}^{b})}&= \frac{-1}{\hat{Z}}
 \end{align}
 
-Where $P(S;\mathbf{u}, \mathbf{W}^{b})$ is the unnormalized \eqref{eq:flid} equation, $\left(\nabla_{\mathbf{u}}\cdot \right)_{i}$ represents the $i$-th entry of the gradient with respect to $\mathbf{u}$ and $\left(\nabla_{\mathbf{W}^{b}}\cdot\right)_{i,d}$ represents the $(i,d)$-th entry of the sub-gradient with respect to $\mathbf{W}^{b}$ \citep{tschiatschek16learning}.
+Where $P(S;\mathbf{u}, \mathbf{W}^{b})$ is the unnormalized \eqref{eq:flid} equation, $\left(\nabla_{\mathbf{u}}\cdot \right)_{i}$ represents the $i$-th entry of the gradient with respect to $\mathbf{u}$ and $\left(\nabla_{\mathbf{W}^{b}}\cdot\right)_{i,d}$ represents the $(i,d)$-th entry of the gradient with respect to $\mathbf{W}^{b}$ \citep{tschiatschek16learning}.
+
+After the gradient is computed, the parameters are updated according to the following equation:
+
+\begin{equation}
+  \theta^{t+1} = \theta^{t} + \eta(t) \nabla g(\theta),
+\end{equation}
+
+where $\eta(t)$ is the learning rate.
 
 \subsubsection{Computational Complexity}
 
@@ -214,7 +222,7 @@ As described by \citet{tschiatschek16learning}, the running time requirement for
 \subsection{AdaGrad}
 \label{sec:adagrad}
 
-A commonly used learning rate function for SGD is $\eta(t) = \eta_{0}t^{-p}$, which offers the best yergence speed in theory and often also in practice \citep{bottou2012stochastic}, however it can lead to poor performance due to slow rates of convergence to the solution \citep{darken1992towards}. By contrast, choosing a larger $\eta_{0}$ may not lead to better results due to the instability in the parameters for small $t$ \citep{Darken1990}. 
+A commonly used learning rate function for SGD is $\eta(t) = \eta_{0}t^{-p}$, which offers the best theoretical convergence speed for convex functions under certain conditions but often also in practice \citep{bottou2012stochastic}, however it can lead to poor performance due to slow rates of convergence to the solution \citep{darken1992towards}. By contrast, choosing a larger $\eta_{0}$ may not lead to better results due to the instability in the parameters for small $t$ \citep{Darken1990}. 
 
 This behavior was observed during the experiments with real data presented in later chapters, therefore an alternative for the learning rate was sought. In particular, Adaptive Gradient (AdaGrad) was implemented.
 
@@ -223,17 +231,17 @@ AdaGrad was proposed by \citet{Duchi2011adagrad}, the idea of this method is to 
 Concretely, with AdaGrad the update step for each parameter $\gamma$ in $\boldsymbol{\theta}$ is given by:
 
 \begin{equation}
-\theta^{\tau + 1}_{\gamma} \leftarrow \theta^{\tau}_{\gamma} - \frac{\eta}{\sqrt{G_{\gamma}}} \nabla g(\theta)^{\tau}_{\gamma}
+\theta^{\tau + 1}_{\gamma} \leftarrow \theta^{\tau}_{\gamma} - \frac{\eta}{\sqrt{G_{\gamma}}} \nabla g(\theta)^{\tau}_{\gamma},
 \end{equation}
 
-Where $\mathbf{G}^{\tau}$ is the vector of accumulated gradients at time $\tau$ and each component $G^{\tau}_\gamma$ is given by:
+Where $\mathbf{G}^{\tau}$ is the vector of accumulated gradients at time $\tau$ and each component $G^{\tau}_\gamma$ is given by,
 
 \begin{equation}
 G^{\tau}_{\gamma} = \sum_{t=1}^{\tau} \left(\nabla g(\theta)^{t}_{\gamma}\right)^{2}
 \label{eq:adagrad-g}
 \end{equation}
 
-Where $\nabla g(\theta)^{t}_{\gamma}$ denotes the gradient of the $\gamma$ parameter at time step $t$.
+where $\nabla g(\theta)^{t}_{\gamma}$ denotes the gradient of the $\gamma$ parameter at time step $t$.
 
 It is worth noting that AdaGrad does not incur in an significant increase in running time or memory requirements for the training which makes it inexpensive to include in the implementation of NCE.
 
