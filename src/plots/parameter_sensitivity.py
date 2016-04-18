@@ -169,7 +169,7 @@ def iterations_plot():
         'maxerror': max_errors
     })
     ax = sns.pointplot(x='iter', y='maxerror', data=dataset, ci=95)
-    ax.set_xlabel(r'$Epochs$')
+    ax.set_xlabel(r'Epochs')
     ax.set_ylabel(r'$\|P_{d} - \hat{P}_{d}\|$')
     ax.set_title(r'Effect of number of epochs')
     ax.set_ylim([0, 0.25])

@@ -1,15 +1,15 @@
 \chapter{Modeling an Image Collection - Results}
 \label{sec:results}
 
-This chapter presents the results for different experiments performed on the datasets introduced in the previous chapters. Different models are evaluated and their outcome is discussed.
+This chapter presents the results for different experiments performed on the datasets introduced in the previous chapter. Different models are evaluated and their outcome is discussed.
 
 \section{The Problem with Singletons}
 
 The histograms in Figures \ref{fig:histogram_path_length_10} and \ref{fig:histogram_path_length_100} show that most of the path datasets are composed on singleton paths representing users that only took photos around a small area on a single day. However, the evaluation procedure described in Section \ref{sec:evaluation} only deals with paths of at least 2 items, this represents a problem because the kind of data used for learning is not the same as for the evaluation phase. Moreover, initial experiments showed that the distribution of singleton paths is significantly different from that of paths with 2 or more elements.
 
-In order to illustrate this, a special dataset only containing paths of length 2 or more was constructed. The log-modular model was then trained and evaluated on both the original and special dataset. This was done for both the small ($|V|=10$) and large ($|V|=100$) datasets.
+In order to illustrate this, a special dataset only containing paths of length 2 or more was constructed. The log-modular model was then trained and evaluated on both versions of the datasets. This was done for both the small ($|V|=10$) and large ($|V|=100$) datasets.
 
-The accuracy of the resulting models for the test data is shown in figure \ref{fig:comparison_singletons_modular}. It shows that there is a significant improvement in the accuracy when only the distribution of non-singleton paths are considered for the log-modular model. This effect is also expected for the more complex models, e.g. FLID, because their initial point is based on the log-modular model. Note that for Markov there is no difference between including singletons or not because transition probabilities can only be learned from paths of 2 or more elements, on the other hand the Proximity model is also agnostic to these differences because the model is estimated from the spatial features of the elements and not the data about paths.
+The accuracy of the resulting models for the test data is shown in Figure \ref{fig:comparison_singletons_modular}. It shows that there is a significant improvement in the accuracy when only the distribution of non-singleton paths is considered for the log-modular model. This effect is also expected for the more complex models, e.g. FLID, because their initialization is based on the log-modular model. Note that for the Markov model there is no difference between including singletons or not because transition probabilities can only be learned from paths of 2 or more elements.
 
 \begin{figure}
   \centering
@@ -18,13 +18,11 @@ The accuracy of the resulting models for the test data is shown in figure \ref{f
   \label{fig:comparison_singletons_modular}
 \end{figure}
 
-Because of these results, the rest of the experiments will be performed on the modified datasets without singletons because those paths are of more interest than invidual photo spots.
+Because of these results, the rest of the experiments were performed on the modified datasets without singletons which contain more significant data.
 
 \section{Small Dataset}
 
-This section presents the experiments performed on the small dataset. These show the ability of the proposed models to offer accurate predictions for completing paths based on the data. Additionally, the effect of the number of dimensions is explored in order to find the best possible model.
-
-First, the results from the baseline models are presented in Figure \ref{fig:small_baselines}. These show that the log-modular model outperforms the Markov baselines in this case. This is encouraging as it serves as the base for the proposed models. The results also show that the heuristic Markov model outperforms the strict Markov, this is expected in all cases because the dataset was constructed in such a way that elements are not repeated, hence the proposed heuristic always improves the prediction by removing the already visited elements from the possible choices. The proximity model is the best for the small dataset, and the results show that adding ordering information improves the score.
+First, the results from the baseline models are presented in Figure \ref{fig:small_baselines}. These show that the log-modular model outperforms the Markov baselines in this case. This is encouraging as it serves as the base for the more complex models. The results also show that the heuristic Markov model outperforms the strict Markov, this is expected in all cases because the dataset was constructed in such a way that elements are not repeated, hence the proposed heuristic always improves the prediction by removing the already visited elements from the possible choices. The proximity model is the best for the small dataset, and the different between the Proximity model with and without ordering show that adding ordering information improves the score.
 
 \begin{figure}
   \centering
@@ -35,7 +33,7 @@ First, the results from the baseline models are presented in Figure \ref{fig:sma
 
 \subsection{Diversity \& Coherence}
 
-The first approach to the problem was to use the FLID model, i.e. modeling only diversity. Figure \ref{fig:flid_small_l_dims} shows the model accuracy for different number of dimensions. Comparing these values with the log-modular model shows that there is no significant improvement even with a large number of diversity dimensions. Increasing the number of noise samples or epochs did not improve these results either.
+The first approach to the problem was to use the FLID model, i.e. modeling only diversity. Figure \ref{fig:flid_small_l_dims} shows the model accuracy for different numbers of dimensions. Comparing these values with the log-modular model shows that there is no significant improvement even with a large number of diversity dimensions. Increasing the number of noise samples or epochs did not improve these results either.
 
 \begin{figure}
   \centering
@@ -72,7 +70,7 @@ The fact that the FLID and FLDC models do not result in improved accuracy with r
 
 The paths in Table \ref{tab:small_top_paths} are all pairs, which are harder to predict because there is only information about one item and there is no benefit from diversity in that case. Simply ordering by frequency should give a high accuracy, as shown by the log-modular model's accuracy in Figure \ref{fig:small_baselines}.
 
-However, the lack of improvement in accuracy does not mean that the FLID and FLDC models are not learning beyond the log-modular model. This can be seen by comparing the total variation distance between the empiric distribution of the paths, after removing the ordering, and the distributions produced by the learned models. Note that in this case the number of items is small enough that the computation of the partition function is tractable even using the exhaustive method that requires $\mathcal{O}(2^|V|)$ time. Figure \ref{fig:small_tv_comparison} shows the total variation distance for differnt FLID and FLDC models. It shows that combining diversity and coherence improves the approximation of the model to the empiric distribution, as a comparison the TVD for the log-modular model was $0.40$.
+However, the lack of improvement in accuracy does not mean that the FLID and FLDC models are not learning beyond the log-modular model. This can be seen by comparing the total variation distance between the empiric distribution of the paths, after removing the ordering, and the distributions produced by the learned models. Note that in this case the number of items is small enough that the computation of the partition function is tractable even using the exhaustive method that requires $\mathcal{O}(2^{|V|})$ time. Figure \ref{fig:small_tv_comparison} shows the total variation distance for different FLID and FLDC models. It shows that combining diversity and coherence improves the approximation of the model to the empiric distributiowhen compared to the TVD for the log-modular model, which was $0.40$.
 
 Finally, Figure \ref{fig:small_llri} shows the LLRI metric for the FLDC models. This shows more clearly that there is an improvement over the log-modular model, even though it is not reflected on the accuracy metric. The best choice of dimensions is $L=5,K=5$ according to both the LLRI and TVD metrics.
 
@@ -92,7 +90,7 @@ Finally, Figure \ref{fig:small_llri} shows the LLRI metric for the FLDC models. 
 
 \section{Large Dataset}
 
-The baseline models were trained on the large dataset, i.e. $|V| = 100$, and the accuracy results are presented in Figure \ref{fig:large_baselines}. In this case, there is a more significant difference between the log-modular and heuristic Markov models. This indicates that simply choosing the most frequent element is not as good of a strategy as for the small dataset, therefore complex models like FLDC and FFLDC should yield better results. Finally, the significant higher score of the Heuristic Markov and Proximity Ordered models shows how adding information about the ordering, i.e. using paths, can improve the results in comparison to the models that work only on sets.
+The baseline models were trained on the large dataset, i.e. $|V| = 100$, and the accuracy results are presented in Figure \ref{fig:large_baselines}. In this case, there is a more significant difference between the log-modular and the other baselines. This indicates that simply choosing the most frequent element is not as good of a strategy as for the small dataset, therefore complex models like FLDC and FFLDC should yield better results. Additionally, the significant higher accuracy of the (Heuristic) Markov and Proximity Ordered models shows how adding information about the ordering, i.e. using paths, can improve the results in comparison to modeling only sets.
 
 \begin{figure}
   \centering
@@ -101,7 +99,7 @@ The baseline models were trained on the large dataset, i.e. $|V| = 100$, and the
   \label{fig:large_baselines}
 \end{figure}
 
-Different FLDC models were trained on the large dataset, in order to find the best setting for the dimensions $L$ and $K$ a grid search was performed. The average accuracy for each setting is presented in Figure \ref{fig:grid_search_large}. This shows that the FLDC model is significantly better for the path completion tasks than the log-modular baseline, however there is not a visible difference between the various settings for the model. These results suggest that models with larger number of dimensions have worse accuracy in the test set, this is likely due to the large number of parameters in the model which require more data to estimate properly.
+Different FLDC models were trained on the large dataset, in order to find the best setting for the dimensions $L$ and $K$ a grid search was performed. The average accuracy for each setting is presented in Figure \ref{fig:grid_search_large}. This shows that the FLDC model is significantly better for the path completion task than the log-modular baseline, however there is not a visible difference between the various settings for the model. Moreover, these results suggest that models with large number of dimensions have worse accuracy in the test set, this is due to the large number of parameters in the model which would require more data to estimate properly.
 
 \begin{figure}
   \centering

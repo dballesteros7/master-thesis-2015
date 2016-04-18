@@ -1,7 +1,7 @@
 \chapter{Synthetic Experiments}
 \label{sec:synthetic}
 
-This chapter describes experiments done on synthetic data to explore the learning performance of the methods described in the background section.
+This chapter describes experiments done on synthetic data to explore the learning performance of the methods described in the background chapter.
 
 \section{Learning Setup}
 
@@ -51,7 +51,7 @@ Where $\theta'_{h}$ is the unnormalized parameter after the gradient update and 
 
 \subsection{Column Restarts}
 
-One common problem observed during the experiments is when two columns in the weight matrices are very similar and therefore redundant. This can happen for some initialization settings, e.g. when $i^{d}$ and $i^{c}$ in Equations \eqref{eq:sub-b} and \eqref{eq:sub-e} are the same initially and increase at the same rate, hence leading to a local maximum.
+One common problem observed during the experiments is resulting models with two or more columns in the weight matrices which are very similar and therefore redundant. This can happen for some initialization settings, e.g. when $i^{d}$ and $i^{c}$ in Equations \eqref{eq:sub-b} and \eqref{eq:sub-e} are the same initially and increase at the same rate, hence leading to a local maximum.
 
 In order to address this problem, a heuristic was added to the implementation that resets one of the columns when it is too similar to another one. This similarity is measured as:
 
@@ -130,7 +130,7 @@ Figure \ref{fig:fldc-toy-learned-weights} shows the resulting utility vector $\m
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{fldc_toy_example_learned_weights}
-  \caption{Learned model for example \ref{sec:fldc-toy}. The white line divides the clusters described in the example.}
+  \caption{Learned model for Example \ref{sec:fldc-toy}. The white line divides the clusters described in the example.}
   \label{fig:fldc-toy-learned-weights}
 \end{figure}
 
@@ -149,7 +149,7 @@ Recall the following characteristics about the dataset in Example \ref{sec:ffldc
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{ffldc_toy_example_learned_weights}
-  \caption{Learned model for example \ref{sec:ffldc-toy}}
+  \caption{Learned model for Example \ref{sec:ffldc-toy}}
   \label{fig:ffldc-toy-learned-weights}
 \end{figure}
 
@@ -176,9 +176,9 @@ Figure \ref{fig:effects_eta_0} shows $g(\boldsymbol{\theta})$ during the optimiz
   \label{fig:effects_eta_0}
 \end{figure}
 
-The results in figure \ref{fig:effects_eta_0} show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to instability, as discussed in section \ref{sec:adagrad}. Concretely, for $\eta_{0} \leq 0.01$ the learning is slow but stable, while for $\eta_{0} \geq 0.01$ the objective value converges quickly but oscillates across epochs. This oscillation is problematic because it breaks the guarantee that the objective value is better as the number of epochs increase. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges and is stable, i.e. $\eta_{0} = 0.005$ however this may not be always the case for real data.
+The results in Figure \ref{fig:effects_eta_0} show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to instability, as discussed in section \ref{sec:adagrad}. Concretely, for $\eta_{0} \leq 0.01$ the learning is slow but stable, while for $\eta_{0} \geq 0.01$ the objective value converges quickly but oscillates across epochs. This oscillation is problematic because it breaks the guarantee that the objective value is better as the number of epochs increase. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges and is stable, i.e. $\eta_{0} = 0.005$ however this may not be always the case for real data.
 
-By contrast, figure \ref{fig:effects_adagrad} shows the objective function for $\eta_{0}$ between $0.005$ and $0.05$ after incorporating AdaGrad to the implementation. These results show that training with AdaGrad is stable for a larger range of $eta_0$ without sacrificing convergence speed.
+By contrast, Figure \ref{fig:effects_adagrad} shows the objective function for $\eta_{0}$ between $0.005$ and $0.1$ after incorporating AdaGrad to the implementation. These results show that training with AdaGrad is stable for a larger range of $eta_0$ without sacrificing convergence speed.
 
 \begin{figure}
   \centering

@@ -3,7 +3,7 @@
 
 \section{Beyond Diversity: FLDC}
 
-Diversity is an important property in the context of summarization \citep{tschiatschek16learning}, however it is not the only one. Coherence is also a desired property of summaries, particularly for structured summaries \citep{Yan:2011:ETS:2009916.2010016}. Balancing coherence and diversity is considered a challenge and maxiziming diversity alone may lead to disconnected summaries, while focusing on coherence can hinder the breadth of the resulting summaries \citep{Shahaf2012}.
+Diversity is an important property in the context of summarization \citep{tschiatschek16learning}, however it is not the only one that should be considered. Coherence is another desired property of summaries, for example in structured summaries \citep{Yan:2011:ETS:2009916.2010016}. Balancing coherence and diversity is considered a challenge and maxiziming diversity alone may lead to disconnected summaries, while focusing on coherence can hinder the breadth of the resulting summaries \citep{Shahaf2012}.
 
 To better understand why coherence is important, consider the construction of a spatial summary for photos taken in a city. A model based on spatial diversity would create sets containing photos taking at distant locations in the city, however another possibility is to have summaries that contain photos that were taken close to some starting point, in this case the desired property is not spatial diversity but rather coherence.
 
@@ -19,7 +19,9 @@ Adding the coherence term to FLID results in the extended model, which we refer 
   \label{eq:fldc}
 \end{equation}
 
-For the FLDC model, the partition function can be computed in $\mathcal{O}(|V|^{L+K+1})$ time. This complexity can be derived using a similar algorithm as the one presented by \citet{tschiatschek16learning} for FLID, the key observation is that the algorithm they present only requires the ordering of weights to determine elegible element for a set given a set of maximum weights per dimension, therefore this can be easily extented to include the the ordering for the coherence weights as well. This requires evaluating $K$ more dimensions which results in the added term to the exponent of the complexity expression, which makes the computation of the partition function more impractical than in the FLID case.
+Where $\mathrm{div}(S)$ is the diversity term in Equation \eqref{eq:diversity}.
+
+For the FLDC model, the partition function can be computed in $\mathcal{O}(|V|^{L+K+1})$ time. This complexity can be derived using a similar algorithm as the one presented by \citet{tschiatschek16learning} for FLID, the key observation is that the algorithm they present only requires the ordering of weights to determine elegible elements for a set given  the maximum weights for each dimension. This can be easily extented to include the the ordering for the coherence weights as well. This requires evaluating $K$ more dimensions which results in the added term to the exponent of the complexity expression, which makes the computation of the partition function more expensive than in the FLID case.
 
 \subsection{Learning FLDC Models}
 
@@ -34,7 +36,7 @@ As with FLID, the parameters for an FLDC model can be estimated using NCE. For F
 
 Where $\left(\nabla_{\mathbf{W}^{e}}\cdot \right)_{i,c}$ represents the $(i,c)$-th entry in the gradient with respect to $\mathbf{W}^{e}$.
 
-This also affects the overall complexity of the learning algorithm. Computing the gradient takes $\mathcal{O}(L+K)|S|$ for FLDC at each step, therefore the running time of a full pass over the data and noise samples takes $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|\kappa(L+K))$. This is not significantly more expensive than learning FLID under the assumption that $K \simeq L$.
+This also affects the overall complexity of the learning algorithm. Computing the gradient takes $\mathcal{O}(L+K)|S|$ for FLDC at each step, therefore the running time of a full pass over the data and noise samples takes $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|\kappa(L+K))$. This is not significantly more expensive than learning FLID because the complexity is still linear on the data and noise.
 
 
 \subsection{Example: Two Non-overlapping Clusters}
@@ -68,9 +70,9 @@ Concretely, the weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ in Figure \ref{
 
 \section{Generalizing through Features: FFLDC}
 
-An important characteristic of the FLID model, and by extension the FLDC one, is that it is agnostic to the type of elements in the ground set, this allows its application to a wide range of problems without prior knowledge. However the downside is that the model has no capability to make use of information about the elements, if available, to improve the modeling of the data. Moreover, if a new element is added to the set there is no way to generalize the existing knowledge about similar elements.
+An important characteristic of the FLID model, and by extension the FLDC one, is that it is agnostic to the type of elements in the ground set, this allows its application to a wide range of problems without prior knowledge. However the downside is that the model has no capability to make use of information about the elements to improve the modeling of the data. Moreover, if a new element is added to the set there is no way to generalize the existing knowledge about similar elements.
 
-In order to solve these problems, we propose a further extension to the model. Firstly, an element ($i \in V$) is represented as a vector $\mathbf{x}_{i} \in \mathbb{R}^{M}$ where each entry is a feature, e.g. for venues one feature could be its aggregated rating while another indicates whether it is indoors or outdoors. The representations of all elements is collected by matrix $\mathbf{X} \in \mathbb{R}^{|V| \times M}$ where each row $i$ corresponds to the repreesntation $\mathbf{x}_{i}$ of element $i$.
+In order to solve these problems, we propose a further extension to the model. First, an element ($i \in V$) is represented as a vector $\mathbf{x}_{i} \in \mathbb{R}^{M}$ where each entry is a feature, e.g. for venues one feature could be its aggregated rating while another indicates whether it is indoors or outdoors. The representations of all elements is collected by matrix $\mathbf{X} \in \mathbb{R}^{|V| \times M}$ where each row $i$ corresponds to the repreesntation $\mathbf{x}_{i}$ of element $i$.
 
 Then, the utility vector $\mathbf{u}$ and weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ are factorized to include this feature matrix $\mathbf{X}$ as follows:
 

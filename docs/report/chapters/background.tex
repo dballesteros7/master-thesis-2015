@@ -14,7 +14,7 @@ A set function is defined on the powerset $2^{V}$ of a ground set $V$, i.e. $F:2
   \forall S,T \subseteq V : S \subseteq T, i \notin T \mid F(S \cup i) - F(S) \geq F(T \cup i) - F(T)
 \end{equation}
 
-Intuitively this indicates that adding an element to a smaller set yields a larger effect, i.e. in terms of the set function $F$ value, than adding it to a larger one. This is a natural property in the context of summarization where adding more information to a large summary can be less effective than adding it to a smaller one. This property also makes them good candidates for modeling the concept of diversity \citep{tschiatschek16learning}.
+Intuitively this indicates that adding an element to a smaller set yields a larger effect, i.e. in terms of the set function $F$ value, than adding it to a larger one. This is a natural property in the context of summarization where adding more information to a large summary is less effective than adding it to a smaller one. This property also makes them good candidates for modeling the concept of diversity \citep{tschiatschek16learning}.
 
 Analogous to the use of submodular functions to model diversity, supermodular functions can be used to model complementarity or coherence between elements.
 
@@ -32,9 +32,7 @@ This work is interested in a particular class of probability set functions, name
   P(S) = \frac{1}{Z}\exp(F(S))
 \end{equation}
 
-Where $F(S)$ is a submodular or supermodular function, respectively. \citet{djolonga14variational, djolonga15scalable} show that these models encompass many practical probabilistic models such as repulsive Ising models, Deterministic Point Processes (DPPs) and binary pairwise Markov Random Fields (MRFs).
-
-This model class is of interest because the contributions of this work focus on extensions to a novel probabilistic log-submodular model proposed by \citet{tschiatschek16learning} which will be described in the next section.
+Where $F(S)$ is a submodular or supermodular function, respectively. \citet{djolonga14variational, djolonga15scalable} indicate that these models encompass many practical probabilistic models such as repulsive Ising models, Deterministic Point Processes (DPPs) and binary pairwise Markov Random Fields (MRFs).
 
 The normalization constant $Z$ is also known as the \textit{partition function} and it is necessary to fully determine the normalized model and compute quantities such as marginal probabilities, however its exact computation is known to be \#P-complete in general\citep{jerrum1990}. This makes it impossible in practice to perform such computations except for special cases of the model.
 
@@ -101,7 +99,7 @@ Concretely, let $V = \{h, s, f\}$ and $\mathbf{u} = \left(2, 2, 2\right)^{\inter
 \section{Learning from Data}
 \label{sec:learning}
 
-Much of the interest in log-submodular models is concentrated on performing inference for known functions \citep{tschiatschek16learning}. However, \citet{tschiatschek16learning} explore how to learn such models from data, i.e. estimate the model parameters from observations with an unknown distribution.
+Much of the interest in log-submodular models is concentrated on performing inference for known functions \citep{tschiatschek16learning}. However, \citet{tschiatschek16learning} explore how to learn such models from data, i.e. estimate the model parameters from observations with an unknown distribution assumed to be of the same family as the models.
 
 \subsection{Learning Log-modular Models}
 \label{sec:learning_modular}
@@ -211,14 +209,14 @@ Where $P(S;\mathbf{u}, \mathbf{W}^{b})$ is the unnormalized \eqref{eq:flid} equa
 
 \subsubsection{Computational Complexity}
 
-As described by \citet{tschiatschek16learning}, the running time requirement for calculating the sub-gradient for FLID is $\mathcal{O}(L|S|)$, and for a complete pass over data and noise samples is then $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|\kappa L)$ where $\kappa = \max_{S \in \mathcal{D}\cup\mathcal{N}}{|S|}$. This shows that learning is efficient as it is only linear on the size of the data and the noise, assuming small values for $\kappa$ and $L$.
+As described by \citet{tschiatschek16learning}, the running time requirement for calculating the sub-gradient for FLID is $\mathcal{O}(L|S|)$, therefore a complete pass over data and noise samples is $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|\kappa L)$ where $\kappa = \max_{S \in \mathcal{D}\cup\mathcal{N}}{|S|}$, i.e. the largest subsed in $\mathcal{D} \cup \mathcal{N}$. This shows that learning is efficient as it is only linear on the amount of data and noise.
 
 \subsection{AdaGrad}
 \label{sec:adagrad}
 
-A commonly used learning rate function for SGD is $\eta(t) = \eta_{0}t^{-p}$, which offers the best yergence speed in theory and also does it often in practice \citep{bottou2012stochastic}, however it can lead to poor performance due to slow rates of convergence to the solution \citep{darken1992towards}. By contrast, choosing a larger $\eta_{0}$ may not lead to better results due to the instability in the parameters for small $t$ \citep{Darken1990}. 
+A commonly used learning rate function for SGD is $\eta(t) = \eta_{0}t^{-p}$, which offers the best yergence speed in theory and often also in practice \citep{bottou2012stochastic}, however it can lead to poor performance due to slow rates of convergence to the solution \citep{darken1992towards}. By contrast, choosing a larger $\eta_{0}$ may not lead to better results due to the instability in the parameters for small $t$ \citep{Darken1990}. 
 
-This behavior was observed during the experiments with real data to be presented in later sections, therefore an alternative for the learning rate was sought. In particular, Adaptive Gradient (AdaGrad) was implemented.
+This behavior was observed during the experiments with real data presented in later chapters, therefore an alternative for the learning rate was sought. In particular, Adaptive Gradient (AdaGrad) was implemented.
 
 AdaGrad was proposed by \citet{Duchi2011adagrad}, the idea of this method is to adapt the learning rate for each parameter in $\boldsymbol{\theta}$ individually in a way that frequently updated parameters have slower learning rates while infrequent parameters have larger ones. The intuition is that an update to a rare parameter is more informative than one to a parameter that is frequently updated.
 
@@ -240,8 +238,9 @@ Where $\nabla g(\theta)^{t}_{\gamma}$ denotes the gradient of the $\gamma$ param
 It is worth noting that AdaGrad does not incur in an significant increase in running time or memory requirements for the training which makes it inexpensive to include in the implementation of NCE.
 
 \section{Mean-shift Clustering}
+\label{sec:mean-shift}
 
-Mean-shift clustering is a technique proposed by \citet{cheng1995mean}, it is commonly used for image segmentation tasks \citep{comaniciu2002mean}. However, as proposed by \citet{Kleinberg2009}, it can also be used for the task of identifying highly photographed locations in an image collection.
+Mean-shift clustering is a technique proposed by \citet{cheng1995mean}, it is commonly used for image segmentation tasks \citep{comaniciu2002mean}. However, as proposed by \citet{Kleinberg2009}, it can also be used for the task of identifying highly photographed locations in an collection of geotagged photos.
 
 It is a non-parametric technique for locating the modes of a probability distribution over a feature space, this works by using Kernel Density Estimation (KDE) to estimate the gradient of the underlying distribution from the data and then performing a mean-shift procedure to identify the local maxima or modes, this is also known as hill-climbing. This can be naturally applied to a collection of geotagged photos by considering the feature space of latitude and longitude coordinates.
 
