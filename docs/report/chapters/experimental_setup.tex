@@ -1,15 +1,15 @@
 \chapter{Modeling an Image Collection - Setup}
 \label{sec:experimental_setup}
 
-This chapter describes an application of the models presented in Chapter \ref{sec:models} to a real dataset. As mentioned in the introduction, finding and recommending paths for tourists is an interesting research topic. These paths can be understood as spatial summaries of a city, representing the most important locations to visit and photograph in a city.
+This chapter describes an application of the models presented in Chapter \ref{sec:models} to a real-world dataset. As mentioned in the introduction, finding and recommending paths for tourists is an interesting research topic. These paths can be understood as spatial summaries of a city, representing the most important locations to visit in a city.
 
-These tourist paths can be discovered from a large collection of geotagged images by using the accompanying timestamps as explained in section \ref{sec:path_discovery}. Even though these paths are naturally ordered, they can also be used as unordered sets of locations that represent the behavior of different visitors taking photographs in the city, which can be modeled using the FLID, FLDC and FFLDC models. The modeling quality of these proposed models was compared to other existing methods from the literature as explained in section \ref{sec:baselines}. The procedure used for evaluating the results is described in section \ref{sec:evaluation}.
+These tourist paths can be discovered from a large collection of geotagged images by using the accompanying timestamps as explained in Section \ref{sec:path_discovery}. Even though these paths are naturally ordered, they can also be considered as unordered sets of locations that represent the behavior of different visitors taking photographs in the city, which can be modeled using the FLID, FLDC and FFLDC models.
 
 \section{Flickr Dataset}
 
-For the experiments on real data, public geotagged photos from Flickr were used. There are close to two million geo-tagged photos available on Flickr\footnote{\url{https://www.flickr.com/map} reports 1,833,307 geotagged photos as of April 2016.}, this offers a unique and rich dataset for the task of spatial summarization. But as described before, this work focuses on the city level. Therefore, the experiments were performed on a subset of the Flickr data, namely on public geotagged photos taken within Zürich, Switzerland.
+For the experiments on real-world data, public geotagged photos from Flickr were used. There are close to two million geo-tagged photos available on Flickr\footnote{\url{https://www.flickr.com/map} reports 1,833,307 geotagged photos as of April 2016.}, this offers a unique and rich dataset for the task of spatial summarization. As discussed before, this work focuses on the city level. Therefore, the experiments were performed on a subset of the Flickr data, namely on public geotagged photos taken within Zürich, Switzerland.
 
-The Flickr API\footnote{See documentation at \url{https://www.flickr.com/services/api/}} provides multiple functions to explore and use the data, in particular the search endpoint allows developers to retrieve photo records according to a specific criteria. Each photo record contains the following information:
+The Flickr API\footnote{See documentation at \url{https://www.flickr.com/services/api/}} provides multiple functions to explore and use the data. In particular the search endpoint allows developers to retrieve photo records according to a specific criteria. Each photo record contains the following information:
 
 \begin{description}
   \item[Owner] The ID of the user who uploaded and owns the photo.
@@ -24,12 +24,12 @@ The Flickr API\footnote{See documentation at \url{https://www.flickr.com/service
   \item[URL] The URL to download the photo. 
 \end{description}
 
-Most of these properties can be used to filter the search results, for collecting the desired data for Zürich the following criteria was used:
+These properties can be used to filter the search results. For collecting the desired data for Zürich the following criteria was used:
 
 \begin{itemize}
   \item The photo was taken between 2005 and 2015.
   \item The photo is marked as public and has no copyright restrictions.
-  \item The photo is geotagged and has street level accuracy. The location of the photo must be within the area shown in Figure \ref{fig:zurich_bb}.
+  \item The photo is geotagged and has street level accuracy, i.e. latitude and longitude coordinates from GPS. The location of the photo must be within the area shown in Figure \ref{fig:zurich_bb}.
 \end{itemize}
 
 \begin{figure}
@@ -39,9 +39,9 @@ Most of these properties can be used to filter the search results, for collectin
   \label{fig:zurich_bb}
 \end{figure}
 
-The API sets some limitations on the search function, namely it does not allow more than 3600 requests per hour and it restricts the search results to the first 4000 records. This means that it was not possible to issue a single search request with the outlined criteria, instead the retrieval was done over the course of several hours though single month queries. This ensured that each query had less than 4000 results, hence retrieving all the available records. This search yielded 168608 photos taken by 6159 users.
+The API sets some limitations on the search function, namely it does not allow more than 3,600 requests per hour and it restricts the search results to the first 4,000 records. This means that it was not possible to issue a single search request with the outlined criteria, instead the retrieval was done over the course of several hours though single month queries. This ensured that each query had less than 4,000 results, hence retrieving all the available records. This search yielded 168,608 photos taken by 6,159 users.
 
-Figure \ref{fig:heatmap_zurich} shows the distribution of photos taken in 2015. The majority of them is concentrated at the city center but also around locations of interest outside the center like Uetliberg, Oerlikon and the Zoo. This indicates that the dataset contains good information regarding the places to visit and take photographs in Zürich. Figure \ref{fig:heatmap_zurich_zoom} shows zoomed-in areas around the city showing that the data is mostly concentrated in touristic places such as the historic center, where Fraumünster, Grossmünster and the city hall are.
+Figure \ref{fig:heatmap_zurich} shows the distribution of photos taken in 2015. The majority of them is concentrated at the city center but also around locations of interest outside the center like Uetliberg, Oerlikon and the Zoo. This indicates that the dataset contains information regarding various places to visit in Zürich. Figure \ref{fig:heatmap_zurich_zoom} shows zoomed-in areas around the city showing that the data is mostly concentrated in touristic places such as the historic center, where Fraumünster, Grossmünster and the city hall are.
 
 \begin{figure}
   \centering
@@ -75,7 +75,7 @@ Figure \ref{fig:heatmap_zurich} shows the distribution of photos taken in 2015. 
   \label{fig:heatmap_zurich_zoom}
 \end{figure}
 
-Additional to the spatial coverage of the dataset, one interesting property to explore is how the photos are distributed across users. The histogram of photos taken by each user is shown in Figure \ref{fig:photo_user_distribution}. The x-axis is cut off at 100 photos because the distribution has a heavy tail which is due to professional users like newspapers and event venues that have uploaded hundreds of photos under a single user. These users are not of particular interest for the use case of this work because they do not reflect the interests of a typical visitor. The histogram shows that most of the users uploaded one or two pictures which indicates that most of the photos come from very active users that take hundred of photos and this should be taken into account when analyzing the results.
+Additional to the spatial coverage of the dataset, one interesting property to explore is how the photos are distributed across users. The histogram of photos taken by each user is shown in Figure \ref{fig:photo_user_distribution}. The x-axis is cut off at 100 photos because the distribution has a heavy tail which is due to professional users like newspapers and event venues that have uploaded hundreds of photos under a single user. These users are not of particular interest for the use case of this work because they do not reflect the interests of a typical visitor. The histogram shows that most of the users uploaded only few pictures which indicates that most of the photos come from very active users that take hundred of photos and this should be taken into account when analyzing the results.
 
 \begin{figure}
   \centering
@@ -87,7 +87,7 @@ Additional to the spatial coverage of the dataset, one interesting property to e
 \section{Path Finding}
 \label{sec:path_discovery}
 
-The collected photos were used to identify the important locations that are often photographed by many people. These locations define the ground set $V$ for the models. In order to identify the popular locations automatically, the method proposed by \citet{Kleinberg2009} was used.
+The collected photos were used to identify popular locations that are photographed by many people. These locations define the ground set $V$ for the considered models. In order to identify the popular locations automatically, the method proposed by \citet{Kleinberg2009} was used.
 
 \citet{Kleinberg2009} define the problem of finding highly-photographed locationes as a clustering problem in a two-dimensional feature space, namely the space defined by the spatial coordinates of each photo. The clustering method used for this problem is mean-shift clustering.
 
@@ -100,20 +100,20 @@ It is a non-parametric technique for locating the modes of a probability distrib
 
 This approach assumes that there is an underlying distribution where the modes are locations of interest or landmarks where many of the photos were taken. Mean-shift has an advantage over other clustering techniques such as k-means for this problem, because the bandwidth used for the kernel has a physical meaning, namely it defines the radius of the area around each landmark.
 
-Scikit\footnote{\url{http://scikit-learn.org/stable/}} was used for the mean-shift clustering implementation. The clustering was performed on the complete photo dataset with the unnormalized latitude and longitude features using a gaussian kernel. The kernel's bandwidth was 0.001 degrees which approximately represents a radius of 100m without significant errors for the geographic scale of Zürich.
+Scikit\footnote{\url{http://scikit-learn.org/stable/}} was used for the mean-shift clustering implementation. The clustering was performed on the complete photo dataset with the unnormalized latitude and longitude features using a Gaussian kernel. The kernel's bandwidth was 0.001 degrees which approximately represents a radius of 100m without significant errors for the geographic scale of Zürich.
 
-The clustering procedure yielded 2686 clusters covering 137019 photos, the left over photos represent outliers that are not inside any of the resulting kernels. Figure \ref{fig:photos_per_clusters} displays a histogram of photos per cluster, it shows that over half of the clusters only contain one or two photos. This indicates that many of the clusters are actually not landmarks or highly photographed places, so in order to concentrate the model around the most interesting locations only the top $N$ clusters sorted by the number of photos were used.
+The clustering procedure yielded 2,686 clusters covering 137,019 photos, the left over photos represent outliers that are not inside any of the resulting kernels. Figure \ref{fig:photos_per_clusters} displays a histogram of photos per cluster, it shows that over half of the clusters only contain one or two photos. This indicates that many of the clusters are actually not landmarks or highly photographed places, so in order to concentrate the model around the most interesting locations only the top $N$ clusters sorted by the number of photos were used.
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{histogram_photos_per_cluster}
-  \caption{Histogram of the number of photos per cluster. The x-axis cut off at 500 because the distribution has a heavy tail.}
+  \caption{Histogram of the number of photos per cluster. The x-axis is cut off at 500 photos because the distribution has a heavy tail.}
   \label{fig:photos_per_clusters}
 \end{figure}
 
 Two datasets were constructed, a small one with the top 10 clusters and a large one with the top 100 clusters. The small dataset was mainly used during the development of the models to test the implementation and try out different settings. On the other hand, the large dataset was used for assessing the quality of the final models and comparing them against the baseline models.
 
-Figures \ref{fig:top_10_zurich} and \ref{fig:top_100_zurich} show the selected clusters in the small and large setting, respectively. Additionally, Table \ref{tab:top_10_clusters} presents additional information about the top 10 clusters in the small dataset.
+Figures \ref{fig:top_10_zurich} and \ref{fig:top_100_zurich} show the selected 10 and 100 settings clusters, respectively. Additionally, Table \ref{tab:top_10_clusters} presents additional information about the top 10 clusters in the small dataset.
 
 \begin{figure}
   \centering
@@ -152,12 +152,12 @@ Figures \ref{fig:top_10_zurich} and \ref{fig:top_100_zurich} show the selected c
   \label{tab:top_10_clusters}
 \end{table}
 
-To extract the paths taken by individual users from the photo dataset, the procedure was as follows:
+To extract paths taken by individual users, the following procedure was used:
 
 \begin{enumerate}
-  \item The photos were grouped by user and date when they were taken.
+  \item The photos were grouped by user and day when they were taken.
   \item The photos in each user and date group represent a single path, ordered by date and time.
-  \item The photos were replaced in the sequences by their corresponding clusters, including the cluster only once. If the photo did not belong to one of the top clusters, then the photo would be discarded.
+  \item The photos were replaced in the paths by the id of the corresponding clusters, including the cluster only once. If the photo did not belong to one of the top clusters, then the photo is discarded.
   \item The resulting sequence of clusters represent the paths taken by users through the city.
 \end{enumerate}
 
@@ -173,7 +173,7 @@ These sequences were used as the unordered sets for the set models, e.g. FLID, F
     Included photos (\% of total) & 30655 (18\%) & 91661 (54\%)\\
     Paths extracted, i.e. $|\mathcal{D}|$ & 6781 & 16439 \\
     Singleton paths, i.e. $|S|=1$ & 5396 & 12927 \\
-    Pair paths, i.e. $|S|=2$ & 799 & 1980 \\
+    Paths with 2 elements, i.e. $|S|=2$ & 799 & 1980 \\
     \bottomrule
   \end{tabular}
   \label{tab:path-statistics}
@@ -184,23 +184,23 @@ Additionally, Figures \ref{fig:histogram_path_length_10} and \ref{fig:histogram_
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{histogram_path_length_10}
-  \caption{Histogram of path length for the small dataset.}
+  \caption{Histogram of the lengths of the paths for the small dataset.}
   \label{fig:histogram_path_length_10}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{histogram_path_length_100}
-  \caption{Histogram of path length for the large dataset.}
+  \caption{Histogram of the lengths of the paths for the large dataset.}
   \label{fig:histogram_path_length_100}
 \end{figure}
 
 \section{Models}
 
-For the experiments, the FLID, FLDC and FFLDC models were used. For most of the experiments the following implementation details were fixed:
+For the experiments, the FLID, FLDC and FFLDC models were used. The following implementation details were used in the experiments, unless noted otherwise:
 
 \begin{itemize}
-  \item The data was split in 8 random folds, with 87.5\% of the data used for training and 12.5\% for testing in each one.
+  \item The data was split into 8 random folds, with 87.5\% of the data used for training and 12.5\% for testing in each one.
   \item The noise was generated using the log-modular model as described for the synthetic experiments.
   \item AdaGrad was used and $\eta_{0}$ was 1 and 0.1 for the small and large datasets, respectively.
   \item The number of epochs was 1000.
@@ -212,36 +212,36 @@ For the experiments, the FLID, FLDC and FFLDC models were used. For most of the 
 
 This section describes the baseline models that were used as a comparison for the proposed models.
 
-\subsection{Markov}
+\subsection{Markov Model}
 
-A Markov chain can be used to model the behavior of Flickr users, assuming that each user selects the next location to visit and photograph only based on the current location, i.e. they exhibit the Markov property. This model depends on the transition probabilities between the different landmarks in the dataset, concretely $P(l_{t+1} = i \mid l_{t} = j)$ where $l_{t+1}$ represents the next location and $l_{t}$ the current one. These probabilities can be estimated by counting all transitions in the dataset, i.e.
+A first-order Markov chain can be used to model the behavior of Flickr users, making the simplifying assumption that each tourist selects the next location to visit based only on the current location. This model depends on the transition probabilities between the different landmarks in the dataset, i.e. $P(l_{t+1} = i \mid l_{t} = j)$ where $l_{t+1}$ represents the next location and $l_{t}$ the current one. These probabilities can be estimated by counting all transitions in the dataset, i.e.
 
 \begin{equation}
-  \hat{P}(l_{t+1} = i \mid l_{t} = j) = \frac{N(i,j)}{N(*,j)}
+  \hat{P}(l_{t+1} = i \mid l_{t} = j) = \frac{N(i,j)}{N(*,j)},
 \end{equation}
 
-Where $N(i,j)$ is the number of times that the location $i$ was photographed immediately after location $j$, and $N(*, j)$ is the number of times that any location was photographed after $j$. This model was used successfully by \citet{Kurashima2010} with good results for recommending tourist routes for a city based on Flickr data, therefore it is a natural choice for comparison against the newly proposed models. A full path can be constructed by selecting a starting location and choosing the next one according to the highest transition probability, then repeating the procedure until a desired length is reached. Note that this model can be estimated efficiently from data, concretely it requires $\mathcal{O}(|\mathcal{D}|)$.
+where $N(i,j)$ is the number of times that the location $i$ was photographed immediately after location $j$, and $N(*, j)$ is the number of times that any location was photographed after $j$. This model was used successfully by \citet{Kurashima2010} with good results for recommending tourist routes for a city based on Flickr data, therefore it is a natural choice for comparison against the newly proposed models. A full path can be constructed by selecting a starting location and choosing the next one according to the highest transition probability, then repeating the procedure until a desired length is reached. Note that this model can be estimated efficiently from data, concretely it requires $\mathcal{O}(|\mathcal{D}|)$.
 
-\subsection{Heuristic Markov}
+\subsection{Heuristic Markov Model}
 
-A strict Markov model can only consider one transition to make decisions, however a natural heuristic that can improve the quality of the model is to consider the complete path history to avoid recommending locations that were already visited. We refer to this baseline as the Heuristic Markov model.
+A strict Markov model can only consider one transition to make decisions, however a natural heuristic that can improve the quality of the model is to consider the complete path history to avoid recommending locations that were already visited. We refer to this baseline as the heuristic Markov model.
 
-The transition probabilities are then defined as:
+The transition probabilities for predicting an element $l_{j}$ in the middle of a sequence $S_{t}$ are then defined as:
 
 \begin{equation}
-  P(l_{t+1} = i \mid l_{1 \dots t}) = \begin{cases}
-  0 & \text{if}\ i \in l_{1 \dots t} \\
-  \frac{N(i,j)}{N(*,j)} & \text{otherwise}
+  P(l_{j} = i \mid l_{1, \dots, j-1, j+1, \dots t}) = \begin{cases}
+  0 & \text{if}\ i \in \{l_{1}, \dots, l_{j-1}, l_{j+1}, \dots, l_{t}\} \\
+  \frac{N(i,l_{j-1})}{N(*,l_{j-1})} & \text{otherwise}
   \end{cases}
 \end{equation}
 
-This heuristic is included to provide a more fair comparison to the set models, e.g. FLID, which consider all the other elements in the set when recommending an element to include.
+This heuristic is included to provide a fairer comparison to the models defined over sets, such as FLID, which also consider all the other elements in the set when recommending an element to include.
 
 \subsection{Proximity}
 
 Another model is to assume that users photograph the next closest location to their current one. This can be useful to model paths that are concentrated in certain areas, for example in the Zürich dataset many of the paths only visit locations in the center and users seldom take photographs at the Zoo and a landmark in the center on the same day.
 
-Formally, this model is characterized by a distance $d(i,j)$ computed from the coordinates of elements $i$ and $j$. This can be used to predict paths that minimize the distance between elements. For example to predict the next element $s_{t+1}$ in a sequence $S_{t}$, the element closest to $s_{t}$ is selected, i.e. $s_{t+1} = \argmax_{i \notin S_{t}}(d(s_{t}, i))$.
+Formally, this model is characterized by a distance $d(i,j)$ computed from the coordinates of elements $i$ and $j$. This can be used to predict paths that minimize the distance between elements. For example to predict the an element $s_{j}$ in the middle of a sequence $S_{t}$, the element closest to $s_{j-1}$ and $s_{j+1}$ is selected, i.e. $s_{j} = \argmax_{i \notin S_{t}}(d(s_{j-1}, i) + d(s_{j+1}, i))$.
 
 This is a natural choice for a baseline model because it provides a very quick model that is not completely random, the distances in this model can be computed in $\mathcal{O}(|V|^{2})$ time, which is less than $|\mathcal{D}|$ for both datasets. To construct a full path, the same procedure as for the Markov chain can be used.
 

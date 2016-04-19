@@ -11,8 +11,6 @@ This section describes implementation details of NCE and SGD. These are valid fo
 
 As mentioned in Section \ref{sec:nce-practical}, there are several practical considerations when choosing the noise distribution. The parameters of a log-modular distribution can be estimated efficiently from data through MLE, as given by Equation \eqref{eq:modular-mle}. Also the partition function can be computed in closed form, as shown in Equation \eqref{eq:modular-z}. This makes the distribution a good candidate because it can be used efficiently for sampling as well as for computing the normalized probability of sets, i.e. $P_{n}(S)$ during the learning procedure. Hence, why the log-modular distribution is a natural choice for the noise distribution for training the FLID, FLDC and FFLDC models via NCE.
 
-
-
 \subsection{Initialization}
 
 The log-modular model also provides a sensible initialization for the parameter vector $\mathbf{u}$ in the FLID and FLDC models. For FFLDC, the initialization for $\mathbf{a}$ is done by solving the linear system derived from the factorization in Equation \eqref{eq:ffldc-factorization-1},
@@ -141,7 +139,7 @@ Figure \ref{fig:fldc-toy-learned-weights} shows the resulting utility vector $\m
   \label{fig:fldc-toy-learned-weights}
 \end{figure}
 
-\subsubsection{FFLDC: Rated Locations}
+\subsection{FFLDC: Rated Locations}
 
 Recall the following characteristics about the dataset in Example \ref{sec:ffldc-toy}:
 
