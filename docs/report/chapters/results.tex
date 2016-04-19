@@ -110,4 +110,13 @@ Finally, the best FLDC model is compared to the baselines in Figure \ref{fig:all
   \label{fig:all_models_100}
 \end{figure}
 
-Additional experiments with features were performed, aiming to enrich the model with information such as number of photos taken in a location and number of users. However, this did not show improvement in comparison to the FLDC model.
+Additional experiments with features were performed on both datasets, the objective was to identify features that could be generalized to other cities from the available data. Some of the features used were:
+
+\begin{itemize}
+  \item Number of photos per cluster
+  \item Number of photographers per cluster
+  \item Characteristics about the venue, e.g. outdoors or indoors.
+  \item Type of venue, e.g. a church or a museum.
+\end{itemize}
+
+The last two sets of features were used only in the small dataset where it was possible to quickly characterize each location. Experiments with these features did not produce successful results in terms of accuracy and the feature matrices needed to be augmented with the identity to achieve similar performance as the FLDC model. However, it is not clear that this is a problem with the FFLDC model itself. We believe that it is an issue of the data and features chosen, we expect that other settings would prove successful and take advantage of the generalization capabilities of the FFLDC model.
