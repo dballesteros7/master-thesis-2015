@@ -9,9 +9,9 @@ This section describes implementation details of NCE and SGD. These are valid fo
 
 \subsection{Noise Distribution}
 
-As mentioned in Section \ref{sec:nce-practical}, there are several practical considerations when choosing the noise distribution. A log-modular distribution is a natural choice for the noise distribution when learning the FLID model \citep{tschiatschek16learning}, and this distribution will also be used for training FLDC and FFLDC models via NCE.
+As mentioned in Section \ref{sec:nce-practical}, there are several practical considerations when choosing the noise distribution. The parameters of a log-modular distribution can be estimated efficiently from data through MLE, as given by Equation \eqref{eq:modular-mle}. Also the partition function can be computed in closed form, as shown in Equation \eqref{eq:modular-z}. This makes the distribution a good candidate because it can be used efficiently for sampling as well as for computing the normalized probability of sets, i.e. $P_{n}(S)$ during the learning procedure. Hence, why the log-modular distribution is a natural choice for the noise distribution for training the FLID, FLDC and FFLDC models via NCE.
 
-The parameters of a log-modular distribution can be estimated efficiently from data through MLE, as given by Equation \eqref{eq:modular-mle}. Also the partition function can be computed in closed form, as shown in Equation \eqref{eq:modular-z}. This makes the distribution a good candidate because it can be used efficiently for sampling as well as for computing the normalized probability of sets, i.e. $P_{n}(S)$ during the learning procedure.
+
 
 \subsection{Initialization}
 

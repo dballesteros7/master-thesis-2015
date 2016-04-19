@@ -83,7 +83,7 @@ Then, the utility vector $\mathbf{u}$ and the weight matrices $\mathbf{W}^{b}, \
   \label{eq:ffldc-factorization-3}
 \end{align} 
 
-where $\mathbf{a} \in \mathbb{R}^{M}$ represents the contribution of each feature to the total utility of an item, and $\mathbf{B} \in \mathbb{R}^{M \times L}$ and $\mathbf{E} \in \mathbb{R}^{M \times K}$ encode the contribution of each feature to each latent diversity and coherence dimension, respectively. The intuition behind this factorization is that the information about the items can enhance the latent representations, hence producing a richer model. For example if $M < |V|$ and the features are sufficient to represent the items, it is expected that learning will be easier because of the reduced number of parameters with respect to learning the equivalent FLDC model.
+where $\mathbf{a} \in \mathbb{R}^{M}$ represents the contribution of each feature to the total utility of an item, and $\mathbf{B} \in \mathbb{R}^{M \times L}$ and $\mathbf{E} \in \mathbb{R}^{M \times K}$ encode the contribution of each feature to each latent diversity and coherence dimension, respectively. The intuition behind this factorization is that the information about the items can enhance the latent representations. For example if $M < |V|$ and the features are sufficient to represent the items, i.e. each item can be uniquely identified from its features, it is expected that learning requires less computation because of the reduced number of parameters in contrast to learning an equivalent FLDC model.
 
 We refer to the extended model as the Featurized Facility Location Diversity and Coherence (FFLDC) model and its probability distribution is defined as:
 
