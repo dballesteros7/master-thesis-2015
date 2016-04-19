@@ -89,7 +89,16 @@ Additional to the spatial coverage of the dataset, one interesting property to e
 
 The collected photos were used to identify the important locations that are often photographed by many people. These locations define the ground set $V$ for the models. In order to identify the popular locations automatically, the method proposed by \citet{Kleinberg2009} was used.
 
-\citet{Kleinberg2009} define the problem of finding highly-photographed locationes as a clustering problem in a two-dimensional feature space, namely the space defined by the spatial coordinates of each photo. The clustering method used for this problem is mean-shift clustering, which was described in section \ref{sec:mean-shift}.
+\citet{Kleinberg2009} define the problem of finding highly-photographed locationes as a clustering problem in a two-dimensional feature space, namely the space defined by the spatial coordinates of each photo. The clustering method used for this problem is mean-shift clustering.
+
+\subsection{Mean-shift Clustering}
+\label{sec:mean-shift}
+
+Mean-shift clustering is a technique proposed by \citet{cheng1995mean}, it is commonly used for image segmentation tasks \citep{comaniciu2002mean}. However, as proposed by \citet{Kleinberg2009}, it can also be used for the task of identifying highly photographed locations in an collection of geotagged photos.
+
+It is a non-parametric technique for locating the modes of a probability distribution over a feature space, this works by using Kernel Density Estimation (KDE) to estimate the gradient of the underlying distribution from the data and then performing a mean-shift procedure to identify the local maxima or modes, this is also known as hill-climbing. This can be naturally applied to a collection of geotagged photos by considering the feature space of latitude and longitude coordinates.
+
+This approach assumes that there is an underlying distribution where the modes are locations of interest or landmarks where many of the photos were taken. Mean-shift has an advantage over other clustering techniques such as k-means for this problem, because the bandwidth used for the kernel has a physical meaning, namely it defines the radius of the area around each landmark.
 
 Scikit\footnote{\url{http://scikit-learn.org/stable/}} was used for the mean-shift clustering implementation. The clustering was performed on the complete photo dataset with the unnormalized latitude and longitude features using a gaussian kernel. The kernel's bandwidth was 0.001 degrees which approximately represents a radius of 100m without significant errors for the geographic scale of Zürich.
 

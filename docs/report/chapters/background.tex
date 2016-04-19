@@ -245,13 +245,4 @@ where $\nabla g(\theta)^{t}_{\gamma}$ denotes the gradient of the $\gamma$ param
 
 It is worth noting that AdaGrad does not incur in an significant increase in running time or memory requirements for the training which makes it inexpensive to include in the implementation of NCE.
 
-\section{Mean-shift Clustering}
-\label{sec:mean-shift}
-
-Mean-shift clustering is a technique proposed by \citet{cheng1995mean}, it is commonly used for image segmentation tasks \citep{comaniciu2002mean}. However, as proposed by \citet{Kleinberg2009}, it can also be used for the task of identifying highly photographed locations in an collection of geotagged photos.
-
-It is a non-parametric technique for locating the modes of a probability distribution over a feature space, this works by using Kernel Density Estimation (KDE) to estimate the gradient of the underlying distribution from the data and then performing a mean-shift procedure to identify the local maxima or modes, this is also known as hill-climbing. This can be naturally applied to a collection of geotagged photos by considering the feature space of latitude and longitude coordinates.
-
-This approach assumes that there is an underlying distribution where the modes are locations of interest or landmarks where many of the photos were taken. Mean-shift has an advantage over other clustering techniques such as k-means for this problem, because the bandwidth used for the kernel has a physical meaning, namely it defines the radius of the area around each landmark.
-
 

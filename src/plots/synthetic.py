@@ -1,5 +1,8 @@
 import os
 
+import itertools
+
+import math
 import numpy as np
 
 import constants
@@ -60,13 +63,41 @@ def plot_weights_synthetic_2():
         bbox_inches='tight')
     plt.show()
 
+def distribution_error_1(other_distribution):
+    probabilities = {}
+    for size in range(5):
+        for subset in itertools.combinations(range(4), size):
+            probabilities[frozenset(subset)] = 0.0
+
+    probabilities[frozenset({0, 1})] = 0.5
+    probabilities[frozenset({2, 3})] = 0.5
+
+    acc_err = 0.0
+    max_err = -1
+    max_sum = 0.0
+    for subset in probabilities:
+        other_prob = other_distribution[subset]
+        abs_err = abs(other_prob - probabilities[subset])
+        max_sum += abs_err
+        if abs_err > max_err:
+            max_err = abs_err
+        error = math.pow(other_prob - probabilities[subset], 2)
+        acc_err += error
+    rmse = 100 * math.sqrt(acc_err / len(probabilities))
+    return rmse, max_sum/2
+
 
 def plot_weights_synthetic_2_learned():
     model = GeneralFeatures(n_items=4, features=np.identity(4),
                             l_dims=2, k_dims=2)
-    model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+    model.load_from_file(constants.NCE_OUT_GENERAL_PATH_OLD_TPL.format(
             dataset='path_set_synthetic_2', fold=1, l_dim=2, k_dim=2,
             index='0'))
+
+    model.update_composite_parameters()
+    model.full_distribution()
+    print(distribution_error_1(model.distribution))
+    return
 
     fig = plt.figure(figsize=(10, 4))
     gs = gridspec.GridSpec(1, 3, height_ratios=[1], width_ratios=[1, 2, 2])
@@ -192,6 +223,36 @@ def plot_weights_synthetic_3():
     plt.show()
 
 
+def distribution_error(other_distribution):
+    probabilities = {}
+    for size in range(7):
+        for subset in itertools.combinations(range(6), size):
+            probabilities[frozenset(subset)] = 0.0
+
+    probabilities[frozenset({0, 2})] = 0.3
+    probabilities[frozenset({2, 3})] = 0.25
+    probabilities[frozenset({2, 5})] = 0.15
+    probabilities[frozenset({1})] = 0.1
+    probabilities[frozenset({0})] = 0.06
+    probabilities[frozenset({2})] = 0.04
+    probabilities[frozenset({3})] = 0.04
+    probabilities[frozenset({4})] = 0.03
+    probabilities[frozenset({5})] = 0.03
+
+    acc_err = 0.0
+    max_err = -1
+    max_sum = 0
+    for subset in probabilities:
+        other_prob = other_distribution[subset]
+        abs_err = abs(other_prob - probabilities[subset])
+        if abs_err > max_err:
+            max_err = abs_err
+        max_sum += abs_err
+        error = math.pow(other_prob - probabilities[subset], 2)
+        acc_err += error
+    rmse = 100 * math.sqrt(acc_err / len(probabilities))
+    return rmse, max_sum/2
+
 def plot_weights_synthetic_3_learned():
     features = np.array([
         [4., 1., 0.],
@@ -204,10 +265,13 @@ def plot_weights_synthetic_3_learned():
     ])
     model = GeneralFeatures(n_items=6, features=features,
                             l_dims=2, k_dims=1)
-    model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+    model.load_from_file(constants.NCE_OUT_GENERAL_PATH_OLD_TPL.format(
             dataset='path_set_synthetic_4', fold=1, l_dim=2, k_dim=1,
             index='1'))
     model.update_composite_parameters()
+    model.full_distribution()
+    print(distribution_error(model.distribution))
+    return
 
     fig = plt.figure(figsize=(10, 4))
     gs = gridspec.GridSpec(1, 3, height_ratios=[1], width_ratios=[1, 1, 2])
@@ -265,4 +329,4 @@ def plot_weights_synthetic_3_learned():
 
 if __name__ == '__main__':
     plots.setup()
-    plot_weights_synthetic_2()
+    plot_weights_synthetic_2_learned()

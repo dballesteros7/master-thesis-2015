@@ -80,6 +80,13 @@ This section presents the results obtained after learning the datasets from the 
 
 It is worth noting that the presented results for these experiments correspond to the best of multiple runs. It was observed that the learning algorithm does not always arrive to a good solution. This is because $g(\boldsymbol{\theta})$ is not a concave function and some initializations lead to local maxima.
 
+In order to compare the models, the Total Variation Distance (TVD) between the target distribution $P_{d}$ and the learned distribution $\hat{P}_{d}$ was used, intuitively this measures how good is the approximation of the learned model to the real distribution. This is defined as \citep[chap. 4]{levin2009markov}:
+
+\begin{equation}
+  \label{eq:total_var}
+  \|P_{d} - \hat{P}_{d}\|_{TV}= \frac{1}{2}\sum_{S \subseteq V}|P_{d}(S) - \hat{P}_{d}(S)|
+\end{equation}
+
 \subsection{FLID: Two Landmarks}
 
 Recall the following characteristics about the dataset in Example \ref{sec:flid-toy}:
@@ -134,7 +141,7 @@ Figure \ref{fig:fldc-toy-learned-weights} shows the resulting utility vector $\m
   \label{fig:fldc-toy-learned-weights}
 \end{figure}
 
-The model shown in the figure displays the desired properties of diversity between the clusters while having coherence between the items in each one. Despite being different from the proposed model in section \ref{sec:fldc-toy} it also approximately realizes the desired distribution.
+The model shown in the figure displays the desired properties of diversity between the clusters while having coherence between the items in each one. Despite being different from the proposed model in section \ref{sec:fldc-toy} it also approximately realizes the desired distribution with a total variation distance equal to $0.04$ which represents a very small error in approximating the distribution from Table \ref{tab:fldc-toy-probs}.
 
 \subsubsection{FFLDC: Rated Locations}
 
@@ -153,7 +160,7 @@ Recall the following characteristics about the dataset in Example \ref{sec:ffldc
   \label{fig:ffldc-toy-learned-weights}
 \end{figure}
 
-Figure \ref{fig:ffldc-toy-learned-weights} shows the resulting model after learning. Unfortunately, this model can be not as easily interpreted as the one proposed in figure \ref{fig:ffldc-toy-all-weights}, nevertheless it accurately models the distribution from the example thus showing the learning algorithm's ability to estimate a distribution using features.
+Figure \ref{fig:ffldc-toy-learned-weights} shows the resulting model after learning. The total variation distance for the model in Figure \ref{fig:ffldc-toy-learned-weights} from the distribution in Table \ref{tab:ffldc-toy-probs} is $0.08$, indicating a very small error in the approximation. Unfortunately, this model can be not as easily interpreted as the one proposed in figure \ref{fig:ffldc-toy-all-weights}, nevertheless it accurately models the distribution from the example thus showing the learning algorithm's ability to estimate a distribution using features. 
 
 \section{Learning Rate Sensitivity}
 
@@ -199,13 +206,6 @@ Finally, figure \ref{fig:comparison_adagrad_ffldc_toy} shows a direct comparison
 \section{Noise-to-data Ratio}
 
 The noise-to-data ratio $\nu$ is another hyperparameter for NCE learning, the recommendation is to have as many noise samples as computationally possible \citep{Gutmann12NCE}. In order to better understand the effect of $\nu$, an experiment was performed where different models for the dataset from Example \ref{sec:ffldc-toy} are learned with different values of $\nu$.
-
-In order to compare the models, the Total Variation Distance (TVD) between the target distribution $P_{d}$, from Table \ref{tab:ffldc-toy-probs}, and the learned distribution $\hat{P}_{d}$ was used, intuitively this measures how good is the approximation of the learned model to the real distribution. This is defined as \citep[chap. 4]{levin2009markov}:
-
-\begin{equation}
-  \label{eq:total_var}
-  \|P_{d} - \hat{P}_{d}\|_{TV}= \frac{1}{2}\sum_{S \subseteq V}|P_{d}(S) - \hat{P}_{d}(S)|
-\end{equation}
 
 The setting is the same as for the learning rate experiments, but with $\eta_{0} = 0.05$ and always using AdaGrad. The noise parameter $\nu$ was varied between $0.5$ and $10$.
 

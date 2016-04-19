@@ -90,14 +90,7 @@ Finally, Figure \ref{fig:small_llri} shows the LLRI metric for the FLDC models. 
 
 \section{Large Dataset}
 
-The baseline models were trained on the large dataset, i.e. $|V| = 100$, and the accuracy results are presented in Figure \ref{fig:large_baselines}. In this case, there is a more significant difference between the log-modular and the other baselines. This indicates that simply choosing the most frequent element is not as good of a strategy as for the small dataset, therefore complex models like FLDC and FFLDC should yield better results. Additionally, the significantly higher accuracy of the (Heuristic) Markov and Proximity Ordered models shows how adding information about the ordering, i.e. using paths, can improve the results in comparison to modeling only sets.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{baseline_models_100}
-  \caption{Accuracy of baseline models for the large dataset.}
-  \label{fig:large_baselines}
-\end{figure}
+The baseline models were trained on the large dataset, i.e. $|V| = 100$, and the accuracy results are presented in Figure \ref{fig:all_models_100}. In this case, there is a more significant difference between the log-modular and the other baselines. This indicates that simply choosing the most frequent element is not as good of a strategy as for the small dataset, therefore complex models like FLDC and FFLDC should yield better results. Additionally, the significantly higher accuracy of the (Heuristic) Markov and Proximity Ordered models shows how adding information about the ordering, i.e. using paths, can improve the results in comparison to modeling only sets.
 
 Different FLDC models were trained on the large dataset, in order to find the best setting for the dimensions $L$ and $K$ a grid search was performed. The average accuracy for each setting is presented in Figure \ref{fig:grid_search_large}. This shows that the FLDC model is significantly better for the path completion task than the log-modular baseline, however there is not a visible difference between the various settings for the model. Moreover, these results suggest that models with large number of dimensions have worse accuracy in the test set, this is due to the large number of parameters in the model which would require more data to estimate properly.
 
