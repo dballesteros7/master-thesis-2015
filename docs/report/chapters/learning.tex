@@ -1,59 +1,61 @@
 \chapter{Synthetic Experiments}
 \label{sec:synthetic}
 
-This chapter describes experiments done on synthetic data to explore the learning performance of the methods described in the background chapter.
+This chapter describes experiments performed on synthetic data to explore the learning performance of the methods described in Chapter \ref{sec:background}.
 
 \section{Learning Setup}
 
-This section describes implementation details of NCE and SGD, these are applicable for both the experiments in this chapter as well as those performed on real data, which will presented in subsequent chapters.
+This section describes implementation details of NCE and SGD. These are valid for both the synthetic experiments in this chapter as well as those performed on real data, cf. Chapter \ref{sec:results}.
 
 \subsection{Noise Distribution}
 
-As mentioned in section \ref{sec:nce-practical}, there are several considerations when choosing the noise distribution. A log-modular distribution is a natural choice for the noise when learning the FLID model \citep{tschiatschek16learning}, and this distribution will also be used for the noise with FLDC and FFLDC models.
+As mentioned in Section \ref{sec:nce-practical}, there are several practical considerations when choosing the noise distribution. A log-modular distribution is a natural choice for the noise distribution when learning the FLID model \citep{tschiatschek16learning}, and this distribution will also be used for training FLDC and FFLDC models via NCE.
 
 The parameters of a log-modular distribution can be estimated efficiently from data through MLE, as given by Equation \eqref{eq:modular-mle}. Also the partition function can be computed in closed form, as shown in Equation \eqref{eq:modular-z}. This makes the distribution a good candidate because it can be used efficiently for sampling as well as for computing the normalized probability of sets, i.e. $P_{n}(S)$ during the learning procedure.
 
 \subsection{Initialization}
 
-The log-modular model also provides a sensible initialization for vector $\mathbf{u}$ in the FLID and FLDC models. For FFLDC, the initialization for $\mathbf{a}$ is done by solving the linear system derived from the factorization in Equation \eqref{eq:ffldc-factorization-1}, this linear system is given by:
+The log-modular model also provides a sensible initialization for the parameter vector $\mathbf{u}$ in the FLID and FLDC models. For FFLDC, the initialization for $\mathbf{a}$ is done by solving the linear system derived from the factorization in Equation \eqref{eq:ffldc-factorization-1},
 
 \begin{equation}
   \label{eq:modular_features}
   \mathbf{a} = \mathbf{X}^{-1}\mathbf{u}
 \end{equation}
 
-Unfortunately, this system can be under/over-determined in many cases so an approximated solution must be used. The chosen method for finding this solution is ridge regression which minimizes the squared error $\sum_{i \in S}(u_{i} - (\mathbf{X}\mathbf{a})_{i})^{2}$ with a regularization term on the $l_{2}$ norm of $\mathbf{a}$.
+Unfortunately, this system is in general under/over-determined, so an approximate solution must be used. The chosen method for finding this solution is ridge regression which minimizes the squared error $\sum_{i \in S}(u_{i} - (\mathbf{X}\mathbf{a})_{i})^{2}$ with a regularization term on the $l_{2}$ norm of $\mathbf{a}$.
 
-The weight matrices, e.g. $\mathbf{W}^{e}, \mathbf{B}$, are initialized with random values drawn from a uniform distribution $\mathcal{U} \sim [0, 0.001]$. This is the same initialization setting proposed by \citet{tschiatschek16learning}.
+The weight matrices, $\mathbf{W}^{e}, \mathbf{B}$, \dots, are initialized with random values drawn from $\mathcal{U} \sim [0, 0.001]$, which represents a uniform distribution between $[0, 0.001]$. This is the same initialization setting proposed by \citet{tschiatschek16learning}.
 
 In the cases where AdaGrad is used, the accumulated gradient $\mathbf{G}$ is initialized with a constant value for each parameter $\gamma$, namely $G^{0}_{\gamma} = 0.01$.
 
 \subsection{Learning Rate}
 
-When not using AdaGrad, the learning rate used in the experiments follows the power law mentioned in section \ref{sec:adagrad}, i.e.
+When not using AdaGrad, the learning rate used in the experiments follows the power law mentioned in Section \ref{sec:adagrad}, i.e.
 
 \begin{equation}
-  \eta(t) = \frac{\eta_{0}}{t^{p}}
+  \eta(t) = \frac{\eta_{0}}{(t+1)^{p}},
 \end{equation}
+
+where $\eta_{0}$ and $p$ are hyperparameters and $t$ is the iteration number, with $t \in \{0,\dots\}$. $\eta_{0}$ is also referred to as the initial learning rate.
 
 \subsection{Projection in SGD}
 
-The weight matrices, e.g. $\mathbf{W}^{e}, \mathbf{B}$, are defined only for positive values. Therefore, they must be projected in each gradient step to ensure that the solution stays in the feasible space. This is done following the procedure proposed by \citet{tschiatschek16learning} which produces better results than simply clipping the values to 0. Let $\theta_{h}$ be an element of these matrices, e.g. $\theta_{h} = w^{e}_{i,d}$, then the projection is defined as:
+The weight matrices, e.g. $\mathbf{W}^{e}, \mathbf{B}$, are defined only for positive values. Therefore, they must be projected in each gradient step to ensure that the solution stays in the feasible space. This is done following the procedure proposed by \citet{tschiatschek16learning} which produces better results than simply clipping the values to 0. Let $\theta_{h}$ be an element of these matrices, e.g. $\theta_{h} = w^{e}_{i,d}$, then the projection is defined as,
 
 \begin{equation}
   \theta_{h} = \begin{cases}
     \theta'_{h} & \text{if}\ \theta'_{h} \geq 0 \\
     \mathcal{U} \sim [0, 0.001] & \text{otherwise}
-  \end{cases}
+  \end{cases},
 \end{equation}
 
-Where $\theta'_{h}$ is the unnormalized parameter after the gradient update and $\mathcal{U} \sim [0, 0.001]$ means that the value is drawn from an uniform distribution between $[0, 0.001]$ as in the initialization.
+where $\theta'_{h}$ is the unprojected parameter after the gradient update.
 
 \subsection{Column Restarts}
 
-One common problem observed during the experiments is resulting models with two or more columns in the weight matrices which are very similar and therefore redundant. This can happen for some initialization settings, e.g. when $i^{d}$ and $i^{c}$ in Equations \eqref{eq:sub-b} and \eqref{eq:sub-e} are the same initially and increase at the same rate, hence leading to a local maximum.
+One common problem observed during the experiments is that for the trained models two or more columns in the weight matrices are very similar and therefore, redundant. This can happen for some initialization settings, e.g. when $i^{d}$ and $i^{c}$ in Equations \eqref{eq:sub-b} and \eqref{eq:sub-e} are the same for different values of $d$ and $c$ and increase at the same rate in each iteration, hence leading to a local maximum.
 
-In order to address this problem, a heuristic was added to the implementation that resets one of the columns when it is too similar to another one. This similarity is measured as:
+In order to address this problem, a heuristic procedure was implemented that resets one of the columns when it is \emph{too} similar to another one. This similarity is measured as:
 
 \begin{equation}
   \mathrm{sim}_{\mathbf{W}}(a,b) = \hat{\mathbf{W}}_{*,a}^{\intercal} \cdot \hat{\mathbf{W}}_{*,b}
@@ -65,7 +67,7 @@ The column pair with maximum similarity is identified every $N_{r}$ iterations a
 
 \subsection{Termination Criteria}
 
-The termination criteria for learning was the number of epochs, i.e. full passes over the data and noise samples.
+The termination criteria for learning was the number of epochs, i.e. the number of full passes over the data and noise samples.
 
 \section{Example Datasets}
 
@@ -78,9 +80,7 @@ This section presents the results obtained after learning the datasets from the 
   \item $\eta_{0}$ is 0.005 and $p = 0.1$ for the learning rate, without AdaGrad.
 \end{itemize}
 
-It is worth noting that the presented results for these experiments correspond to the best of multiple runs. It was observed that the learning algorithm does not always arrive to a good solution. This is because $g(\boldsymbol{\theta})$ is not a concave function and some initializations lead to local maxima.
-
-In order to compare the models, the Total Variation Distance (TVD) between the target distribution $P_{d}$ and the learned distribution $\hat{P}_{d}$ was used, intuitively this measures how good is the approximation of the learned model to the real distribution. This is defined as \citep[chap. 4]{levin2009markov}:
+In order to compare the models, the Total Variation Distance (TVD) between the target distribution $P_{d}$ and the learned distribution $\hat{P}_{d}$ was used, intuitively this measures the quality of the approximation of the learned model to the real distribution. The TVD is defined as \citep[chap. 4]{levin2009markov}:
 
 \begin{equation}
   \label{eq:total_var}
@@ -92,9 +92,9 @@ In order to compare the models, the Total Variation Distance (TVD) between the t
 Recall the following characteristics about the dataset in Example \ref{sec:flid-toy}:
 
 \begin{itemize}
-  \item There are 3 elements, $h$, $s$, $f$.
-  \item There are only 2 possible sets, $\{h,s\}$ and $\{h,f\}$. Both equally likely, i.e. $P(S) = 0.5$.
-  \item A model can be constructed with a single diversity dimension, i.e. $L=1$.
+  \item There are 3 elements, $h$, $s$, $f$ which are marginally equally likely.
+  \item There are only 2 possible sets, $\{h,s\}$ and $\{h,f\}$. Both equally likely, i.e. $P(\{h,s\}) = P(\{h,f\}) = 0.5$.
+  \item This can be modeled exactly with a single diversity dimension, i.e. $L=1$.
 \end{itemize}
 
 After estimating the parameters from this data, the resulting utility vector and weight matrix are:
@@ -104,7 +104,7 @@ After estimating the parameters from this data, the resulting utility vector and
   \mathbf{W}^{b} = \left(0.02, 6.10, 6.10\right)^{\intercal}
 \end{align*}
 
-This is a slightly different model from the one suggested in section \ref{sec:flid-toy}, however the normalized probability distribution for this model presented in Table \ref{tab:flid-toy-learned-probs} shows that it closely approximates the distribution.
+This is a slightly different model from the one suggested in Section \ref{sec:flid-toy}, however the normalized probability distribution for this model presented in Table \ref{tab:flid-toy-learned-probs} shows that it closely approximates the distribution from Table \ref{tab:flid-toy-probs}.
 
 \begin{table}
   \centering
@@ -127,12 +127,12 @@ This is a slightly different model from the one suggested in section \ref{sec:fl
 Recall the following characteristics about the dataset in Example \ref{sec:fldc-toy}:
 
 \begin{itemize}
-  \item There are 4 items, i.e. $V = \{1,2,3,4\}$.
-  \item There are only 2 possible sets, $\{1,2\}$ and $\{3,4\}$. Both equally likely, i.e. $P(S) = 0.5$.
-  \item A model can be constructed with two diversity and two coherence dimensions, i.e. $L=2,K=2$.
+  \item There are 4 items, i.e. $V = \{1,2,3,4\}$, which are marginally equally likely.
+  \item There are only 2 possible sets, $\{1,2\}$ and $\{3,4\}$. Both equally likely, i.e. $P(\{1,2\}) = P(\{3,4\}) = 0.5$.
+  \item This can be modeled exactly with two diversity and two coherence dimensions, i.e. $L=2,K=2$.
 \end{itemize}
 
-Figure \ref{fig:fldc-toy-learned-weights} shows the resulting utility vector $\mathbf{u}$ and weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ after the learning procedure.
+Figure \ref{fig:fldc-toy-learned-weights} shows the resulting utility vector $\mathbf{u}$ and weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ after learning the FLDC model. The model shown in the figure displays the desired properties of diversity between the clusters while having coherence between the items in each one. Despite being different from the proposed model in section \ref{sec:fldc-toy} it also approximately realizes the desired distribution with a total variation distance equal to $0.04$ which represents a very small error in approximating the distribution from Table \ref{tab:fldc-toy-probs}.
 
 \begin{figure}
   \centering
@@ -140,8 +140,6 @@ Figure \ref{fig:fldc-toy-learned-weights} shows the resulting utility vector $\m
   \caption{Learned model for Example \ref{sec:fldc-toy}. The white line divides the clusters described in the example.}
   \label{fig:fldc-toy-learned-weights}
 \end{figure}
-
-The model shown in the figure displays the desired properties of diversity between the clusters while having coherence between the items in each one. Despite being different from the proposed model in section \ref{sec:fldc-toy} it also approximately realizes the desired distribution with a total variation distance equal to $0.04$ which represents a very small error in approximating the distribution from Table \ref{tab:fldc-toy-probs}.
 
 \subsubsection{FFLDC: Rated Locations}
 
@@ -164,14 +162,14 @@ Figure \ref{fig:ffldc-toy-learned-weights} shows the resulting model after learn
 
 \section{Learning Rate Sensitivity}
 
-This section explores the learning rate's effect on the learning performance for the synthetic dataset from Example \ref{sec:ffldc-toy}.
+This section explores the effect of the learning rate on the learning performance for the synthetic dataset from Example \ref{sec:ffldc-toy}.
 
 The first experiment considers the stability of the optimization without AdaGrad as the learning rate increases. The settings are the same as for the previous experiments with the following additions:
 
 \begin{itemize}
   \item $\eta_{0}$ is increased between $0.0005$ and $0.02$
-  \item The learning is performed independently 8 times to obtain statistics on the results.
-  \item For these experiments the reset heuristic for columns was disabled to prevent sudden changes in the objective function due to the resets.
+  \item The learning was performed 8 times with different random initialization values to obtain statistics on the results.
+  \item For these experiments the reset heuristic for columns was disabled to prevent sudden changes in the objective function due to the resets, hence requiring executing some of the experiments multiple times to avoid local maxima. The local maxima was easily identified by examining the final $g(\theta)$ values which would be significantly lower for the models that had repeated columns.
 \end{itemize}
 
 Figure \ref{fig:effects_eta_0} shows $g(\boldsymbol{\theta})$ during the optimization, each point corresponds to the mean value calculated after a given number of epochs and the error bars show the corresponding 95\% confidence interval for the mean.
@@ -183,7 +181,7 @@ Figure \ref{fig:effects_eta_0} shows $g(\boldsymbol{\theta})$ during the optimiz
   \label{fig:effects_eta_0}
 \end{figure}
 
-The results in Figure \ref{fig:effects_eta_0} show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to instability, as discussed in section \ref{sec:adagrad}. Concretely, for $\eta_{0} \leq 0.01$ the learning is slow but stable, while for $\eta_{0} \geq 0.01$ the objective value converges quickly but oscillates across epochs. This oscillation is problematic because it breaks the guarantee that the objective value is better as the number of epochs increase. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges and is stable, i.e. $\eta_{0} = 0.005$ however this may not be always the case for real data.
+The results in Figure \ref{fig:effects_eta_0} show that for small values of $\eta_0$ the learning can be significantly slow and that large values of $\eta_0$ may lead to oscillations, as discussed in section \ref{sec:adagrad}. Concretely, for $\eta_{0} \leq 0.01$ the learning is slow but stable, while for $\eta_{0} \geq 0.01$ the objective value converges quickly but oscillates across epochs. Fortunately, in the particular case of this synthetic dataset there exists a learning rate for which the objective function converges and is stable, i.e. $\eta_{0} = 0.005$ however this may not be always the case for real data.
 
 By contrast, Figure \ref{fig:effects_adagrad} shows the objective function for $\eta_{0}$ between $0.005$ and $0.1$ after incorporating AdaGrad to the implementation. These results show that training with AdaGrad is stable for a larger range of $\eta_0$ without sacrificing convergence speed.
 
@@ -194,7 +192,7 @@ By contrast, Figure \ref{fig:effects_adagrad} shows the objective function for $
   \label{fig:effects_adagrad}
 \end{figure}
 
-Finally, figure \ref{fig:comparison_adagrad_ffldc_toy} shows a direct comparison between training with and without AdaGrad using the best values of $\eta_0$ for each configuration. In this figure both algorithms converge to an optimal value, however it also shows that training with AdaGrad converges significantly faster while mantaining a more stable mean. These combined results indicate that using AdaGrad is the best strategy for learning the FFLDC model.
+Finally, Figure \ref{fig:comparison_adagrad_ffldc_toy} shows a direct comparison between training with and without AdaGrad using the best values of $\eta_0$ for each configuration, i.e. $\eta_{0} = 0.1$ with AdaGrad and $\eta_{0} = 0.005$ without AdaGrad. In this figure both algorithms converge to some value, however it also shows that training with AdaGrad converges significantly faster while mantaining a more stable mean. These combined results indicate that using AdaGrad is the best strategy for learning the FFLDC model for this particular example.
 
 \begin{figure}
   \centering
@@ -209,7 +207,7 @@ The noise-to-data ratio $\nu$ is another hyperparameter for NCE learning, the re
 
 The setting is the same as for the learning rate experiments, but with $\eta_{0} = 0.05$ and always using AdaGrad. The noise parameter $\nu$ was varied between $0.5$ and $10$.
 
-The results for this experiment are shown in Figure \ref{fig:effects_noise_ffldc}. It shows that increasing the number of noise samples reduces the variation distance of the resulting model as expected. However, it only decreases signficantly for small values of $\nu$, this may be because the number of epochs is not sufficient for larger $\nu$. This last assumption was tested by running another experiment with fixed $\nu = 10$ but increasing the number of epochs from 100 to 1500, the results are presented in Figure \ref{fig:effects_epochs_ffld}.
+The results for this experiment are shown in Figure \ref{fig:effects_noise_ffldc}. It shows that increasing the number of noise samples reduces the TVD of the resulting model as expected. However, it only decreases signficantly for small values of $\nu$, this may be because the number of epochs is not sufficient for larger $\nu$. This last assumption was tested by running another experiment with fixed $\nu = 10$ but increasing the number of epochs from 100 to 1500, the results are presented in Figure \ref{fig:effects_epochs_ffld}.
 
 \begin{figure}
   \centering
@@ -225,4 +223,4 @@ The results for this experiment are shown in Figure \ref{fig:effects_noise_ffldc
   \label{fig:effects_epochs_ffld}
 \end{figure}
 
-Figure \ref{fig:effects_epochs_ffld} show that increasing the number of epochs can significantly improve the quality of the learned model. The decreasing distance indicates that it is possible for the NCE learning procedure to converge to the true distribution given sufficient noise samples and epochs.
+Figure \ref{fig:effects_epochs_ffld} shows that increasing the number of epochs can significantly improve the quality of the learned model. The decreasing distance indicates that it is possible for the NCE learning procedure to converge to the true distribution given sufficiently main noise samples and training epochs.

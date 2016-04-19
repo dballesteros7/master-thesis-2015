@@ -25,16 +25,16 @@ For the FLDC model, the partition function can be computed in $\mathcal{O}(|V|^{
 
 \subsection{Learning FLDC Models}
 
-As with FLID, the parameters for an FLDC model can be estimated using NCE. For FLDC the vector $\boldsymbol{\theta}$ is composed of $[\mathbf{u}, \mathbf{W}^{b}, \mathbf{W}^{e}, \hat{Z}]$ and its gradient is the same as in equations \eqref{eq:gradient-flid-1}-\eqref{eq:gradient-flid-4} with the addition of a gradient with respect to the new parameter, $\mathbf{W}^{e}$, which is given by:
+As with FLID, the parameters for an FLDC model can be estimated using NCE. For FLDC the vector $\boldsymbol{\theta}$ is composed of $[\mathbf{u}, \mathbf{W}^{b}, \mathbf{W}^{e}, \hat{Z}]$ and its gradient is the same as in equations \eqref{eq:gradient-flid-1}-\eqref{eq:gradient-flid-4} with the addition of a gradient with respect to the new parameter, $\mathbf{W}^{e}$, which is given by,
 
 \begin{equation}
 \left(\nabla_{\mathbf{W}^{e}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{u}, \mathbf{W}^{e}, \mathbf{W}^{e})}\right)_{i,c} = \begin{cases}
 1 & \text{if}\ i \in S\ \text{and}\ i \neq \argmax_{j \in S}{w^{e}_{j,c}} \\
 0 & \text{otherwise}
-\end{cases} \label{eq:sub-fldc}\\
+\end{cases}, \label{eq:sub-fldc}\\
 \end{equation}
 
-Where $\left(\nabla_{\mathbf{W}^{e}}\cdot \right)_{i,c}$ represents the $(i,c)$-th entry in the gradient with respect to $\mathbf{W}^{e}$.
+where $\left(\nabla_{\mathbf{W}^{e}}\cdot \right)_{i,c}$ represents the $(i,c)$-th entry in the gradient with respect to $\mathbf{W}^{e}$.
 
 This also affects the overall complexity of the learning algorithm. Computing the gradient takes $\mathcal{O}(L+K)|S|$ for FLDC at each step, therefore the running time of a full pass over the data and noise samples takes $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|\kappa(L+K))$. This is not significantly more expensive than learning FLID because the complexity is still linear in the data and noise.
 
@@ -72,41 +72,42 @@ Concretely, the weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ in Figure \ref{
 
 An important characteristic of the FLID model, and by extension the FLDC one, is that it is agnostic to the type of elements in the ground set, this allows its application to a wide range of problems without prior knowledge. However the downside is that the model has no capability to make use of information about the elements to improve the modeling of the data. Moreover, if a new element is added to the set there is no way to generalize the existing knowledge about similar elements.
 
-In order to solve these problems, we propose a further extension to the model. First, an element ($i \in V$) is represented as a vector $\mathbf{x}_{i} \in \mathbb{R}^{M}$ where each entry is a feature, e.g. for venues one feature could be its aggregated rating while another indicates whether it is indoors or outdoors. The representations of all elements is collected by matrix $\mathbf{X} \in \mathbb{R}^{|V| \times M}$ where each row $i$ corresponds to the repreesntation $\mathbf{x}_{i}$ of element $i$.
+Considering these issues, we propose a further extension to the model. First, an element ($i \in V$) is represented as a vector $\mathbf{x}_{i} \in \mathbb{R}^{M}$ where each entry is a feature, e.g. for venues one feature could be its aggregated rating while another feature indicates whether it is indoors or outdoors. The representations of all elements are represented in matrix $\mathbf{X} \in \mathbb{R}^{|V| \times M}$ where each row $i$ corresponds to the representation $\mathbf{x}_{i}$ of element $i$.
 
-Then, the utility vector $\mathbf{u}$ and weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ are factorized to include this feature matrix $\mathbf{X}$ as follows,
+Then, the utility vector $\mathbf{u}$ and the weight matrices $\mathbf{W}^{b}, \mathbf{W}^{e}$ are factorized,
 
 \begin{align}
-  \mathbf{u} &= \mathbf{Xa}   \label{eq:ffldc-factorization-1} \\
-  \mathbf{W}^{b} &= \mathbf{XB}  \label{eq:ffldc-factorization-2} \\
+  \mathbf{u} &= \mathbf{Xa},   \label{eq:ffldc-factorization-1} \\
+  \mathbf{W}^{b} &= \mathbf{XB},\ \text{and}  \label{eq:ffldc-factorization-2} \\
   \mathbf{W}^{e} &= \mathbf{XE},
   \label{eq:ffldc-factorization-3}
 \end{align} 
 
-where $\mathbf{a} \in \mathbb{R}^{M}$ represents the contribution of each feature to the total utility of an item, while $\mathbf{B} \in \mathbb{R}^{M \times L}$ and $\mathbf{E} \in \mathbb{R}^{M \times K}$ encode the contribution of each feature to each latent diversity and coherence dimension, respectively. The intuition behind this factorization is that the information about the items can enhance the latent representations, hence producing a richer model. For example if $M < |V|$ and the features are sufficient to represent the items, it is expected that learning will be easier because of the reduced number of parameters with respect to learning the equivalent FLDC model.
+where $\mathbf{a} \in \mathbb{R}^{M}$ represents the contribution of each feature to the total utility of an item, and $\mathbf{B} \in \mathbb{R}^{M \times L}$ and $\mathbf{E} \in \mathbb{R}^{M \times K}$ encode the contribution of each feature to each latent diversity and coherence dimension, respectively. The intuition behind this factorization is that the information about the items can enhance the latent representations, hence producing a richer model. For example if $M < |V|$ and the features are sufficient to represent the items, it is expected that learning will be easier because of the reduced number of parameters with respect to learning the equivalent FLDC model.
 
 We refer to the extended model as the Featurized Facility Location Diversity and Coherence (FFLDC) model and its probability distribution is defined as:
 
 \begin{align}
   \tag{FFLDC} \label{eq:ffldc}
-  P(S) &= \frac{1}{Z}\exp{\left(\sum_{i \in S}{\sum_{k=1}^{M}x_{i,k}a_{k}} + fdiv(S) + fcoh(S)\right)} \\
-  fdiv(S) &= \sum_{d=1}^{L}{\left(\max_{i \in S}{\sum_{k=1}^{M}x_{i,k}b_{k,d}} - \sum_{i \in S}{\sum_{k=1}^{M}x_{i,k}b_{k,d}}\right)} \\
-  fcoh(S) &= \sum_{c=1}^{K}{\left(\sum_{i \in S}{\sum_{k=1}^{M}x_{i,k}e_{k,c}} - \max_{i \in S}{\sum_{k=1}^{M}x_{i,k}e_{k,c}}\right)}
+  & P(S) &=& \frac{1}{Z}\exp{\left(\sum_{i \in S}{\sum_{k=1}^{M}x_{i,k}a_{k}} + fdiv(S) + fcoh(S)\right)}, \\
+  \text{where} & & \\
+  & fdiv(S) &=& \sum_{d=1}^{L}{\left(\max_{i \in S}{\sum_{k=1}^{M}x_{i,k}b_{k,d}} - \sum_{i \in S}{\sum_{k=1}^{M}x_{i,k}b_{k,d}}\right)}\ \text{and} \\
+  & fcoh(S) &=& \sum_{c=1}^{K}{\left(\sum_{i \in S}{\sum_{k=1}^{M}x_{i,k}e_{k,c}} - \max_{i \in S}{\sum_{k=1}^{M}x_{i,k}e_{k,c}}\right)}
 \end{align}
 
-Where $a_{i}$ is the $i$-th entry of $\mathbf{a}$, $b_{k,d}$ is the $(k,d)$-th entry of $\mathbf{B}$, $e_{k,d}$ is the $(k,e)$-th entry of $\mathbf{E}$ and $x_{i,k}$ is the $(i,k)$-th entry of $X$.
+Where $a_{k}$ is the $k$-th entry of $\mathbf{a}$, $b_{k,d}$ is the $(k,d)$-th entry of $\mathbf{B}$, $e_{k,d}$ is the $(k,d)$-th entry of $\mathbf{E}$ and $x_{k,c}$ is the $(k,c)$-th entry of $X$.
 
 \begin{remark}
-  If $\mathbf{X} = \mathcal{I}$, then FFLDC is equivalent to FLDC, with $\mathbf{a} = \mathbf{u}$, $\mathbf{W}^{b} = \mathbf{B}$ and $\mathbf{W}^{e} = \mathbf{E}$.
+  If $\mathbf{X} = \mathcal{I}$, then FFLDC is equivalent to FLDC, with $\mathbf{u} = \mathbf{a}$, $\mathbf{W}^{b} = \mathbf{B}$ and $\mathbf{W}^{e} = \mathbf{E}$.
 \end{remark}
 
-The use of features also allows the application of the model to previously unseen elements, hence solving the aforementioned problem of generalization. This is possible because the model is defined on the space of features and not items, and for a previously unseen element $j$ only its representation $\mathbf{x}_{j}$ is required in order to evaluate the probability of sets containing this element.
+The use of features also allows the application of the model to previously unseen elements, hence solving the aforementioned problem of generalization. This is possible because the model is defined on the space of features and not directly on items, to evaluate the probability of a set containing a previously unseen element $j$ only its representation $\mathbf{x}_{j}$ is required.
 
-The computation of the partition function for this model can be done using the fact that any FFLDC model can be transformed into an equivalent FLDC model through the factorizations in equations \eqref{eq:ffldc-factorization-1}-\eqref{eq:ffldc-factorization-3}. This transformation requires $\mathcal{O}(|V|M(L+K))$ time for the matrix multiplications, therefore the overall complexity of calculating the partition function for an FFLDC model is $\mathcal{O}(|V|M(L+K) + |V|^{L+K+1})$. This expression can be simplified to $\mathcal{O}(|V|^{L+K+1})$ because the exponential term is significantly larger assuming sensible values for $M$. Given that the complexity of computing the partition function for FFLDC is equivalent to the FLDC model, it is also intractable in practice.
+The computation of the partition function for this model can be performed using the fact that any FFLDC model can be transformed into an equivalent FLDC model through the factorizations in equations \eqref{eq:ffldc-factorization-1}-\eqref{eq:ffldc-factorization-3}. This transformation requires $\mathcal{O}(|V|M(L+K))$ time for the matrix multiplications, therefore the overall complexity of calculating the partition function for an FFLDC model is $\mathcal{O}(|V|M(L+K) + |V|^{L+K+1})$. This expression can be simplified to $\mathcal{O}(|V|^{L+K+1})$ because the exponential term is significantly larger assuming sensible values for $M$. Given that the complexity of computing the partition function for FFLDC is equivalent to the FLDC model, it is also intractable in practice.
 
 \subsection{Learning FFLDC Models}
 
-For FFLDC, the parameter vector $\boldsymbol{\theta}$ is different from the previous models, it is composed by $[\mathbf{a}, \mathbf{B}, \mathbf{C}, \hat{Z}]$ and the gradient of the NCE objective $g(\boldsymbol{\theta})$ is given by,
+For FFLDC, the parameter vector $\boldsymbol{\theta}$ is different from the previous models, it is composed of $[\mathbf{a}, \mathbf{B}, \mathbf{C}, \hat{Z}]$ and the gradient of the NCE objective $g(\boldsymbol{\theta})$ is given by,
 
 \begin{align}
   \left(\nabla_{\mathbf{a}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{a}, \mathbf{B}, \mathbf{E})}\right)_{m} &= \sum_{i \in S} x_{i,m} \label{eq:sub-a}\\
@@ -117,10 +118,10 @@ For FFLDC, the parameter vector $\boldsymbol{\theta}$ is different from the prev
 where $i^{d} = \argmax_{i \in S}{\sum_{k=1}^{M}{x_{i,k}b_{k,d}}}$ and $i^{c} = \argmax_{i \in S}{\sum_{k=1}^{M}x_{i,k}e_{k,c}}$. $\left(\nabla_{\mathbf{a}}\cdot \right)_{m}$ represents the $m$-th entry of the sub-gradient with respect to $a$, $\left(\nabla_{\mathbf{B}}\cdot\right)_{m,d}$ represents the $(m,d)$-th entry of the sub-gradient with respect to $B$ and $\left(\nabla_{\mathbf{E}}\cdot\right)_{m,c}$ represents the $(m,c)$-th entry of the sub-gradient with respect to $E$.
 
 \begin{remark}
-  For $\mathbf{X} = \mathcal{I}$, the sub-gradients in \ref{eq:sub-a}-\ref{eq:sub-e} are equivalent to the FLDC sub-gradients. Because $x_{i,m} = 1$ only when $i = m$.
+  For $\mathbf{X} = \mathcal{I}$, the gradients in \eqref{eq:sub-a}-\eqref{eq:sub-e} are equivalent to the FLDC sub-gradients. Because $x_{i,m} = 1$ only when $i = m$.
 \end{remark}
 
-Regarding running time complexity, the FFLDC model requires more operations for the gradient due to the inclusion of features. Concretely, computing the gradient for a set $S$ takes $\mathcal{O}(|S|M(L+K))$ which makes the running time of a single pass over data and noise samples $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|M(L+K)\kappa)$. Even though this is larger than the complexity of FLID or FLDC, it is still linear on the data.
+Regarding time complexity, the FFLDC model requires more operations for the gradient due to the inclusion of features. Concretely, computing the gradient for a set $S$ takes $\mathcal{O}(|S|M(L+K))$ which makes the running time of a single pass over data and noise samples $\mathcal{O}(|\mathcal{D}\cup\mathcal{N}|M(L+K)\kappa)$. Even though this is larger than the complexity of FLID or FLDC, it is still linear in the size of the data and noise samples.
 
 \subsection{Example: Rated Locations}
 \label{sec:ffldc-toy}

@@ -185,7 +185,7 @@ Additionally, the following statements must be considered when choosing the nois
 
 Stochastic Gradient Descent was used by \citet{tschiatschek16learning} to learn the FLID model through NCE. SGD is a gradient-based method that has been proven effective in large-scale learning tasks due to its efficiency when the computation time is a limiting factor \citep{Bottou2010, Zhang2004}, hence making it appropriate for the scale of data sourced from the internet, such as public user photos in Flickr.
 
-In each iteration, the gradient $\nabla \log{P(Y_{s} = y \mid S;\boldsymbol{\theta})}$ must be computed. For FLID, the parameter vector $\boldsymbol{\theta}$ is composed by $\mathbf{u}, \mathbf{W}^{b}$ and $\hat{Z}$, and the corresponding gradients are given by:
+In each iteration, the gradient $\nabla \log{P(Y_{s} = y \mid S;\boldsymbol{\theta})}$ must be computed. For FLID, the parameter vector $\boldsymbol{\theta}$ is composed by $\mathbf{u}, \mathbf{W}^{b}$ and $\hat{Z}$, and the corresponding gradients are given by,
 
 \begin{align}
   \label{eq:gradient-flid-1}
@@ -202,12 +202,12 @@ In each iteration, the gradient $\nabla \log{P(Y_{s} = y \mid S;\boldsymbol{\the
     0 & \text{otherwise}
   \end{cases} \\
   \label{eq:gradient-flid-4}
-  \nabla_{\hat{Z}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{u}, \mathbf{W}^{b})}&= \frac{-1}{\hat{Z}}
+  \nabla_{\hat{Z}}\log{\hat{P}_{d}(S; \hat{Z}, \mathbf{u}, \mathbf{W}^{b})}&= \frac{-1}{\hat{Z}},
 \end{align}
 
-Where $P(S;\mathbf{u}, \mathbf{W}^{b})$ is the unnormalized \eqref{eq:flid} equation, $\left(\nabla_{\mathbf{u}}\cdot \right)_{i}$ represents the $i$-th entry of the gradient with respect to $\mathbf{u}$ and $\left(\nabla_{\mathbf{W}^{b}}\cdot\right)_{i,d}$ represents the $(i,d)$-th entry of the gradient with respect to $\mathbf{W}^{b}$ \citep{tschiatschek16learning}.
+where $P(S;\mathbf{u}, \mathbf{W}^{b})$ is the unnormalized \eqref{eq:flid} equation, $\left(\nabla_{\mathbf{u}}\cdot \right)_{i}$ represents the $i$-th entry of the gradient with respect to $\mathbf{u}$ and $\left(\nabla_{\mathbf{W}^{b}}\cdot\right)_{i,d}$ represents the $(i,d)$-th entry of the gradient with respect to $\mathbf{W}^{b}$ \citep{tschiatschek16learning}.
 
-After the gradient is computed, the parameters are updated according to the following equation:
+After the gradient is computed, the parameters are updated according to the following equation,
 
 \begin{equation}
   \theta^{t+1} = \theta^{t} + \eta(t) \nabla g(\theta),
@@ -228,16 +228,16 @@ This behavior was observed during the experiments with real data presented in la
 
 AdaGrad was proposed by \citet{Duchi2011adagrad}, the idea of this method is to adapt the learning rate for each parameter in $\boldsymbol{\theta}$ individually in a way that frequently updated parameters have slower learning rates while infrequent parameters have larger ones. The intuition is that an update to a rare parameter is more informative than one to a parameter that is frequently updated.
 
-Concretely, with AdaGrad the update step for each parameter $\gamma$ in $\boldsymbol{\theta}$ is given by:
+Concretely, with AdaGrad the update step for each parameter $\gamma$ in $\boldsymbol{\theta}$ is given by,
 
 \begin{equation}
 \theta^{\tau + 1}_{\gamma} \leftarrow \theta^{\tau}_{\gamma} - \frac{\eta}{\sqrt{G_{\gamma}}} \nabla g(\theta)^{\tau}_{\gamma},
 \end{equation}
 
-Where $\mathbf{G}^{\tau}$ is the vector of accumulated gradients at time $\tau$ and each component $G^{\tau}_\gamma$ is given by,
+where $\mathbf{G}^{\tau}$ is the vector of accumulated gradients at time $\tau$ and each component $G^{\tau}_\gamma$ is given by,
 
 \begin{equation}
-G^{\tau}_{\gamma} = \sum_{t=1}^{\tau} \left(\nabla g(\theta)^{t}_{\gamma}\right)^{2}
+G^{\tau}_{\gamma} = \sum_{t=1}^{\tau} \left(\nabla g(\theta)^{t}_{\gamma}\right)^{2},
 \label{eq:adagrad-g}
 \end{equation}
 
