@@ -90,19 +90,18 @@ def rank_results_pandas(dataset_name, model_name, eval_size):
 
 
 def main():
-    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    for l in range(5, 25, 5):
-        for k in range(5, 25, 5):
-            tmpl = 'submod_f_0_l_{l}_k_{k}_iter_1000_noise_5_eta_0.1_adagrad_1'
+    dataset_name = constants.DATASET_NAME_TPL.format('10_no_singles')
     models = ['modular_features_0', 'markov', 'pseudo_markov', 'proximity',
               'proximity_ordered',
-              'submod_f_0_l_10_k_10_iter_1000_noise_5_eta_0.1_adagrad_1',
-              'submod_f_0_l_15_k_15_iter_1000_noise_5_eta_0.1_adagrad_1',
-              'submod_f_0_l_20_k_5_iter_1000_noise_5_eta_0.1_adagrad_1',
-              'submod_f_0_l_20_k_20_iter_1000_noise_5_eta_0.1_adagrad_1',
-              'submod_f_0_l_20_k_25_iter_1000_noise_5_eta_0.1_adagrad_1',
-              'submod_f_0_l_20_k_30_iter_1000_noise_5_eta_0.1_adagrad_1',
-              'submod_f_0_l_15_k_10_iter_1000_noise_5_eta_0.1_adagrad_1'
+              'submod_f_0_l_5_k_5_iter_1000_noise_5_eta_0.1_adagrad_1',
+              'modular_features_special_gen',
+              'submod_f_special_gen_l_5_k_5_iter_5000_noise_5_eta_1_adagrad_1',
+              #'submod_f_0_l_15_k_15_iter_1000_noise_5_eta_0.1_adagrad_1',
+              # 'submod_f_0_l_20_k_5_iter_1000_noise_5_eta_0.1_adagrad_1',
+              # 'submod_f_0_l_20_k_20_iter_1000_noise_5_eta_0.1_adagrad_1',
+              # 'submod_f_0_l_20_k_25_iter_1000_noise_5_eta_0.1_adagrad_1',
+              # 'submod_f_0_l_20_k_30_iter_1000_noise_5_eta_0.1_adagrad_1',
+              # 'submod_f_0_l_15_k_10_iter_1000_noise_5_eta_0.1_adagrad_1'
               #'submod_f_0_l_10_k_10_iter_100_noise_5_eta_1_adagrad_1',
               #'submod_f_0_l_10_k_10_iter_500_noise_5_eta_0.1_adagrad_1',
               #'submod_f_0_l_10_k_10_iter_1000_noise_5_eta_0.1_adagrad_1',

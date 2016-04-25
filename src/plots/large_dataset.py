@@ -84,26 +84,27 @@ def comparison_large():
     pseudo_markov_results = rank_results_pandas(dataset_name, 'pseudo_markov', 0)
     proximity_results = rank_results_pandas(dataset_name, 'proximity', 0)
     proximity_ordered_results = rank_results_pandas(dataset_name, 'proximity_ordered', 0)
+    flid_results = rank_results_pandas(dataset_name, 'submod_f_0_l_10_k_0_iter_1000_noise_5_eta_0.1_adagrad_1', 0)
     fldc_results = rank_results_pandas(dataset_name, 'submod_f_0_l_5_k_15_iter_1000_noise_5_eta_0.1_adagrad_1', 0)
 
-    results_column = np.concatenate((markov_results, proximity_ordered_results, pseudo_markov_results, modular_results, proximity_results, fldc_results))
-    model_column = np.repeat(['Markov', 'Prox. Ordered', 'Heuristic Markov', 'Log-modular', 'Proximity', 'FLDC ($L=5,K=15$)'], constants.N_FOLDS)
-    type_column = np.repeat(['Set', 'Path', 'Path', 'Set', 'Path', 'Set'], constants.N_FOLDS)
+    results_column = np.concatenate((markov_results, proximity_ordered_results, pseudo_markov_results, modular_results, proximity_results, flid_results, fldc_results))
+    model_column = np.repeat(['Markov', 'Prox. Order', 'Heuristic Markov', 'Modular', 'Proximity', 'FLID (10)', 'FLDC (5,15)'], constants.N_FOLDS)
+    #type_column = np.repeat(['Set', 'Path', 'Path', 'Set', 'Path', 'Set'], constants.N_FOLDS)
 
     dataset = pd.DataFrame({
         'scores': 100 * results_column,
         'model': model_column,
-        'type': type_column
+        #'type': type_column
     })
 
     ax = sns.barplot(x='model', y='scores', data=dataset, ci=95,
                      palette=sns.color_palette('Set1'))
     ax.set_xlabel('Model')
     ax.set_ylabel('Accuracy (\%)')
-    ax.set_title('Accuracy comparison for the large dataset.')
+    ax.set_title('Accuracy for dataset of top 100 locations')
     #
     plt.savefig(os.path.join(
-       constants.IMAGE_PATH, 'all_models_100.eps'),
+       constants.IMAGE_PATH, 'all_models_100_presentation.eps'),
        bbox_inches='tight')
     plt.show()
 

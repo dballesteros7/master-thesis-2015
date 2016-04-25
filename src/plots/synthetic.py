@@ -19,10 +19,12 @@ def plot_weights_synthetic_2():
                             l_dims=2, k_dims=2)
 
     model.a_weights = np.array([0, 0, 0, 0])
-    model.b_weights = np.array([[10, 0], [0, 10], [10, 0], [0, 10]])
-    model.c_weights = np.array([[10, 0], [10, 0], [0, 10], [0, 10]])
+    model.b_weights = np.array([[20, 0], [0, 20], [20, 0], [0, 20]])
+    model.c_weights = np.array([[20, 0], [20, 0], [0, 20], [0, 20]])
 
     model.update_composite_parameters()
+    model.full_distribution()
+    print(model.distribution)
 
     fig = plt.figure(figsize=(10, 4))
     gs = gridspec.GridSpec(1, 2, height_ratios=[1], width_ratios=[1, 1])
@@ -30,12 +32,12 @@ def plot_weights_synthetic_2():
     cmap = sns.cubehelix_palette(8, start=1.8, light=.8, as_cmap=True)
 
     ax1 = fig.add_subplot(gs[0])
-    color_set = ax1.matshow(model.diversity_weights, interpolation='none',
-                            cmap=cmap, vmin=0, vmax=10)
+    color = ax1.matshow(model.diversity_weights, interpolation='none',
+                     cmap=cmap, vmin=0, vmax=20)
     ax1.grid(None)
     ax1.set_yticks([0, 1, 2, 3])
     ax1.set_yticklabels(['1', '2', '3', '4'])
-    ax1.set_ylabel('Item ($i$)')
+    ax1.set_ylabel('Item')
     ax1.set_xticks([0, 1])
     ax1.set_xticklabels([])
     ax1.set_xlabel('$d$')
@@ -44,22 +46,22 @@ def plot_weights_synthetic_2():
 
     ax2 = fig.add_subplot(gs[1], sharey=ax1)
     color_set = ax2.matshow(model.coherence_weights, interpolation='none',
-                            cmap=cmap, vmin=0, vmax=10)
+                             cmap=cmap, vmin=0, vmax=10)
     ax2.grid(None)
     ax2.set_yticks([0, 1, 2, 3])
     ax2.set_xticks([0, 1])
     ax2.set_xticklabels([])
     ax2.set_xlabel('$c$')
     ax2.set_title(r'$\mathbf{W}^{e}$')
-    plt.setp(ax2.get_yticklabels(), visible=False)
+    #plt.setp(ax2.get_yticklabels(), visible=False)
     ax2.plot([-.5,1.5], [1.5, 1.5], color='white', linestyle='--', linewidth=2)
 
     ax1.set_adjustable('box-forced')
     ax2.set_adjustable('box-forced')
 
-    plt.colorbar(color_set)
+    #plt.colorbar(color)
     plt.savefig(os.path.join(
-        constants.IMAGE_PATH, 'fldc_toy_example_mixed_weights.eps'),
+        constants.IMAGE_PATH, 'fldc_toy_example_mixed_weights_pres.eps'),
         bbox_inches='tight')
     plt.show()
 
@@ -329,4 +331,5 @@ def plot_weights_synthetic_3_learned():
 
 if __name__ == '__main__':
     plots.setup()
-    plot_weights_synthetic_2_learned()
+    plot_weights_synthetic_2()
+    #plot_weights_synthetic_2_learned()

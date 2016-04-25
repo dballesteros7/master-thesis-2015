@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 import constants
 import plots
-from models.features import IdentityFeatures
+from models.features import IdentityFeatures, DescriptiveFeatures
 from models.general_features import GeneralFeatures
 from models.modular import ModularWithFeatures
 from processing.ranking import rank_results_pandas
@@ -77,12 +77,13 @@ def score_flids_varying_l():
     plt.show()
 
 def log_likelihood_flid():
-    l_range = np.arange(0, 11, 5)
-    k_range = np.arange(0, 11, 5)
+    l_range = [0]
+    k_range = [10]
 
     l_column = []
     k_column = []
     ll_column = []
+    ll_2_column = []
     dataset_name = 'path_set_10_no_singles'
 
     features = IdentityFeatures(dataset_name, 10, 10)
@@ -93,9 +94,14 @@ def log_likelihood_flid():
                         fold=fold, dataset=dataset_name))
         modular = ModularWithFeatures(10, features.as_array())
         modular.train(file.load_csv_test_data(
-            constants.TRAIN_DATA_PATH_TPL.format(
+            constants.TEST_DATA_PATH_TPL.format(
                 fold=fold, dataset=dataset_name)))
         ll_modular = modular.log_likelihood(loaded_test_data)
+        other_modular = ModularWithFeatures(10, np.identity(10))
+        other_modular.train(file.load_csv_test_data(
+            constants.TEST_DATA_PATH_TPL.format(
+                fold=fold, dataset=dataset_name)))
+        other_ll_modular = modular.log_likelihood(loaded_test_data)
         for l_dim in l_range:
             for k_dim in k_range:
                 model = GeneralFeatures(10, features.as_array(), l_dim, k_dim)
@@ -108,17 +114,22 @@ def log_likelihood_flid():
                 l_column.append(l_dim)
                 k_column.append(k_dim)
                 llri = 100*(ll - ll_modular) / abs(ll_modular)
+                llri_2 = 100*(ll - other_ll_modular) / abs(other_ll_modular)
                 ll_column.append(llri)
+                ll_2_column.append(llri_2)
 
     dataset = pd.DataFrame({
         'll': ll_column,
+        'll2': ll_2_column,
         'l': l_column,
         'k': k_column
     })
-    print(dataset.groupby(['l', 'k'])['ll'].std())
-    dataset = dataset.groupby(['l', 'k'])['ll'].mean().unstack(1)
-
-    ax = sns.heatmap(dataset, vmin=-10, vmax=10, annot=True, fmt='.2f',
+    mean = dataset.groupby(['l', 'k'])['ll2'].mean().unstack(1)
+    std = dataset.groupby(['l', 'k'])['ll2'].std().unstack(1)
+    print(mean)
+    print(std)
+    return
+    ax = sns.heatmap(mean, vmin=0, vmax=5, annot=True, fmt='.2f',
                      linewidths=.5)
     ax.set_xlabel('$K$')
     ax.set_ylabel('$L$')
@@ -129,9 +140,9 @@ def log_likelihood_flid():
     # modular_mean = 100*np.mean(rank_results_pandas(dataset_name, 'modular_features_0', 0))
     # plt.plot(ax.get_xlim(), [modular_mean, modular_mean], linestyle='dotted')
     #
-    plt.savefig(os.path.join(
-        constants.IMAGE_PATH, 'flid_10_llri.eps'),
-        bbox_inches='tight')
+    # plt.savefig(os.path.join(
+    #     constants.IMAGE_PATH, 'flid_10_llri.eps'),
+    #     bbox_inches='tight')
 
     plt.show()
 
@@ -256,6 +267,63 @@ def total_distance():
         bbox_inches='tight')
     plt.show()
 
+def log_likelihood_features():
+    ll_column = []
+    type_column = []
+    dataset_name = 'path_set_10_no_singles'
+
+    features = DescriptiveFeatures(dataset_name)
+    features.load_from_file()
+    for fold in range(1, constants.N_FOLDS + 1):
+        loaded_test_data = file.load_csv_test_data(
+                    constants.TEST_DATA_PATH_TPL.format(
+                        fold=fold, dataset=dataset_name))
+        modular = ModularWithFeatures(10, features.as_array())
+        modular.train(file.load_csv_test_data(
+            constants.TRAIN_DATA_PATH_TPL.format(
+                fold=fold, dataset=dataset_name)))
+        ll_modular = modular.log_likelihood(loaded_test_data)
+        model = GeneralFeatures(10, features.as_array(), 5, 5)
+        model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+            dataset=dataset_name, fold=fold, l_dim=5, k_dim=5,
+            index=features.index, iter=5000,
+            noise=5, eta_0=0.1, adagrad=1))
+
+        ll = model.log_likelihood(loaded_test_data)
+        llri = 100*(ll - ll_modular) / abs(ll_modular)
+        ll_column.append(llri)
+        type_column.append('FFLDC')
+        model = GeneralFeatures(10, np.identity(10), 5, 5)
+        model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
+            dataset=dataset_name, fold=fold, l_dim=5, k_dim=5,
+            index='0', iter=1000,
+            noise=5, eta_0=1, adagrad=1))
+
+        ll = model.log_likelihood(loaded_test_data)
+        llri = 100*(ll - ll_modular) / abs(ll_modular)
+        ll_column.append(llri)
+        type_column.append('FLDC')
+
+    dataset = pd.DataFrame({
+        'll': ll_column,
+        'type': type_column
+    })
+    ax = sns.barplot(x='type', y='ll', data=dataset)
+    ax.set_xlabel('Model')
+    ax.set_ylabel('LLRI')
+    #ax.set_ylabel(r'Accuracy (\%)')
+    ax.set_title('LLRI comparison for FLDC and FFLDC')
+    #ax.set_ylim([0, 45])
+
+    # modular_mean = 100*np.mean(rank_results_pandas(dataset_name, 'modular_features_0', 0))
+    # plt.plot(ax.get_xlim(), [modular_mean, modular_mean], linestyle='dotted')
+    #
+    plt.savefig(os.path.join(
+        constants.IMAGE_PATH, 'ffldc_10_llri.eps'),
+        bbox_inches='tight')
+
+    plt.show()
+
 if __name__ == '__main__':
     plots.setup()
     sns.set_palette(sns.color_palette('Set1'))
@@ -263,4 +331,5 @@ if __name__ == '__main__':
     #score_flids_varying_l()
     #score_flids_varying_l_k()
     #total_distance()
-    log_likelihood_flid()
+    #log_likelihood_flid()
+    log_likelihood_features()

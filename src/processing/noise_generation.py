@@ -4,7 +4,7 @@ import numpy as np
 
 import constants
 from models.features import GaussianFeatures, Features, IdentityFeatures, \
-    BasicFeaturesNoNormalized, GaussianExtended
+    BasicFeaturesNoNormalized, GaussianExtended, DescriptiveFeatures
 from models.modular import ModularWithFeatures
 from utils import file
 
@@ -16,7 +16,7 @@ def store_to_file(n_items: int, features: np.ndarray,
     noise.train(data_samples)
     with open(output_file_path, 'w') as output_file:
         n_data = data_samples.shape[0]
-        noise_samples = noise.sample(int(noise_factor * n_data), use_real_probs=True)
+        noise_samples = noise.sample(int(noise_factor * n_data), use_real_probs=False)
         n_data += noise_samples.shape[0]
         total = 0
         for sample in chain(data_samples, noise_samples):
@@ -41,7 +41,7 @@ def store_to_file(n_items: int, features: np.ndarray,
             [str(x) for x in noise.feature_weights]))
         output_file.write('\n')
         output_file.write(','.join(
-            [str(x) for x in noise.exact_utilities]))
+            [str(x) for x in noise.utilities]))
         output_file.write('\n')
 
 
@@ -65,10 +65,9 @@ def process_data_and_store(dataset_name: str, features: Features, n_items: int):
 
 
 def main():
-    n_items = 100
-    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    features = GaussianExtended(dataset_name, n_items=n_items,
-                                m_features=n_items, sigma=0)
+    n_items = 10
+    dataset_name = constants.DATASET_NAME_TPL.format('10_no_singles')
+    features = DescriptiveFeatures(dataset_name)
     features.load_from_file()
     process_data_and_store(dataset_name, features, n_items)
     features.store_for_training()

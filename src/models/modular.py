@@ -17,7 +17,7 @@ from scipy import special
 import constants
 from models.features import BasicFeatures, IdentityFeatures, \
     BasicFeaturesNoNormalized, BasicFeaturesExtended, GaussianFeatures, \
-    GaussianExtended
+    GaussianExtended, DescriptiveFeatures
 from utils import file
 
 
@@ -115,10 +115,9 @@ def learn_from_single_file():
 
 def main():
     np.random.seed(constants.SEED)
-    dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    n_items = 100
-    features = IdentityFeatures(dataset_name, n_items=n_items,
-                                m_features=n_items)
+    dataset_name = constants.DATASET_NAME_TPL.format('10_no_singles')
+    n_items = 10
+    features = DescriptiveFeatures(dataset_name)
     features.load_from_file()
     features_array = features.as_array()
     # set_probabilities = defaultdict(list)

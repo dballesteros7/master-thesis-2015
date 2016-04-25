@@ -192,8 +192,34 @@ class GaussianExtended(Features):
     def as_array(self):
         return np.copy(self.features)
 
-if __name__ == '__main__':
-    f = GaussianExtended('path_set_100_no_singles', 100, 100, 0.05)
-    f.load_from_file()
-    print(f.as_array()[:,-5])
 
+class DescriptiveFeatures(Features):
+    def __init__(self, dataset_name: str):
+        super(DescriptiveFeatures, self).__init__(dataset_name, 10, 8)
+        self.index = 'special_gen'
+
+    def load_from_file(self):
+        path = constants.ITEMS_FEATURE_PATH_TPL.format(
+            dataset=self.dataset_name, i=self.index)
+        with open(path, 'r') as input_file:
+            for item_index, line in enumerate(input_file):
+                tokens = line.strip().split(',')
+                for feature_index, token in enumerate(tokens[2:]):
+                    self.features[item_index, feature_index] = float(token)
+                self.features[item_index, 1] /= self.features[item_index, 0]
+
+        min_photo_count = np.min(self.features[:, 0])
+        max_photo_count = np.max(self.features[:, 0])
+
+        self.features[:, 0] = (self.features[:, 0] - min_photo_count) / (max_photo_count - min_photo_count)
+        self.features[:, 6] = np.sqrt(self.features[:, 0])
+        self.features[:, 7] = np.power(self.features[:, 0], 0.25)
+
+    def as_array(self):
+        return np.copy(self.features)
+
+
+if __name__ == '__main__':
+    f = DescriptiveFeatures('path_set_10_no_singles')
+    f.load_from_file()
+    print(f.as_array())

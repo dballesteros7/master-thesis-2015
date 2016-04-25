@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import constants
 from models.features import Features, IdentityFeatures, BasicFeatures, \
     BasicFeaturesExtended, BasicFeaturesNoNormalized, GaussianFeatures, \
-    GaussianExtended
+    GaussianExtended, DescriptiveFeatures
 from utils import file
 
 
@@ -208,15 +208,12 @@ def load_and_evaluate(dataset_name: str, n_items: int,
 def main():
     n_items = 100
     dataset_name = constants.DATASET_NAME_TPL.format('100_no_singles')
-    features = IdentityFeatures(dataset_name, n_items=n_items,
-                                m_features=n_items)
+    features = IdentityFeatures(dataset_name, 100, 100)
     features.load_from_file()
-    for l_dim in np.arange(5, 35, 5):
-        for k_dim in np.arange(5, 35, 5):
-    # l_dim = 20
-    # k_dim = 30
-            load_and_evaluate(dataset_name, n_items, features, l_dim,
-                              k_dim, 1000, 5, 0.1, 1)
+    l_dim = 10
+    k_dim = 0
+    load_and_evaluate(dataset_name, n_items, features, l_dim,
+                      k_dim, 1000, 5, 0.1, 1)
 
 if __name__ == '__main__':
     main()

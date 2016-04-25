@@ -7,7 +7,7 @@ def setup():
 
     # path = '/usr/share/fonts/linux-libertine/LinBiolinum_R.otf'
     # prop = font_manager.FontProperties(fname=path)
-    sns.set(context='paper')
+    sns.set(context='talk')
     # rc('axes', **{'titlesize': 12, 'labelsize': 10})
     # rc('legend', fontsize=12)
     rc('text', usetex=True)
