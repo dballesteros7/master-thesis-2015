@@ -16,6 +16,7 @@
 \usetheme{Madrid}
 \usebeamercolor{sidebartab}
 \usefonttheme{professionalfonts}
+\setbeamercovered{invisible}
 
 \setbeamertemplate{caption}{\raggedright\insertcaption\par}
 
@@ -44,30 +45,24 @@
 
 \section{Introduction}
 
-\begin{frame}{Touristic Route Planning}
-  Let's plan a 2-day trip to Zürich. How can we go from this?
+\begin{frame}{Popular Places in Zürich}
   \begin{figure}
     \centering
-    \includegraphics[scale=0.3]{tripadvisor}
+    \includegraphics[scale=0.35]{tripadvisor}
   \end{figure}
 \end{frame}
 
-\begin{frame}{Touristic Route Planning}
-  To this:
+\begin{frame}{Touristic Routes for 2 Day Trip}
   \begin{figure}
     \centering
-    \includegraphics[scale=0.2]{routes_1}
+    \includegraphics[scale=0.22]{routes_1}
   \end{figure}
 \end{frame}
 
 \begin{frame}{Related Work: Mapping the World's Photos}
-  \begin{itemize}
-    \item "Photo shots are a prime element of the image perceived by visitors and also a path to understanding processes in the symbolic construction of destinations." \citet{Donaire2014}
-    \item \citet{Kleinberg2009} used mean-shift clustering to identify highly photographed locations.
-  \end{itemize}
   \begin{figure}\centering
-    \includegraphics[scale=0.15]{kleinberg2009}
-    \caption{Representative photos for top landmarks in North America identified from Flickr data. Source: \citet{Kleinberg2009}}
+    \includegraphics[scale=0.25]{kleinberg2009}
+    \caption{Representative photos for top landmarks in North America identified from Flickr data. {\tiny Source: \citet{Kleinberg2009}}}
   \end{figure}
 \end{frame}
 
@@ -80,13 +75,12 @@
       \begin{figure}
         \centering
         \includegraphics[width=\textwidth]{kurashima1}
-        \caption{Highly photographed locations. Source: \citet{Kurashima2010}}
+        \caption{Highly photographed locations. {\tiny Source: \citet{Kurashima2010}}}
       \end{figure}
     \end{column}
     \pause
     \begin{column}{0.3\textwidth}
       \begin{align*}
-        P(l_{t} \mid l_{t-1}, h^{u}) \\
         P(l_{t} \mid l_{t-1}) \\
         \sum_{z \in \bm{Z}}P(z \mid h^{u})P(l_{t} \mid z) \\
       \end{align*}
@@ -97,38 +91,27 @@
       \begin{figure}
         \centering
         \includegraphics[width=\textwidth]{kurashima2}
-        \caption{Routes from the model. Source: \citet{Kurashima2010}}
+        \caption{Routes from the model. {\tiny Source: \citet{Kurashima2010}}}
       \end{figure}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Sets of Locations to Visit}
-  \begin{itemize}
-    \item Let's simplify the problem and focus on which locations to visit.
-    \item The when and how can be determined later.
-    \item Instead of:
-  \end{itemize}
+\begin{frame}{Touristic Paths}
   \begin{figure}
     \centering
-    \includegraphics[scale=0.15]{routes_1}
+    \includegraphics[scale=0.22]{routes_1}
   \end{figure}
 \end{frame}
 
-\begin{frame}{Sets of Locations to Visit}
-  \begin{itemize}
-    \item Let's simplify the problem and focus on which locations to visit.
-    \item The when and how can be determined later.
-    \item We aim to identify:
-  \end{itemize}
+\begin{frame}{Focus: Sets of Locations to Visit}
   \begin{figure}
     \centering
-    \includegraphics[scale=0.3]{sets_1}
+    \includegraphics[scale=0.45]{sets_1}
   \end{figure}
 \end{frame}
 
 \begin{frame}{Good Sets of Locations}
-  Let's try to build one, first a highly popular location: Grossmünster
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \begin{figure}
@@ -139,16 +122,13 @@
     \begin{column}{0.5\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=.5\textwidth]{grossmunster}
-        \caption{Grossmünster. Source: \url{https://commons.wikimedia.org/w/index.php?curid=5082760}}
+        \includegraphics[width=.7\textwidth]{grossmunster}
       \end{figure}
     \end{column}
   \end{columns}
 \end{frame}
 
 \begin{frame}{Diverse Sets of Locations}
-  The next on the list of top attractions is Fraumünster, but two churches on the same day? Let's add a museum instead.
-  
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \begin{figure}
@@ -159,62 +139,45 @@
     \begin{column}{0.5\textwidth}
       \begin{figure}
         \centering
-        \includegraphics[width=.7\textwidth]{landesmuseum}
-        \caption{Swiss National Museum. Source: \url{https://commons.wikimedia.org/w/index.php?curid=7974880}}
+        \includegraphics[width=.8\textwidth]{landesmuseum}
       \end{figure}
     \end{column}
   \end{columns}
 \end{frame}
 
 \begin{frame}{Diverse Sets of Locations}
-  And so on...
   \begin{figure}
     \centering
-    \includegraphics[width=.55\textwidth]{diversity_set_3}
+    \includegraphics[width=.6\textwidth]{diversity_set_3}
   \end{figure}
-\end{frame}
-
-\begin{frame}{Complementary Sets of Locations}
-  \begin{itemize}
-    \item Only diversity? What about tourists interested in a coherent theme?
-    \item Perhaps a trip through stores in Zürich.
-  \end{itemize}
-  \begin{figure}
-    \centering
-    \includegraphics[width=.5\textwidth]{coherent_set}
-  \end{figure}
-\end{frame}
-
-\begin{frame}{Choosing a Model}
-  \begin{itemize}
-    \item Modeling sets of items $\rightarrow$ Functions over sets
-    \item Diversity $\rightarrow$ Submodularity
-    \item Complementarity $\rightarrow$ Supermodularity
-    \item Probabilistic modeling of tourist behavior $\rightarrow$ Probability of visiting a set of locations.
-  \end{itemize}
 \end{frame}
 
 \begin{frame}{Diversity and Submodularity}
   \begin{itemize}
-    \item Suppose a function $F(S)$ that sums the number of unique location types in $S$.
-    \item For example, $F(\{$ETH, UZH$\}) = 1$, $F(\{$ETH, UZH, Fraumünster$\}) = 2$.
-    \pause
-    \item This is a submodular function.
-    \pause
+    \item $F(\{$ETH | Framünster$\}) \geq F(\{$ETH | UZH, Framünster$\})$.
     \item Maximizing $F(S)$ for $S$ of fixed size implies adding locations of different types $\rightarrow$ Diversity.
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Complementary Sets of Locations}
+  \begin{figure}
+    \centering
+    \includegraphics[width=.6\textwidth]{coherent_set}
+  \end{figure}
 \end{frame}
 
 \begin{frame}{Complementarity and Supermodularity}
   \begin{itemize}
     \item Suppose a function $F(S)$ that counts 1 for each pair of repeated location types in $S$.
     \item For example, $F(\{$ETH, UZH, Fraumünster$\}) = 1$, $F(\{$ETH, Fraumünster$\}) = 0$.
-    \pause
-    \item This is a supermodular function. 
-    \pause
     \item Maximizing $F(S)$ for $S$ of fixed size implies adding locations of the same types $\rightarrow$ Complementarity.
   \end{itemize}
 \end{frame}
+
+\begin{frame}{Goal}
+  Model tourist behavior as probability distributions over sets of locations visited.
+\end{frame}
+
 
 \begin{frame}{Probabilistic Submodular Models}
   \begin{itemize}
@@ -222,27 +185,25 @@
       \begin{equation*}
       P(S) = \frac{\exp{F(S)}}{Z}
       \end{equation*}
-     for all $S \subset V$,  where F(S) is submodular or supermodular. These distributions are log-submodular and log-supermodular, respectively.
+     for all $S \subseteq V$,  where F(S) is submodular or supermodular.
    
-     \item Inference in these distributions has been recently studied by \cite{djolonga15scalable} and \cite{gotovos15sampling}.
+     \item Inference in these distributions is hard. Exact computation of $Z$ is \#P-complete.
+     \item Inferences has been recently studied by \cite{djolonga15scalable} and \cite{gotovos15sampling}.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Learning PSMs}
   \begin{itemize}
-    \item We are interested in applying these distributions to a dataset of geotagged photographs. \citet{tschiatschek16learning} studied learning a PSM from data, i.e. estimating the model parameters.
-    \item Maximum Likelihood Estimation is not tractable, because the exact computation of the partition function $Z$ is \#P-complete.
-    \item Noise Contrastive Estimation (NCE) was used as an alternative for learning the PSM.
-    \item We'll take a closer look at the model proposed by \citet{tschiatschek16learning}.
+    \item We applied these distributions to a dataset of geotagged photographs.
+    \item \citet{tschiatschek16learning} studied learning a PSM from data, i.e. estimating the model parameters.
+    \item Noise Contrastive Estimation was used as an alternative for learning the PSM.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Noise Contrastive Estimation}
   \begin{itemize}
-    \item Transform the task of estimating a distribution into a supervised learning task, namely a classification task.
+    \item Transform the task of estimating a distribution into a supervised classification task.
     \item Noise samples $\mathcal{N}$ are drawn from a known normalized distribution $P_{n}$ and contrasted with the data samples $\mathcal{D}$ assumed to come from a distribution $P_{d}$.
-    \item Partition function $Z$ becomes one of the parameters to estimate.
-    \item Stochastic Gradient Descent can be used to optimize the classification objective.
   \end{itemize}
 \end{frame}
 
@@ -250,6 +211,7 @@
 
 \begin{frame}{Submodular Model for Diversity}
   \begin{itemize}
+    \item This is the general form of the Facility Location Diversity (FLID) model proposed by \citet{tschiatschek16learning}.
     \item A submodular function for diversity,
       \begin{equation*}
         F(S) = u(S) + D(S)
@@ -259,13 +221,12 @@
      \begin{equation*}
        P(S) = \frac{1}{Z}\exp{\left(u(S) + D(S)\right)}
      \end{equation*}
-   \item This is the general form of the Facility Location Diversity (FLID) model proposed by \citet{tschiatschek16learning}.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Aggregating Utility}
   \begin{itemize}
-    \item A (sub)modular function
+    \item A modular function
       \begin{equation*}
         u(S) = \sum_{i \in S}u_{i}
       \end{equation*}
@@ -274,32 +235,57 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Quantifying Diversity (Simplified)}
+\begin{frame}{Quantifying Diversity}
   \begin{itemize}
     \item A submodular function
+    \only<1>{
       \begin{equation*}
         D_{d}(S) = \max_{i \in S}w_{i,d} - \sum_{i \in S}w_{i,d}
       \end{equation*}
+    }
+    \only<2>{
+      \begin{equation*}
+        D(S) = \sum_{d=1}^{L}\left(\max_{i \in S}{w_{i,d} - \sum_{i \in S}w_{i,d}}\right)
+      \end{equation*}
+    }
     where $w_{i}$ quantifies the contribution of item $i$ to some concept $d$ related to the diversity of the set.
-    \item For example, for the concept "is a museum" locations may have binary weights $w_{d} \in \{0,1\}$. Then a set with many museums is penalized with a negative value of $D_{d}(S)$
+    \only<1>{
+      \item For example, for the concept "is a museum" locations may have binary weights $w_{d} \in \{0,1\}$. Then a set with many museums is penalized with a negative value of $D_{d}(S)$
+    }
+    \only<2>{
+      \item FLID aggregates $L$ dimensions, where each represents one of these concepts.
+    }
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Quantifying Diversity}
-  \begin{itemize}
-    \item FLID uses $L$ dimensions capturing some diversity concepts. Each item can be represented with a vector $\mathbf{w}_{i} \in \mathbb{R}^{L}_{\geq 0}$.
-  \end{itemize}
   \begin{columns}
-    \begin{column}{0.45\textwidth}
+    \begin{column}{0.48\textwidth}
       \begin{figure}
         \centering
         \includegraphics[width=\textwidth]{fldc_toy_example_diversity_weights}
       \end{figure}
     \end{column}
-    \begin{column}{0.45\textwidth}
+    \begin{column}{0.48\textwidth}
+      1. Globus in Bahnhofstrasse
       \begin{figure}
         \centering
-        \includegraphics[width=\textwidth]{disjoint_pairs}
+        \includegraphics[height=.07\textheight]{globus_bahnhof}
+      \end{figure}
+      2. Opera house
+      \begin{figure}
+        \centering
+        \includegraphics[height=.07\textheight]{zurich_opera}
+      \end{figure}
+      3. Globus Am Bellevue
+      \begin{figure}
+        \centering
+        \includegraphics[height=.07\textheight]{globus_bellevue}
+      \end{figure}
+      4. Landesmuseum
+      \begin{figure}
+        \centering
+        \includegraphics[height=.07\textheight]{landesmuseum}
       \end{figure}
     \end{column}
   \end{columns}
@@ -308,20 +294,43 @@
 
 \begin{frame}{FLID}
   \begin{equation*}
-    P(S) = \frac{1}{Z}\exp{\left(\sum_{i \in s} u_{i} + \sum_{d=1}^{L}\max_{i \in S}{w_{i,d} - \sum_{i \in S}w_{i,d}}\right)}
+    P(S) = \frac{1}{Z}\exp{\left(\sum_{i \in s} u_{i} + \sum_{d=1}^{L}\left(\max_{i \in S}{w_{i,d} - \sum_{i \in S}w_{i,d}}\right)\right)}
   \end{equation*}
   \begin{itemize}
     \item Learning can be performed efficiently, in $\mathcal{O}(|\mathcal{D} \cup \mathcal{N}|L\kappa)$ where $\kappa = \argmax_{S \in \mathcal{D} \cup \mathcal{N}}|S|$.
-    \item For small $L$, exact computation of $Z$ is feasible.
-    \item Applications shown by \citet{tschiatschek16learning}:
-      \begin{itemize}
-        \item Product recommendation with Amazon baby registries.
-        \item Summarization of an image collection.
-      \end{itemize}
   \end{itemize}
 \end{frame}
 
 \section{Beyond Diversity: FLDC}
+
+\begin{frame}{A Different Perspective}
+  \begin{columns}
+    \begin{column}{0.48\textwidth}
+       1. Globus in Bahnhofstrasse
+       \begin{figure}
+         \centering
+         \includegraphics[height=.2\textheight]{globus_bahnhof}
+       \end{figure}
+       2. Landesmuseum
+       \begin{figure}
+         \centering
+         \includegraphics[height=.2\textheight]{landesmuseum}
+       \end{figure}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      3. Globus Am Bellevue
+      \begin{figure}
+        \centering
+        \includegraphics[height=.2\textheight]{globus_bellevue}
+      \end{figure}
+      4. Opera house
+      \begin{figure}
+        \centering
+        \includegraphics[height=.2\textheight]{zurich_opera}
+      \end{figure}
+    \end{column}
+  \end{columns}
+\end{frame}
 
 \begin{frame}{Quantifiying Complementarity}
   \begin{figure}
@@ -330,13 +339,13 @@
   \end{figure}
 \end{frame}
 
-\begin{frame}{Facility Location Diversity and Coherence}
+\begin{frame}{Facility Location Diversity and Complementarity}
   \begin{itemize}
-    \item We propose adding a similar supermodular term to FLID to model complementarity.
+    \item We propose extending FLID with a supermodular term.
       \begin{equation*}
-        P(S) = \frac{1}{Z}\exp{\left(u(S) + D(S) + \sum_{c=1}^{K}\sum_{i \in S}w^{e}_{i,c} - \max_{i \in S}{w^{e}_{i,c}}\right)}
+        P(S) = \frac{1}{Z}\exp{\left(u(S) + D(S) - \sum_{c=1}^{K}\left(\max_{i \in S}{w^{e}_{i,c}} - \sum_{i \in S}w^{e}_{i,c}\right)\right)}
       \end{equation*}
-   \item Complexity of learning is only increased by a factor of $K$.
+   \item Learning complexity is only increased by a factor of $K$.
   \end{itemize}
 \end{frame}
 
@@ -369,12 +378,12 @@
         \item \textit{\{Grossmünster, Hauptbahnhof\}}
         \item \textit{\{Fraumünster, Grossmünster\}}
       \end{itemize}
+    \item The test set is $S = \{l_{1}, \dots, l_{n}\} \setminus \{l_{t}\}$.
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Experimental Setup: Baselines}
   \begin{itemize}
-    \item The test set is $S = \{l_{1}, \dots, l_{n}\} \setminus \{l_{t}\}$.
     \item Modular
       \begin{equation*}
          \argmax_{i \notin S} u_{i}
@@ -385,14 +394,21 @@
       \end{equation*}
     \item FLID
       \begin{equation*}
-        \argmax_{i \notin S} P_{FLID}(S)
+        \argmax_{i \notin S} P_{\textrm{FLID}}(S)
       \end{equation*}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Experimental Setup: Ordered Baselines}
+\begin{frame}{Results - Sets}
+  \begin{figure}
+    \centering
+    \includegraphics[width=.85\textwidth]{all_models_100_presentation_a}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Experimental Setup: Baselines with Paths}
   \begin{itemize}
-    \item The ordered test set is $S_{n} = [l_{1}, \dots, l_{t-1}, l_{t+1}, \dots, l_{n}]$.
+    \item The test path is $S_{n} = [l_{1}, \dots, l_{t-1}, l_{t+1}, \dots, l_{n}]$.
     \item Markov model
       \begin{equation*}
         \argmax_{i \in V} P(i \mid l_{t-1})P(l_{t+1} \mid i)
@@ -402,16 +418,16 @@
         \argmax_{i \notin S_{n}} P(i \mid l_{t-1})P(l_{t+1} \mid i)
       \end{equation*}
     \item Proximity ordered model
-      \begin{equation}
+      \begin{equation*}
         \argmin_{i \notin S_{n}} d(i, l_{t-1}) + d(i, l_{t+1})
-      \end{equation}
+      \end{equation*}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Results - Accuracy}
+\begin{frame}{Results - Paths}
   \begin{figure}
     \centering
-    \includegraphics[width=.85\textwidth]{all_models_100_presentation}
+    \includegraphics[width=.85\textwidth]{all_models_100_presentation_b}
   \end{figure}
 \end{frame}
 
@@ -425,7 +441,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Featurized Facility Location Diversity and Coherence}
+\begin{frame}{Featurized Facility Location Diversity and Complementarity}
   \begin{itemize}
     \item Define a feature matrix for all items in $V$, i.e. $\mathbf{X} \in \mathbb{R}^{|V| \times M}$.
     \item Factorize the model parameters $\mathbf{u}, \mathbf{W}^{b}, \mathbf{W}^{e}$
@@ -465,20 +481,10 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Experimental Setup: Evaluation}
-  \begin{equation*}
-    \mathrm{LLRI} = 100\frac{\mathcal{L}_{model} - \mathcal{L}_{log-modular}}{|\mathcal{L}_{log-modular}|}
-  \end{equation*}
-  \begin{itemize}
-    \item It measures the model fit on test data.
-    \item For the small dataset, the accuracy is already at 40\% with the modular model and does not improve.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Results - LLRI}
+\begin{frame}{Results - Negative Log-likelihood}
   \begin{figure}
     \centering
-    \includegraphics[width=.8\textwidth]{ffldc_10_llri}
+    \includegraphics[width=.8\textwidth]{ffldc_10_nlog}
   \end{figure}
 \end{frame}
 

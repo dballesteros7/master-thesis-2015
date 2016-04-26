@@ -278,21 +278,30 @@ def log_likelihood_features():
         loaded_test_data = file.load_csv_test_data(
                     constants.TEST_DATA_PATH_TPL.format(
                         fold=fold, dataset=dataset_name))
+        modular_no_features = ModularWithFeatures(10, np.identity(10))
+        modular_no_features.train(file.load_csv_test_data(
+            constants.TRAIN_DATA_PATH_TPL.format(
+                fold=fold, dataset=dataset_name)))
+        ll_column.append(modular_no_features.log_likelihood(loaded_test_data))
+        type_column.append('Modular')
         modular = ModularWithFeatures(10, features.as_array())
         modular.train(file.load_csv_test_data(
             constants.TRAIN_DATA_PATH_TPL.format(
                 fold=fold, dataset=dataset_name)))
         ll_modular = modular.log_likelihood(loaded_test_data)
+        ll_column.append(ll_modular)
+        type_column.append('Modular with features')
         model = GeneralFeatures(10, features.as_array(), 5, 5)
         model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
             dataset=dataset_name, fold=fold, l_dim=5, k_dim=5,
-            index=features.index, iter=5000,
-            noise=5, eta_0=0.1, adagrad=1))
+            index=features.index, iter=1000,
+            noise=5, eta_0=1, adagrad=1))
 
         ll = model.log_likelihood(loaded_test_data)
         llri = 100*(ll - ll_modular) / abs(ll_modular)
+        llri = ll
         ll_column.append(llri)
-        type_column.append('FFLDC')
+        type_column.append('FFLDC (Features)')
         model = GeneralFeatures(10, np.identity(10), 5, 5)
         model.load_from_file(constants.NCE_OUT_GENERAL_PATH_TPL.format(
             dataset=dataset_name, fold=fold, l_dim=5, k_dim=5,
@@ -301,25 +310,25 @@ def log_likelihood_features():
 
         ll = model.log_likelihood(loaded_test_data)
         llri = 100*(ll - ll_modular) / abs(ll_modular)
+        llri = ll
         ll_column.append(llri)
-        type_column.append('FLDC')
+        type_column.append('FLDC (No features)')
 
     dataset = pd.DataFrame({
-        'll': ll_column,
+        'll': -np.array(ll_column),
         'type': type_column
     })
     ax = sns.barplot(x='type', y='ll', data=dataset)
     ax.set_xlabel('Model')
-    ax.set_ylabel('LLRI')
+    ax.set_ylabel('')
     #ax.set_ylabel(r'Accuracy (\%)')
-    ax.set_title('LLRI comparison for FLDC and FFLDC')
-    #ax.set_ylim([0, 45])
+    ax.set_title('Negative log-likelihood for Different Models')
 
     # modular_mean = 100*np.mean(rank_results_pandas(dataset_name, 'modular_features_0', 0))
     # plt.plot(ax.get_xlim(), [modular_mean, modular_mean], linestyle='dotted')
     #
     plt.savefig(os.path.join(
-        constants.IMAGE_PATH, 'ffldc_10_llri.eps'),
+        constants.IMAGE_PATH, 'ffldc_10_nlog.eps'),
         bbox_inches='tight')
 
     plt.show()
